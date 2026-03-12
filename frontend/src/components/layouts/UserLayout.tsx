@@ -1,26 +1,26 @@
 import { useAuthStore } from '@/stores/authStore'
-import { Activity, ArrowLeft, LayoutDashboard, LogOut, MapPinned, Settings, Users } from 'lucide-react'
+import { ArrowLeft, LayoutDashboard, LogOut, Map, Plane, Sparkles, Users } from 'lucide-react'
 import { useMemo } from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 
 const LINKS = [
   { to: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { to: 'users', label: 'Users', icon: Users },
-  { to: 'trips', label: 'Trips', icon: MapPinned },
-  { to: 'analytics', label: 'Analytics', icon: Activity },
-  { to: 'settings', label: 'Settings', icon: Settings },
+  { to: 'maps', label: 'Maps', icon: Map },
+  { to: 'trips', label: 'Trip Hub', icon: Plane },
+  { to: 'groups', label: 'Groups', icon: Users },
+  { to: 'ai', label: 'AI Agent', icon: Sparkles },
 ]
 
-export default function AdminLayout() {
+export default function UserLayout() {
   const location = useLocation()
   const navigate = useNavigate()
   const { user, logout } = useAuthStore()
 
   const activePath = useMemo(() => location.pathname.replace(/\/+$/, ''), [location.pathname])
   const activeLabel = useMemo(() => {
-    if (activePath === '/admin') return 'Dashboard'
-    const match = LINKS.find((l) => activePath.startsWith('/admin/' + l.to))
-    return match?.label ?? 'Admin'
+    if (activePath === '/user' || activePath === '/user/dashboard') return 'Dashboard'
+    const match = LINKS.find((l) => activePath.startsWith('/user/' + l.to))
+    return match?.label ?? 'User space'
   }, [activePath])
 
   return (
@@ -35,17 +35,17 @@ export default function AdminLayout() {
                 </div>
                 <div>
                   <div className='text-xs font-semibold uppercase tracking-[0.2em] text-zinc-400'>Trippple</div>
-                  <div className='text-sm font-semibold text-zinc-900'>Admin panel</div>
+                  <div className='text-sm font-semibold text-zinc-900'>User panel</div>
                 </div>
               </div>
               <div className='mt-3 text-xs text-zinc-500'>
-                Signed in as <span className='font-semibold text-zinc-700'>{user?.name ?? 'Guest'}</span>
+                Welcome, <span className='font-semibold text-zinc-700'>{user?.name ?? 'Guest'}</span>
               </div>
             </div>
 
             <div className='mt-5 space-y-2'>
               {LINKS.map((link) => {
-                const isActive = activePath === '/admin' ? link.to === 'dashboard' : activePath.startsWith('/admin/' + link.to)
+                const isActive = activePath === '/user' ? link.to === 'dashboard' : activePath.startsWith('/user/' + link.to)
                 return (
                   <Link
                     key={link.to}
@@ -87,12 +87,12 @@ export default function AdminLayout() {
           <section className='rounded-[28px] border border-[#eceff3] bg-white shadow-[0_24px_70px_rgba(15,23,42,0.08)]'>
             <header className='flex flex-wrap items-center justify-between gap-4 border-b border-[#f0ebe2] px-6 py-5 sm:px-8'>
               <div>
-                <div className='text-xs font-semibold uppercase tracking-[0.2em] text-zinc-400'>Admin</div>
+                <div className='text-xs font-semibold uppercase tracking-[0.2em] text-zinc-400'>User</div>
                 <h1 className='text-2xl font-semibold text-zinc-900 sm:text-3xl'>{activeLabel}</h1>
                 <p className='text-xs text-zinc-500'>Route: {activePath}</p>
               </div>
               <div className='rounded-2xl border border-[#f0ebe2] bg-[#f7f2ea] px-4 py-2 text-xs font-semibold text-zinc-600'>
-                Status: {user?.admin ? 'Admin' : 'Viewer'}
+                Plan with confidence
               </div>
             </header>
 

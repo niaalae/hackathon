@@ -13,9 +13,12 @@ interface RegisterData {
 }
 
 interface User {
-  id: number
+  id: string
   name: string
   admin: boolean
+  email: string
+  roleId: string
+  preferences?: string | null
 }
 
 interface AuthStoreInterface {
@@ -47,7 +50,7 @@ export const useAuthStore = create<AuthStoreInterface>((set) => ({
   },
   refresh: async () => {
     try {
-      const res = await axios.post(import.meta.env.VITE_PUBLIC_API_URL + '/refresh', {}, { withCredentials: true })
+      const res = await axios.post<{ user: User; token: string }>(import.meta.env.VITE_PUBLIC_API_URL + '/refresh', {}, { withCredentials: true })
       set({ token: res.data.token, user: res.data.user })
     } catch (e) {
       console.log(e)
