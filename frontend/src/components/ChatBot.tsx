@@ -91,8 +91,8 @@ export default function ChatBot() {
                             <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                                 <div
                                     className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-[13px] leading-relaxed ${msg.role === 'user'
-                                            ? 'bg-orange-500 text-white'
-                                            : 'bg-zinc-100 text-zinc-700'
+                                        ? 'bg-orange-500 text-white'
+                                        : 'bg-zinc-100 text-zinc-700'
                                         }`}
                                 >
                                     {msg.content}
