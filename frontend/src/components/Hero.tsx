@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { ArrowRight } from 'lucide-react'
 
 const travelImages = [
@@ -85,39 +85,28 @@ function ImageCard({ src, alt, className }: { src: string; alt: string; classNam
   )
 }
 
-function TypingPlaceholder() {
+function FadePlaceholder() {
   const [currentIndex, setCurrentIndex] = useState(0)
-  const [displayText, setDisplayText] = useState('')
-  const [isDeleting, setIsDeleting] = useState(false)
-
-  const tick = useCallback(() => {
-    const fullText = placeholders[currentIndex]
-    if (!isDeleting) {
-      setDisplayText(fullText.substring(0, displayText.length + 1))
-      if (displayText.length + 1 === fullText.length) {
-        setTimeout(() => setIsDeleting(true), 1800)
-        return
-      }
-    } else {
-      setDisplayText(fullText.substring(0, displayText.length - 1))
-      if (displayText.length - 1 === 0) {
-        setIsDeleting(false)
-        setCurrentIndex((prev) => (prev + 1) % placeholders.length)
-        return
-      }
-    }
-  }, [displayText, isDeleting, currentIndex])
+  const [visible, setVisible] = useState(true)
 
   useEffect(() => {
-    const speed = isDeleting ? 30 : 60
-    const timer = setTimeout(tick, speed)
-    return () => clearTimeout(timer)
-  }, [tick, isDeleting])
+    const cycle = () => {
+      setVisible(false)
+      setTimeout(() => {
+        setCurrentIndex((prev) => (prev + 1) % placeholders.length)
+        setVisible(true)
+      }, 500)
+    }
+    const interval = setInterval(cycle, 3000)
+    return () => clearInterval(interval)
+  }, [])
 
   return (
-    <span className="pointer-events-none select-none text-zinc-400">
-      {displayText}
-      <span className="inline-block w-[2px] h-[18px] bg-orange-400 align-middle ml-[1px] animate-pulse" />
+    <span
+      className="pointer-events-none select-none text-zinc-400 transition-opacity duration-500 ease-in-out"
+      style={{ opacity: visible ? 1 : 0 }}
+    >
+      {placeholders[currentIndex]}
     </span>
   )
 }
@@ -169,7 +158,7 @@ export default function Hero() {
                   />
                   {!query && (
                     <div className="absolute inset-0 flex items-center px-5 pointer-events-none">
-                      <TypingPlaceholder />
+                      <FadePlaceholder />
                     </div>
                   )}
                 </div>
@@ -195,7 +184,7 @@ export default function Hero() {
                   />
                   {!query && (
                     <div className="absolute inset-0 flex items-center pl-5 pointer-events-none">
-                      <TypingPlaceholder />
+                      <FadePlaceholder />
                     </div>
                   )}
                 </div>
