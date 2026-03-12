@@ -13,10 +13,8 @@ function App() {
 	return (
 		<BrowserRouter>
 			<Routes>
-				<Route element={<Layout />}>
 					<Route index element={<Home />} />
 					<Route path='*' element={<>404</>} />
-				</Route>
 
 				<Route element={<RefreshWrapper />}>
 					<Route element={<AuthWrapper />}>

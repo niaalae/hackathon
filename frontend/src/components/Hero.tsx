@@ -1,125 +1,180 @@
-const cities = ["Fès", "Marrakech", "Meknès", "Rabat", "Casablanca"];
+'use client'
 
-const stats = [
-  { value: "5+", label: "launch cities" },
-  { value: "92%", label: "trusted route success target" },
-  { value: "24/7", label: "smart tourist assistance" },
-];
+import { ArrowRight, Star, MapPin, Heart, X } from 'lucide-react'
 
-function Hero() {
+const profiles = [
+  {
+    id: 1,
+    name: 'Sofia',
+    age: 28,
+    from: 'Spain',
+    where: 'Taghazout',
+    bio: 'Looking for surf partners',
+    img: '/surf-morocco.png',
+  },
+  {
+    id: 2,
+    name: 'Marcus',
+    age: 32,
+    from: 'Germany',
+    where: 'Chefchaouen',
+    bio: 'Photographer in the blue city',
+    img: '/chefchaouen.png',
+  },
+]
+
+function GradientMesh() {
   return (
-    <section className="mx-auto grid max-w-7xl items-center gap-14 px-6 pb-20 pt-16 lg:grid-cols-[1.05fr_0.95fr] lg:px-10 lg:pb-28 lg:pt-24">
-      <div>
-        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-violet-400/20 bg-violet-400/10 px-4 py-2 text-sm text-violet-100">
-          <span className="h-2 w-2 rounded-full bg-emerald-400" />
-          AI tourist companion for Morocco
-        </div>
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      <div
+        className="absolute -top-40 -right-40 h-[500px] w-[500px] rounded-full"
+        style={{
+          background: 'radial-gradient(circle, rgba(249, 115, 22, 0.15) 0%, transparent 70%)',
+          filter: 'blur(60px)',
+        }}
+      />
+      <div
+        className="absolute top-1/2 -left-20 h-[400px] w-[400px] rounded-full"
+        style={{
+          background: 'radial-gradient(circle, rgba(168, 85, 247, 0.08) 0%, transparent 70%)',
+          filter: 'blur(80px)',
+        }}
+      />
+      <div
+        className="absolute bottom-0 right-1/4 h-[300px] w-[300px] rounded-full"
+        style={{
+          background: 'radial-gradient(circle, rgba(59, 130, 246, 0.06) 0%, transparent 70%)',
+          filter: 'blur(60px)',
+        }}
+      />
+    </div>
+  )
+}
 
-        <h2 className="max-w-4xl text-5xl font-black leading-[1.02] tracking-tight text-white md:text-6xl xl:text-7xl">
-          Move through Morocco with{" "}
-          <span className="bg-gradient-to-r from-fuchsia-400 via-violet-300 to-cyan-300 bg-clip-text text-transparent">
-            confidence
-          </span>
-          , avoid scams, and discover authentic places.
-        </h2>
+export default function HeroSection() {
+  const current = profiles[0]
+  const next = profiles[1]
 
-        <p className="mt-6 max-w-2xl text-lg leading-8 text-white/65 md:text-xl">
-          A premium intelligent assistant designed for tourists visiting Moroccan
-          cities. It simplifies navigation in medinas, prevents common scams,
-          and recommends reliable places in real time.
-        </p>
+  return (
+    <section className="relative overflow-hidden px-6 pb-24 pt-32">
+      <GradientMesh />
 
-        <div className="mt-8 flex flex-col gap-4 sm:flex-row">
-          <a
-            href="#features"
-            className="inline-flex items-center justify-center rounded-full bg-white px-6 py-3.5 text-sm font-semibold text-slate-950 transition hover:scale-[1.02]"
-          >
-            Explore Features
-          </a>
-
-          <a
-            href="#mvp"
-            className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/5 px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-white/10"
-          >
-            See MVP Flow
-          </a>
-        </div>
-
-        <div className="mt-10 grid gap-4 sm:grid-cols-3">
-          {stats.map((stat) => (
-            <div
-              key={stat.label}
-              className="rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl"
-            >
-              <div className="text-3xl font-black text-white">{stat.value}</div>
-              <div className="mt-2 text-sm text-white/55">{stat.label}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="relative">
-        <div className="rounded-[32px] border border-white/10 bg-white/5 p-5 shadow-[0_30px_120px_rgba(0,0,0,0.45)] backdrop-blur-2xl">
-          <div className="rounded-[28px] border border-white/10 bg-[#0a1022] p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-white/45">Live city coverage</p>
-                <h3 className="mt-1 text-2xl font-bold text-white">
-                  Tourist Companion
-                </h3>
-              </div>
-
-              <div className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-300">
-                Online
-              </div>
+      <div className="relative mx-auto max-w-6xl">
+        <div className="grid items-center gap-16 lg:grid-cols-2">
+          <div>
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-zinc-700/50 bg-zinc-800/50 px-3 py-1.5">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+              </span>
+              <span className="text-[11px] text-zinc-400">12,847 travelers this month</span>
             </div>
 
-            <div className="mt-6 grid grid-cols-2 gap-3">
-              {cities.map((city) => (
-                <div
-                  key={city}
-                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-center text-sm font-medium text-white/85"
-                >
-                  {city}
+            <h1 className="mb-6 text-4xl font-bold tracking-tight leading-[1.1] sm:text-5xl lg:text-6xl">
+              Travel Morocco
+              <br />
+              <span className="bg-gradient-to-r from-orange-400 via-orange-500 to-amber-500 bg-clip-text text-transparent">
+                without the stress
+              </span>
+            </h1>
+
+            <p className="mb-8 max-w-lg text-lg leading-relaxed text-zinc-400">
+              Smart navigation, real-time scam alerts, and trusted local
+              recommendations. Everything you need for a safe, authentic Morocco
+              experience.
+            </p>
+
+            <div className="mb-10 flex flex-col gap-4 sm:flex-row">
+              <button className="flex h-12 items-center justify-center rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 px-6 text-[15px] font-medium text-white shadow-xl shadow-orange-500/20 transition hover:from-orange-600 hover:to-orange-700">
+                Download free
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </button>
+
+              <button className="flex h-12 items-center justify-center rounded-xl border border-zinc-700 px-6 text-[15px] text-zinc-300 transition hover:bg-zinc-800/50 hover:text-white">
+                <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+                Watch demo
+              </button>
+            </div>
+
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-1.5">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
+                ))}
+                <span className="ml-1.5 text-sm text-zinc-400">4.9 on App Store</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="relative flex justify-center">
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+              <div className="h-[400px] w-[400px] rounded-full border border-zinc-800/30" />
+              <div className="absolute h-[300px] w-[300px] rounded-full border border-zinc-800/20" />
+            </div>
+
+            <div className="relative h-[400px] w-full max-w-[280px]">
+              <div
+                className="absolute inset-0 overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900"
+                style={{ transform: 'scale(0.95) translateY(16px)', opacity: 0.4 }}
+              >
+                <img
+                  src={next.img}
+                  alt=""
+                  className="h-full w-full object-cover opacity-70"
+                />
+              </div>
+
+              <div className="absolute inset-0 overflow-hidden rounded-2xl border border-zinc-700 bg-zinc-900 shadow-2xl shadow-black/50">
+                <img
+                  src={current.img}
+                  alt={current.name}
+                  className="h-full w-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+
+                <div className="absolute bottom-0 left-0 right-0 p-5">
+                  <div className="mb-3 flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full border border-zinc-600 bg-gradient-to-br from-zinc-700 to-zinc-800" />
+                    <div>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-lg font-semibold">{current.name}</span>
+                        <span className="text-sm text-zinc-400">{current.age}</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-xs text-zinc-500">
+                        <MapPin className="h-3 w-3" />
+                        {current.from} · {current.where}
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="mb-3 text-sm text-zinc-300">{current.bio}</p>
+
+                  <div className="flex gap-2">
+                    <span className="rounded-full bg-zinc-800/80 px-2.5 py-1 text-[11px] text-zinc-400">
+                      Travel
+                    </span>
+                    <span className="rounded-full bg-zinc-800/80 px-2.5 py-1 text-[11px] text-zinc-400">
+                      Adventure
+                    </span>
+                  </div>
                 </div>
-              ))}
+              </div>
             </div>
 
-            <div className="mt-6 rounded-3xl border border-violet-400/20 bg-gradient-to-br from-violet-500/10 via-fuchsia-500/10 to-cyan-500/10 p-5">
-              <p className="text-sm text-white/55">Core promise</p>
-              <p className="mt-2 text-lg font-semibold text-white">
-                Safer movement, trusted discovery, and a more reassuring tourist
-                experience across Morocco.
-              </p>
-            </div>
+            <div className="absolute -bottom-16 left-1/2 flex -translate-x-1/2 items-center gap-4">
+              <button className="flex h-12 w-12 items-center justify-center rounded-full border border-zinc-700 bg-zinc-800/80 text-zinc-400 transition-all duration-200 hover:border-rose-500/50 hover:bg-rose-500/10 hover:text-rose-400">
+                <X className="h-5 w-5" />
+              </button>
 
-            <div className="mt-4 space-y-3">
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                <p className="text-sm font-semibold text-white">Anti-scam alerts</p>
-                <p className="mt-1 text-sm text-white/55">
-                  Detects risky areas and warns users before common tourist traps.
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                <p className="text-sm font-semibold text-white">Verified places</p>
-                <p className="mt-1 text-sm text-white/55">
-                  Reliable riads, restaurants, artisans, cafés, and cultural spots.
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                <p className="text-sm font-semibold text-white">Smart routing</p>
-                <p className="mt-1 text-sm text-white/55">
-                  Clear guidance with landmarks, confidence score, and local context.
-                </p>
-              </div>
+              <button className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-lg shadow-emerald-500/30 transition-transform duration-200 hover:scale-110">
+                <Heart className="h-6 w-6 fill-white" />
+              </button>
             </div>
           </div>
         </div>
       </div>
     </section>
-  );
+  )
 }
-
-export default Hero;

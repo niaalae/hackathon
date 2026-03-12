@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 @theme {
   --color-background: oklch(93.2% 0.032 255.585);
   --color-primary: oklch(64.78% 0.1035 229.52);

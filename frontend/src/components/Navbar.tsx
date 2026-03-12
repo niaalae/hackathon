@@ -1,46 +1,51 @@
-function Navbar() {
+'use client'
+
+export default function Navbar() {
   return (
-    <header className="sticky top-0 z-50 border-b border-white/10 bg-[#050816]/70 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-10">
-        <a href="#" className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-fuchsia-500 via-violet-500 to-cyan-400 shadow-lg shadow-violet-950/40">
-            <span className="text-lg font-black text-white">M</span>
+    <header
+      className="fixed top-0 left-0 right-0 z-50 border-b border-white/5"
+      style={{ background: 'rgba(9, 9, 11, 0.8)', backdropFilter: 'blur(12px)' }}
+    >
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 shadow-lg shadow-orange-500/20">
+              <span className="text-xs font-bold text-white">M</span>
+            </div>
           </div>
 
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/45">
-              Hackathon IA
-            </p>
-            <h1 className="text-base font-semibold text-white">
-              Morocco Trust Travel
-            </h1>
+            <span className="text-sm font-semibold tracking-tight text-white">
+              Morocco Pass
+            </span>
+            <span className="ml-2 hidden rounded bg-zinc-800/50 px-1.5 py-0.5 text-[10px] text-zinc-500 sm:inline">
+              BETA
+            </span>
           </div>
-        </a>
+        </div>
 
-        <nav className="hidden items-center gap-8 md:flex">
-          <a href="#problem" className="text-sm text-white/70 transition hover:text-white">
-            Problem
-          </a>
-          <a href="#features" className="text-sm text-white/70 transition hover:text-white">
+        <nav className="hidden items-center gap-8 text-[13px] text-zinc-400 md:flex">
+          <a href="#features" className="transition-colors hover:text-white">
             Features
           </a>
-          <a href="#mvp" className="text-sm text-white/70 transition hover:text-white">
-            MVP
+          <a href="#cities" className="transition-colors hover:text-white">
+            Cities
           </a>
-          <a href="#cta" className="text-sm text-white/70 transition hover:text-white">
-            Contact
+          <a href="#pricing" className="transition-colors hover:text-white">
+            Pricing
           </a>
         </nav>
 
-        <a
-          href="#cta"
-          className="rounded-full border border-white/15 bg-white/10 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-white/15"
-        >
-          View Project
-        </a>
+        <div className="flex items-center gap-3">
+          <button className="h-9 px-3 text-[13px] text-zinc-400 transition-colors hover:text-white">
+            Sign in
+          </button>
+
+          <button className="h-9 rounded-lg bg-gradient-to-r from-orange-500 to-orange-600 px-4 text-[13px] font-medium text-white shadow-lg shadow-orange-500/20 transition hover:from-orange-600 hover:to-orange-700">
+            Get started
+          </button>
+        </div>
       </div>
     </header>
-  );
+  )
 }
-
-export default Navbar;
