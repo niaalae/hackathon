@@ -1,0 +1,20 @@
+model Role {
+    id    String @id() @default(uuid())
+    name  String @unique
+    users User[]
+}
+
+model User {
+    id        String     @id() @default(uuid())
+    name      String
+    email     String     @unique
+    password  String
+    roleId    String
+    role      Role       @relation(fields: [roleId], references: [id])
+    tripUsers TripUser[]
+    ratings   Rating[]
+
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+    deletedAt DateTime?
+}

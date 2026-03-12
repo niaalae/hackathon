@@ -1,0 +1,40 @@
+model Trip {
+  id           String       @id @default(uuid())
+  dateTime     DateTime
+  tripPolyline String
+  cityId       String
+  city         City         @relation(fields: [cityId], references: [id])
+  tripUsers    TripUser[]
+  tripPlaces   TripPlaces[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  deletedAt    DateTime?
+}
+
+model TripUser {
+  tripId   String
+  userId   String
+  role     TripUserRole @default(member)
+  joinedAt DateTime     @default(now())
+
+  trip Trip @relation(fields: [tripId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  @@id([tripId, userId])
+}
+
+enum TripUserRole {
+  owner
+  member
+}
+
+model TripPlaces {
+  tripId  String
+  placeId String
+  index   Int
+
+  trip  Trip  @relation(fields: [tripId], references: [id])
+  place Place @relation(fields: [placeId], references: [id])
+
+  @@id([tripId, placeId])
+}

@@ -1,0 +1,34 @@
+model Category {
+  id              String  @id() @default(uuid())
+  name_key        String  @unique
+  description_key String  @unique
+  places          Place[]
+}
+
+model Place {
+  id              String       @id @default(uuid())
+  name_key        String       @unique
+  description_key String       @unique
+  coords          Json
+  images          String[]
+  video           String
+  tags            String[]
+  entryFee        Float
+  openingHours    String
+  cityId          String
+  city            City         @relation(fields: [cityId], references: [id])
+  categoryId      String
+  category        Category     @relation(fields: [categoryId], references: [id])
+  ratings         Rating[]
+  tripPlaces      TripPlaces[]
+}
+
+model Rating {
+  id      String  @id @default(uuid())
+  value   Int
+  comment String?
+  placeId String
+  place   Place   @relation(fields: [placeId], references: [id])
+  userId  String
+  user    User    @relation(fields: [userId], references: [id])
+}

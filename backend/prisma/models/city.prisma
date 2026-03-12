@@ -1,0 +1,16 @@
+model Region {
+  id       String @id @default(uuid())
+  name_key String @unique
+  cities   City[]
+}
+
+model City {
+  id       String   @id @default(uuid())
+  name_key String   @unique
+  coords   Json
+  images   String[]
+  regionId String
+  region   Region   @relation(fields: [regionId], references: [id])
+  trips    Trip[]
+  places   Place[]
+}
