@@ -1,110 +1,150 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { CreatePlaceDto } from '@/admin/dto/place/create-place.dto';
 import { UpdatePlaceDto } from '@/admin/dto/place/update-place.dto';
 import { getPrismaErrorCode } from '@/prisma/prisma-error.util';
-import { Prisma } from '@prisma/client';
-import { EmbeddingService } from './embedding.service';
 
 @Injectable()
 export class PlaceService {
-  constructor(
-    private readonly prismaService: PrismaService,
-    private readonly embeddingService: EmbeddingService,
-  ) {}
-
-  private async savePlaceEmbedding(placeId: string, text?: string) {
-    const embedding = await this.embeddingService.embedText(text);
-    if (!embedding) return;
-
-    await this.prismaService.$executeRaw`
-      UPDATE "Place"
-      SET "name_embedding" = ${this.embeddingService.toVectorLiteral(embedding)}::vector
-      WHERE "id" = ${placeId}
-    `;
-  }
+  constructor(private readonly prismaService: PrismaService) {}
 
   async create(createPlaceDto: CreatePlaceDto) {
     try {
-      const place = await this.prismaService.place.create({
+      const attraction = await this.prismaService.attraction.create({
         data: {
-          name_key: createPlaceDto.name_key,
-          description_key: createPlaceDto.description_key,
-          coords: createPlaceDto.coords as Prisma.InputJsonValue,
-          images: createPlaceDto.images,
-          video: createPlaceDto.video,
-          tags: createPlaceDto.tags,
-          entryFee: createPlaceDto.entryFee,
-          openingHours: createPlaceDto.openingHours,
+          name: createPlaceDto.name,
+          slug: createPlaceDto.slug,
+          type: createPlaceDto.type,
+          lat: createPlaceDto.lat,
+          lng: createPlaceDto.lng,
+          description: createPlaceDto.description,
+          avgPrice: createPlaceDto.avgPrice,
+          durationMinutes: createPlaceDto.durationMinutes,
+          coverImage: createPlaceDto.coverImage,
           city: { connect: { id: createPlaceDto.cityId } },
-          category: { connect: { id: createPlaceDto.categoryId } },
+          tags: createPlaceDto.tagIds?.length
+            ? {
+                createMany: {
+                  data: createPlaceDto.tagIds.map((tagId) => ({ tagId })),
+                  skipDuplicates: true,
+                },
+              }
+            : undefined,
+          media: createPlaceDto.media?.length
+            ? {
+                createMany: {
+                  data: createPlaceDto.media.map((item, index) => ({
+                    type: item.type,
+                    url: item.url,
+                    caption: item.caption,
+                    position: item.position ?? index,
+                  })),
+                },
+              }
+            : undefined,
+        },
+        include: {
+          city: true,
+          media: true,
+          tags: { include: { tag: true } },
         },
       });
 
-      await this.savePlaceEmbedding(place.id, createPlaceDto.name_key);
-
-      return place;
+      return attraction;
     } catch (e) {
       if (getPrismaErrorCode(e) === 'P2002')
-        throw new ConflictException('Place key already exists');
+        throw new ConflictException('Attraction with same slug already exists');
       throw e;
     }
   }
 
   findAll() {
-    return this.prismaService.place.findMany();
+    return this.prismaService.attraction.findMany({
+      include: {
+        city: true,
+        media: true,
+        tags: { include: { tag: true } },
+      },
+    });
   }
 
   findOne(id: string) {
-    return this.prismaService.place.findUnique({ where: { id } });
+    return this.prismaService.attraction.findUnique({
+      where: { id },
+      include: {
+        city: true,
+        media: true,
+        tags: { include: { tag: true } },
+      },
+    });
   }
 
   async update(id: string, updatePlaceDto: UpdatePlaceDto) {
     try {
-      const place = await this.prismaService.place.update({
-        where: { id },
-        data: {
-          name_key: updatePlaceDto.name_key,
-          description_key: updatePlaceDto.description_key,
-          coords: updatePlaceDto.coords as Prisma.InputJsonValue | undefined,
-          images: updatePlaceDto.images,
-          video: updatePlaceDto.video,
-          tags: updatePlaceDto.tags,
-          entryFee: updatePlaceDto.entryFee,
-          openingHours: updatePlaceDto.openingHours,
-          city: updatePlaceDto.cityId
-            ? { connect: { id: updatePlaceDto.cityId } }
-            : undefined,
-          category: updatePlaceDto.categoryId
-            ? { connect: { id: updatePlaceDto.categoryId } }
-            : undefined,
-        },
+      return await this.prismaService.$transaction(async (tx) => {
+        if (updatePlaceDto.tagIds) {
+          await tx.attractionTagMap.deleteMany({ where: { attractionId: id } });
+          if (updatePlaceDto.tagIds.length) {
+            await tx.attractionTagMap.createMany({
+              data: updatePlaceDto.tagIds.map((tagId) => ({ attractionId: id, tagId })),
+              skipDuplicates: true,
+            });
+          }
+        }
+
+        if (updatePlaceDto.media) {
+          await tx.attractionMedia.deleteMany({ where: { attractionId: id } });
+          if (updatePlaceDto.media.length) {
+            await tx.attractionMedia.createMany({
+              data: updatePlaceDto.media.map((item, index) => ({
+                attractionId: id,
+                type: item.type,
+                url: item.url,
+                caption: item.caption,
+                position: item.position ?? index,
+              })),
+            });
+          }
+        }
+
+        return tx.attraction.update({
+          where: { id },
+          data: {
+            name: updatePlaceDto.name,
+            slug: updatePlaceDto.slug,
+            type: updatePlaceDto.type,
+            lat: updatePlaceDto.lat,
+            lng: updatePlaceDto.lng,
+            description: updatePlaceDto.description,
+            avgPrice: updatePlaceDto.avgPrice,
+            durationMinutes: updatePlaceDto.durationMinutes,
+            coverImage: updatePlaceDto.coverImage,
+            city: updatePlaceDto.cityId
+              ? { connect: { id: updatePlaceDto.cityId } }
+              : undefined,
+          },
+          include: {
+            city: true,
+            media: true,
+            tags: { include: { tag: true } },
+          },
+        });
       });
-
-      if (updatePlaceDto.name_key !== undefined) {
-        await this.savePlaceEmbedding(place.id, updatePlaceDto.name_key);
-      }
-
-      return place;
     } catch (e) {
       if (getPrismaErrorCode(e) === 'P2002')
-        throw new ConflictException('Place key already exists');
+        throw new ConflictException('Attraction with same slug already exists');
       if (getPrismaErrorCode(e) === 'P2025')
-        throw new NotFoundException('Place not found');
+        throw new NotFoundException('Attraction not found');
       throw e;
     }
   }
 
   async remove(id: string) {
     try {
-      return await this.prismaService.place.delete({ where: { id } });
+      return await this.prismaService.attraction.delete({ where: { id } });
     } catch (e) {
       if (getPrismaErrorCode(e) === 'P2025')
-        throw new NotFoundException('Place not found');
+        throw new NotFoundException('Attraction not found');
       throw e;
     }
   }
@@ -112,28 +152,49 @@ export class PlaceService {
   async findRecommendedForUser(userId: string, limit = 10) {
     const user = await this.prismaService.user.findUnique({
       where: { id: userId },
-      select: { id: true },
+      select: { id: true, preferences: true },
     });
 
     if (!user) throw new NotFoundException('User not found');
 
-    const rows = await this.prismaService.$queryRaw<
-      Array<Record<string, unknown>>
-    >`
-      SELECT
-        p.*,
-        COALESCE(AVG(r.value), 0)::float AS "avgRating",
-        (p."name_embedding" <=> u."preferences_embedding")::float AS "distance"
-      FROM "Place" p
-      JOIN "User" u ON u.id = ${userId}
-      LEFT JOIN "Rating" r ON r."placeId" = p.id
-      WHERE u."preferences_embedding" IS NOT NULL
-        AND p."name_embedding" IS NOT NULL
-      GROUP BY p.id, u."preferences_embedding"
-      ORDER BY "distance" ASC, "avgRating" DESC
-      LIMIT ${limit}
-    `;
+    const preferences = (user.preferences ?? {}) as Record<string, unknown>;
+    const likedTags = Array.isArray(preferences.likedTags)
+      ? (preferences.likedTags as string[])
+      : [];
+    const likedTypes = Array.isArray(preferences.likedTypes)
+      ? (preferences.likedTypes as string[])
+      : [];
 
-    return rows;
+    const where =
+      likedTags.length || likedTypes.length
+        ? {
+            ...(likedTypes.length ? { type: { in: likedTypes } } : {}),
+            ...(likedTags.length
+              ? { tags: { some: { tag: { name: { in: likedTags } } } } }
+              : {}),
+          }
+        : undefined;
+
+    const recommendations = await this.prismaService.attraction.findMany({
+      where,
+      take: limit,
+      include: {
+        city: true,
+        media: true,
+        tags: { include: { tag: true } },
+      },
+    });
+
+    if (recommendations.length) return recommendations;
+
+    return this.prismaService.attraction.findMany({
+      take: limit,
+      include: {
+        city: true,
+        media: true,
+        tags: { include: { tag: true } },
+      },
+      orderBy: { name: 'asc' },
+    });
   }
 }

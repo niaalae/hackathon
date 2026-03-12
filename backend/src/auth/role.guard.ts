@@ -12,11 +12,12 @@ export function RoleGuard(roles: string[]): Type<CanActivate> {
       async function getUserAdmin(prisma: PrismaService): Promise<boolean> {
         const user = await prisma.user.findUnique({
           where: { id: req.user.id },
-          select: { role: { select: { name: true } } }
+          select: { role: true }
         })
         if (!user) throw new NotFoundException('User Not Found')
 
-        return user.role.name === 'admin'
+        const allowedRoles = roles.map((role) => role.toUpperCase())
+        return allowedRoles.includes(user.role)
       }
 
       try {

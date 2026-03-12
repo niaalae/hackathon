@@ -1,28 +1,91 @@
-import { IsArray, IsDateString, IsOptional, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsArray, IsDateString, IsEnum, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
+
+enum TripStatusDto {
+  DRAFT = 'DRAFT',
+  ACTIVE = 'ACTIVE',
+  COMPLETED = 'COMPLETED',
+  CANCELED = 'CANCELED',
+}
+
+enum CollaboratorRoleDto {
+  OWNER = 'OWNER',
+  EDITOR = 'EDITOR',
+  VIEWER = 'VIEWER',
+}
+
+class TripItemInputDto {
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  day?: number;
+
+  @IsString()
+  title: string;
+
+  @IsOptional()
+  @IsString()
+  location?: string;
+
+  @IsOptional()
+  @IsDateString()
+  time?: string;
+
+  @IsOptional()
+  @IsString()
+  notes?: string;
+
+  @IsOptional()
+  @IsString()
+  type?: string;
+}
+
+class TripCollaboratorInputDto {
+  @IsString()
+  userId: string;
+
+  @IsOptional()
+  @IsEnum(CollaboratorRoleDto)
+  role?: CollaboratorRoleDto;
+}
 
 export class CreateTripDto {
+  @IsString()
+  ownerUserId: string;
+
+  @IsString()
+  title: string;
+
+  @IsOptional()
+  @IsEnum(TripStatusDto)
+  status?: TripStatusDto;
+
+  @IsOptional()
   @IsDateString()
-  dateTime: string;
+  startDate?: string;
+
+  @IsOptional()
+  @IsDateString()
+  endDate?: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  budgetTotal?: number;
 
   @IsOptional()
   @IsString()
-  tripPolyline?: string;
+  currency?: string;
 
   @IsOptional()
   @IsArray()
-  @IsArray({ each: true })
-  routeCoords?: number[][];
-
-  @IsString()
-  cityId: string;
+  @ValidateNested({ each: true })
+  @Type(() => TripCollaboratorInputDto)
+  collaborators?: TripCollaboratorInputDto[];
 
   @IsOptional()
   @IsArray()
-  @IsString({ each: true })
-  userIds?: string[];
-
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  placeIds?: string[];
+  @ValidateNested({ each: true })
+  @Type(() => TripItemInputDto)
+  items?: TripItemInputDto[];
 }

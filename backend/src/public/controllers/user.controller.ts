@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Post,
@@ -19,8 +20,10 @@ export class UserPublicController {
   async placeFeedback(@Req() req: { user?: { id?: string } }, @Body() body: PlaceFeedbackDto) {
     const userId = req.user?.id;
     if (!userId) throw new UnauthorizedException('User not authenticated');
+    const targetId = body.attractionId ?? body.placeId;
+    if (!targetId) throw new BadRequestException('Attraction not provided');
 
-    return this.userService.applyPlaceFeedback(userId, body.placeId, body.liked);
+    return this.userService.applyPlaceFeedback(userId, targetId, body.liked);
   }
 
   @Post('reset-vector')

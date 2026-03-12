@@ -1,16 +1,35 @@
-import { IsArray, IsObject, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateCityDto {
-	@IsString()
-	name_key: string;
+  @IsString()
+  name: string;
 
-	@IsObject()
-	coords: Record<string, unknown>;
+  @IsString()
+  slug: string;
 
-	@IsArray()
-	@IsString({ each: true })
-	images: string[];
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  lat?: number;
 
-	@IsString()
-	regionId: string;
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  lng?: number;
+
+  @IsOptional()
+  @IsString()
+  timezone?: string;
+
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @IsOptional()
+  @IsString()
+  coverImage?: string;
+
+  @IsString()
+  regionId: string;
 }

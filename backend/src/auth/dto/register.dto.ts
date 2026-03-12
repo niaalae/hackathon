@@ -1,4 +1,10 @@
-import { IsEmail, IsOptional, IsString } from 'class-validator'
+import { IsEmail, IsEnum, IsOptional, IsString } from 'class-validator'
+
+enum UserRoleDto {
+  TRAVELER = 'TRAVELER',
+  GUIDE = 'GUIDE',
+  ADMIN = 'ADMIN',
+}
 
 export class RegisterDto {
   @IsString()
@@ -11,9 +17,9 @@ export class RegisterDto {
   password: string
 
   @IsOptional()
-  @IsString()
-  preferences?: string
+  preferences?: Record<string, unknown>
 
-  @IsString()
-  roleId: string
+  @IsOptional()
+  @IsEnum(UserRoleDto)
+  role?: UserRoleDto
 }

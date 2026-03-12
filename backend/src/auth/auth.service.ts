@@ -6,36 +6,26 @@ import { LoginDto } from './dto/login.dto'
 import { Request, Response } from 'express'
 import * as bcrypt from 'bcrypt'
 import { getPrismaErrorCode } from '@/prisma/prisma-error.util'
-import { EmbeddingService } from '@/services/embedding.service'
+import { normalizeJsonInput } from '@/prisma/prisma-json.util'
 
 @Injectable()
 export class AuthService {
   constructor(
     private prismaService: PrismaService,
-    private readonly jwtService: JwtService,
-    private readonly embeddingService: EmbeddingService
+    private readonly jwtService: JwtService
   ) {}
 
   async register(data: RegisterDto) {
     try {
-      const user = await this.prismaService.user.create({
+      await this.prismaService.user.create({
         data: {
           name: data.name,
           email: data.email,
-          password: await bcrypt.hash(data.password, 12),
-          preferences: data.preferences,
-          role: { connect: { id: data.roleId } }
+          passwordHash: await bcrypt.hash(data.password, 12),
+          preferences: normalizeJsonInput(data.preferences),
+          role: data.role ?? 'TRAVELER'
         }
       })
-
-      const embedding = await this.embeddingService.embedText(data.preferences)
-      if (embedding) {
-        await this.prismaService.$executeRaw`
-          UPDATE "User"
-          SET "preferences_embedding" = ${this.embeddingService.toVectorLiteral(embedding)}::vector
-          WHERE "id" = ${user.id}
-        `
-      }
     } catch (e) {
       if (getPrismaErrorCode(e) === 'P2002') throw new ConflictException('A user with the same email is already registered')
       throw e
@@ -49,10 +39,10 @@ export class AuthService {
 
     if (!user) throw new NotFoundException({ email: 'email_not_found' })
 
-    const valid = await bcrypt.compare(loginDto.password, user.password)
+    const valid = await bcrypt.compare(loginDto.password, user.passwordHash)
     if (!valid) throw new UnauthorizedException({ password: 'wrong_password' })
 
-    const { password: passwd, id, ...userData } = user
+    const { passwordHash: passwd, id, ...userData } = user
 
     const refreshToken = this.jwtService.sign({ id: user.id }, { expiresIn: '30d', secret: process.env.JWT_REFRESH_SECRET })
 
@@ -89,7 +79,7 @@ export class AuthService {
 
       if (!user) throw new NotFoundException('user_not_found')
 
-      const { password: passwd, id, ...userData } = user
+      const { passwordHash: passwd, id, ...userData } = user
 
       return {
         user: userData,

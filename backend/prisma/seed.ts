@@ -1,536 +1,516 @@
 import 'dotenv/config'
 import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
-import * as bcrypt from 'bcrypt'
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { randomUUID } from 'node:crypto'
 
-const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }) })
+const prisma = new PrismaClient({
+  adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL })
+})
 
-const MOROCCO_REGIONS = [
-  'region.tangier_tetouan_al_hoceima',
-  'region.oriental',
-  'region.fes_meknes',
-  'region.rabat_sale_kenitra',
-  'region.beni_mellal_khenifra',
-  'region.casablanca_settat',
-  'region.marrakesh_safi',
-  'region.draa_tafilalet',
-  'region.souss_massa',
-  'region.guelmim_oued_noun',
-  'region.laayoune_sakia_el_hamra',
-  'region.dakhla_oued_ed_dahab',
-] as const
+const DEFAULT_SCALE = 10
+const SCALE = Math.max(1, Number.parseInt(process.env.SEED_SCALE ?? `${DEFAULT_SCALE}`, 10) || DEFAULT_SCALE)
+const CHUNK_SIZE = 500
 
-const MOROCCO_CITIES = [
-  { name_key: 'city.al_hoceima', region_key: 'region.tangier_tetouan_al_hoceima', coords: { lat: 35.245114, lng: -3.930186 }, images: [] },
-  { name_key: 'city.fnideq', region_key: 'region.tangier_tetouan_al_hoceima', coords: { lat: 35.839209, lng: -5.361425 }, images: [] },
-  { name_key: 'city.ksar_el_kebir', region_key: 'region.tangier_tetouan_al_hoceima', coords: { lat: 34.999218, lng: -5.898724 }, images: [] },
-  { name_key: 'city.larache', region_key: 'region.tangier_tetouan_al_hoceima', coords: { lat: 35.195233, lng: -6.152913 }, images: [] },
-  { name_key: 'city.m_diq', region_key: 'region.tangier_tetouan_al_hoceima', coords: { lat: 35.68336, lng: -5.323216 }, images: [] },
-  { name_key: 'city.martil', region_key: 'region.tangier_tetouan_al_hoceima', coords: { lat: 35.617441, lng: -5.274154 }, images: [] },
-  { name_key: 'city.ouazzane', region_key: 'region.tangier_tetouan_al_hoceima', coords: { lat: 34.796757, lng: -5.578493 }, images: [] },
-  { name_key: 'city.tangier', region_key: 'region.tangier_tetouan_al_hoceima', coords: { lat: 35.76963, lng: -5.803352 }, images: [] },
-  { name_key: 'city.tetouan', region_key: 'region.tangier_tetouan_al_hoceima', coords: { lat: 35.570175, lng: -5.374278 }, images: [] },
-  { name_key: 'city.beni_ansar', region_key: 'region.oriental', coords: { lat: 35.259687, lng: -2.933644 }, images: [] },
-  { name_key: 'city.berkane', region_key: 'region.oriental', coords: { lat: 34.926676, lng: -2.329409 }, images: [] },
-  { name_key: 'city.guercif', region_key: 'region.oriental', coords: { lat: 34.225576, lng: -3.352345 }, images: [] },
-  { name_key: 'city.nador', region_key: 'region.oriental', coords: { lat: 35.173992, lng: -2.92812 }, images: [] },
-  { name_key: 'city.oujda', region_key: 'region.oriental', coords: { lat: 34.677874, lng: -1.929306 }, images: [] },
-  { name_key: 'city.taourirt', region_key: 'region.oriental', coords: { lat: 34.413438, lng: -2.893825 }, images: [] },
-  { name_key: 'city.azrou', region_key: 'region.fes_meknes', coords: { lat: 35.157249, lng: -3.768611 }, images: [] },
-  { name_key: 'city.fes', region_key: 'region.fes_meknes', coords: { lat: 34.034653, lng: -5.016193 }, images: [] },
-  { name_key: 'city.meknes', region_key: 'region.fes_meknes', coords: { lat: 33.898413, lng: -5.532158 }, images: [] },
-  { name_key: 'city.sefrou', region_key: 'region.fes_meknes', coords: { lat: 33.824898, lng: -4.833336 }, images: [] },
-  { name_key: 'city.taza', region_key: 'region.fes_meknes', coords: { lat: 34.230155, lng: -4.010104 }, images: [] },
-  { name_key: 'city.kenitra', region_key: 'region.rabat_sale_kenitra', coords: { lat: 34.26457, lng: -6.570169 }, images: [] },
-  { name_key: 'city.khemisset', region_key: 'region.rabat_sale_kenitra', coords: { lat: 33.830287, lng: -6.072605 }, images: [] },
-  { name_key: 'city.rabat', region_key: 'region.rabat_sale_kenitra', coords: { lat: 34.021845, lng: -6.840893 }, images: [] },
-  { name_key: 'city.sale', region_key: 'region.rabat_sale_kenitra', coords: { lat: 34.044889, lng: -6.814017 }, images: [] },
-  { name_key: 'city.sidi_kacem', region_key: 'region.rabat_sale_kenitra', coords: { lat: 34.226412, lng: -5.711434 }, images: [] },
-  { name_key: 'city.sidi_slimane', region_key: 'region.rabat_sale_kenitra', coords: { lat: 34.259878, lng: -5.927253 }, images: [] },
-  { name_key: 'city.skhirat', region_key: 'region.rabat_sale_kenitra', coords: { lat: 33.850672, lng: -7.028026 }, images: [] },
-  { name_key: 'city.souk_el_arbaa', region_key: 'region.rabat_sale_kenitra', coords: { lat: 34.676523, lng: -5.992617 }, images: [] },
-  { name_key: 'city.temara', region_key: 'region.rabat_sale_kenitra', coords: { lat: 33.917166, lng: -6.923804 }, images: [] },
-  { name_key: 'city.tifelt', region_key: 'region.rabat_sale_kenitra', coords: { lat: 33.540316, lng: -7.594151 }, images: [] },
-  { name_key: 'city.beni_mellal', region_key: 'region.beni_mellal_khenifra', coords: { lat: 32.334193, lng: -6.353335 }, images: [] },
-  { name_key: 'city.fquih_ben_salah', region_key: 'region.beni_mellal_khenifra', coords: { lat: 32.421215, lng: -6.747078 }, images: [] },
-  { name_key: 'city.khenifra', region_key: 'region.beni_mellal_khenifra', coords: { lat: 32.935772, lng: -5.66965 }, images: [] },
-  { name_key: 'city.khouribga', region_key: 'region.beni_mellal_khenifra', coords: { lat: 32.885648, lng: -6.908798 }, images: [] },
-  { name_key: 'city.oued_zem', region_key: 'region.beni_mellal_khenifra', coords: { lat: 32.862504, lng: -6.571054 }, images: [] },
-  { name_key: 'city.souk_sebt_ouled_nemma', region_key: 'region.beni_mellal_khenifra', coords: { lat: 32.292171, lng: -6.593528 }, images: [] },
-  { name_key: 'city.ain_harrouda', region_key: 'region.casablanca_settat', coords: { lat: 33.635372, lng: -7.451398 }, images: [] },
-  { name_key: 'city.benslimane', region_key: 'region.casablanca_settat', coords: { lat: 33.61239, lng: -7.144017 }, images: [] },
-  { name_key: 'city.berrechid', region_key: 'region.casablanca_settat', coords: { lat: 33.267675, lng: -7.581147 }, images: [] },
-  { name_key: 'city.bouskoura', region_key: 'region.casablanca_settat', coords: { lat: 33.456443, lng: -7.650666 }, images: [] },
-  { name_key: 'city.casablanca', region_key: 'region.casablanca_settat', coords: { lat: 33.594514, lng: -7.620028 }, images: [] },
-  { name_key: 'city.dar_bouazza', region_key: 'region.casablanca_settat', coords: { lat: 33.521583, lng: -7.816437 }, images: [] },
-  { name_key: 'city.el_jadida', region_key: 'region.casablanca_settat', coords: { lat: 33.243331, lng: -8.49884 }, images: [] },
-  { name_key: 'city.lahraouyine', region_key: 'region.casablanca_settat', coords: { lat: 33.54083, lng: -7.524186 }, images: [] },
-  { name_key: 'city.mohammedia', region_key: 'region.casablanca_settat', coords: { lat: 33.695838, lng: -7.389329 }, images: [] },
-  { name_key: 'city.settat', region_key: 'region.casablanca_settat', coords: { lat: 33.002397, lng: -7.619867 }, images: [] },
-  { name_key: 'city.sidi_bennour', region_key: 'region.casablanca_settat', coords: { lat: 32.650779, lng: -8.424209 }, images: [] },
-  { name_key: 'city.ben_guerir', region_key: 'region.marrakesh_safi', coords: { lat: 32.239034, lng: -7.958131 }, images: [] },
-  { name_key: 'city.el_kelaa_des_sraghna', region_key: 'region.marrakesh_safi', coords: { lat: 32.053892, lng: -7.406864 }, images: [] },
-  { name_key: 'city.essaouira', region_key: 'region.marrakesh_safi', coords: { lat: 31.511828, lng: -9.76209 }, images: [] },
-  { name_key: 'city.marrakesh', region_key: 'region.marrakesh_safi', coords: { lat: 31.625826, lng: -7.989161 }, images: [] },
-  { name_key: 'city.safi', region_key: 'region.marrakesh_safi', coords: { lat: 32.299424, lng: -9.239533 }, images: [] },
-  { name_key: 'city.youssoufia', region_key: 'region.marrakesh_safi', coords: { lat: 32.245801, lng: -8.532439 }, images: [] },
-  { name_key: 'city.errachidia', region_key: 'region.draa_tafilalet', coords: { lat: 31.929089, lng: -4.434081 }, images: [] },
-  { name_key: 'city.midelt', region_key: 'region.draa_tafilalet', coords: { lat: 32.680347, lng: -4.739897 }, images: [] },
-  { name_key: 'city.ouarzazate', region_key: 'region.draa_tafilalet', coords: { lat: 30.920193, lng: -6.910923 }, images: [] },
-  { name_key: 'city.agadir', region_key: 'region.souss_massa', coords: { lat: 30.420516, lng: -9.583853 }, images: [] },
-  { name_key: 'city.ait_melloul', region_key: 'region.souss_massa', coords: { lat: 30.338795, lng: -9.50447 }, images: [] },
-  { name_key: 'city.dcheira_el_jihadia', region_key: 'region.souss_massa', coords: { lat: 30.375281, lng: -9.528495 }, images: [] },
-  { name_key: 'city.drargua', region_key: 'region.souss_massa', coords: { lat: 30.38203, lng: -9.476421 }, images: [] },
-  { name_key: 'city.inezgane', region_key: 'region.souss_massa', coords: { lat: 30.356293, lng: -9.545935 }, images: [] },
-  { name_key: 'city.lqliaa', region_key: 'region.souss_massa', coords: { lat: 30.29865, lng: -9.462018 }, images: [] },
-  { name_key: 'city.oulad_teima', region_key: 'region.souss_massa', coords: { lat: 30.395471, lng: -9.210534 }, images: [] },
-  { name_key: 'city.taroudant', region_key: 'region.souss_massa', coords: { lat: 30.470651, lng: -8.877922 }, images: [] },
-  { name_key: 'city.tiznit', region_key: 'region.souss_massa', coords: { lat: 29.698624, lng: -9.731281 }, images: [] },
-  { name_key: 'city.guelmim', region_key: 'region.guelmim_oued_noun', coords: { lat: 28.986385, lng: -10.057435 }, images: [] },
-  { name_key: 'city.tan_tan', region_key: 'region.guelmim_oued_noun', coords: { lat: 28.437553, lng: -11.098664 }, images: [] },
-  { name_key: 'city.laayoune', region_key: 'region.laayoune_sakia_el_hamra', coords: { lat: 27.154512, lng: -13.195392 }, images: [] },
-  { name_key: 'city.dakhla', region_key: 'region.dakhla_oued_ed_dahab', coords: { lat: 23.694066, lng: -15.943127 }, images: [] },
-] as const
-
-type DatasetPlace = {
-  id: string
-  name: string
-  type: string
-  city: string
-  region: string
-  description: string
-  rating?: number
-  price_range?: string
-  opening_hours?: string
-  latitude: number
-  longitude: number
-  categories?: string[]
+const COUNTS = {
+  regions: 6 * SCALE,
+  cities: 18 * SCALE,
+  attractions: 120 * SCALE,
+  tags: 30 * SCALE,
+  users: 120 * SCALE,
+  guides: 18 * SCALE,
+  trips: 60 * SCALE,
+  tripItems: 300 * SCALE,
+  bookings: 120 * SCALE,
+  ratings: 120 * SCALE,
+  messages: 120 * SCALE,
+  swipes: 240 * SCALE,
+  matches: 90 * SCALE,
+  infoBlocks: 150 * SCALE,
+  translations: 120 * SCALE,
+  guideMediaPerGuide: 2,
+  guidePastTripsPerGuide: 1,
+  attractionMediaPerAttraction: 1
 }
 
-type LocaleCode = 'en' | 'fr' | 'ar'
+const IMAGE_POOL = [
+  'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1200&auto=format&fit=crop&q=60',
+  'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1200&auto=format&fit=crop&q=60',
+  'https://images.unsplash.com/photo-1528909514045-2fa4ac7a08ba?w=1200&auto=format&fit=crop&q=60',
+  'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1200&auto=format&fit=crop&q=60'
+]
 
-const SUPPORTED_LANGUAGES: readonly LocaleCode[] = ['en', 'fr', 'ar']
+const COUNTRIES = ['Portugal', 'Spain', 'Italy', 'France', 'Greece', 'Turkey', 'USA', 'Mexico', 'Japan', 'Thailand']
+const TIMEZONES = ['Europe/Lisbon', 'Europe/Madrid', 'Europe/Paris', 'America/New_York', 'Asia/Tokyo', 'Africa/Casablanca']
+const ATTRACTION_TYPES = ['Landmark', 'Museum', 'Beach', 'Market', 'Trail', 'Gallery', 'Fort', 'Park', 'Viewpoint', 'Palace']
+const BOOKING_TYPES = ['FLIGHT', 'STAY', 'EXPERIENCE', 'RENTAL', 'GUIDE'] as const
+const BOOKING_STATUS = ['PENDING', 'CONFIRMED', 'CANCELED'] as const
+const TRIP_STATUS = ['DRAFT', 'ACTIVE', 'COMPLETED', 'CANCELED'] as const
+const COLLAB_ROLES = ['EDITOR', 'VIEWER'] as const
+const MEDIA_TYPES = ['PHOTO', 'VIDEO'] as const
+const SWIPE_DIRECTIONS = ['LIKE', 'PASS'] as const
+const MATCH_STATUS = ['ACTIVE', 'BLOCKED'] as const
+const INFO_CATEGORIES = ['tips', 'transport', 'budget', 'food', 'safety', 'weather', 'events']
 
-const REGION_LABELS: Record<string, Record<LocaleCode, string>> = {
-  'region.tangier_tetouan_al_hoceima': {
-    en: 'Tangier-Tetouan-Al Hoceima',
-    fr: 'Tanger-Tétouan-Al Hoceïma',
-    ar: 'جهة طنجة-تطوان-الحسيمة'
-  },
-  'region.oriental': { en: 'Oriental', fr: 'Oriental', ar: 'الجهة الشرقية' },
-  'region.fes_meknes': { en: 'Fès-Meknès', fr: 'Fès-Meknès', ar: 'جهة فاس-مكناس' },
-  'region.rabat_sale_kenitra': {
-    en: 'Rabat-Salé-Kénitra',
-    fr: 'Rabat-Salé-Kénitra',
-    ar: 'جهة الرباط-سلا-القنيطرة'
-  },
-  'region.beni_mellal_khenifra': {
-    en: 'Béni Mellal-Khénifra',
-    fr: 'Béni Mellal-Khénifra',
-    ar: 'جهة بني ملال-خنيفرة'
-  },
-  'region.casablanca_settat': {
-    en: 'Casablanca-Settat',
-    fr: 'Casablanca-Settat',
-    ar: 'جهة الدار البيضاء-سطات'
-  },
-  'region.marrakesh_safi': {
-    en: 'Marrakesh-Safi',
-    fr: 'Marrakech-Safi',
-    ar: 'جهة مراكش-آسفي'
-  },
-  'region.draa_tafilalet': {
-    en: 'Drâa-Tafilalet',
-    fr: 'Drâa-Tafilalet',
-    ar: 'جهة درعة-تافيلالت'
-  },
-  'region.souss_massa': { en: 'Souss-Massa', fr: 'Souss-Massa', ar: 'جهة سوس-ماسة' },
-  'region.guelmim_oued_noun': {
-    en: 'Guelmim-Oued Noun',
-    fr: 'Guelmim-Oued Noun',
-    ar: 'جهة كلميم-واد نون'
-  },
-  'region.laayoune_sakia_el_hamra': {
-    en: 'Laâyoune-Sakia El Hamra',
-    fr: 'Laâyoune-Sakia El Hamra',
-    ar: 'جهة العيون-الساقية الحمراء'
-  },
-  'region.dakhla_oued_ed_dahab': {
-    en: 'Dakhla-Oued Ed-Dahab',
-    fr: 'Dakhla-Oued Ed-Dahab',
-    ar: 'جهة الداخلة-وادي الذهب'
+function mulberry32(seed: number) {
+  return function () {
+    let t = (seed += 0x6d2b79f5)
+    t = Math.imul(t ^ (t >>> 15), t | 1)
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
   }
 }
 
-function normalizeText(value: string) {
-  return value
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/['’]/g, ' ')
-    .replace(/[^a-z0-9]+/g, '_')
-    .replace(/^_+|_+$/g, '')
+const rand = mulberry32(42)
+
+function randInt(min: number, max: number) {
+  return Math.floor(rand() * (max - min + 1)) + min
 }
 
-function keyToHumanLabel(value: string, prefix: string): string {
-  return value
-    .replace(`${prefix}.`, '')
-    .replace(/\.(name|description)$/g, '')
-    .split('_')
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ')
+function pick<T>(items: readonly T[]): T {
+  return items[randInt(0, items.length - 1)]
 }
 
-function parseEntryFee(value?: string): number {
-  if (!value) return 0
-  const normalized = value.toLowerCase()
-  if (normalized.includes('accès libre') || normalized.includes('gratuit')) return 0
-
-  const numbers = value.match(/\d+(?:[.,]\d+)?/g)
-  if (!numbers?.length) return 0
-
-  const parsed = numbers
-    .map((part) => Number(part.replace(',', '.')))
-    .filter((part) => Number.isFinite(part))
-
-  if (!parsed.length) return 0
-  return Math.min(...parsed)
+function pickManyUnique<T>(items: readonly T[], count: number) {
+  const result = new Set<T>()
+  const max = Math.min(count, items.length)
+  while (result.size < max) {
+    result.add(pick(items))
+  }
+  return Array.from(result)
 }
 
-function regionKeyFromLabel(regionLabel: string): string | null {
-  const label = normalizeText(regionLabel)
-  const region = MOROCCO_REGIONS.find((key) => key === `region.${label}`)
-  return region ?? null
+function chunk<T>(items: T[], size: number) {
+  const chunks: T[][] = []
+  for (let i = 0; i < items.length; i += size) {
+    chunks.push(items.slice(i, i + size))
+  }
+  return chunks
 }
 
-function cityKeyFromLabel(cityLabel: string): string {
-  const normalized = normalizeText(cityLabel)
-  const aliases: Record<string, string> = {
-    fez: 'fes',
-    moulay_idriss_zerhoun: 'moulay_idriss',
-    moulay_yaacoub: 'moulay_yaacoub',
-    moulay_yaacoub_: 'moulay_yaacoub'
+async function createManyInBatches<T>(label: string, items: T[], action: (data: T[]) => Promise<unknown>) {
+  for (const batch of chunk(items, CHUNK_SIZE)) {
+    await action(batch)
   }
-  const finalLabel = aliases[normalized] ?? normalized
-  return `city.${finalLabel}`
+  console.log(`${label}: ${items.length}`)
 }
 
-function readDatasetPlaces(): DatasetPlace[] {
-  const datasetPath = join(process.cwd(), 'prisma', 'dataset.json')
-  const raw = readFileSync(datasetPath, 'utf-8')
-  return JSON.parse(raw) as DatasetPlace[]
+function imageFor(index: number) {
+  return IMAGE_POOL[index % IMAGE_POOL.length]
 }
 
-async function upsertLanguages() {
-  const languageIds = new Map<LocaleCode, string>()
-
-  for (const language of SUPPORTED_LANGUAGES) {
-    const row = await prisma.language.upsert({
-      where: { language },
-      create: { language },
-      update: {}
-    })
-    languageIds.set(language, row.id)
-  }
-
-  return languageIds
+function addDays(date: Date, days: number) {
+  return new Date(date.getTime() + days * 86400000)
 }
 
-async function upsertRoles() {
-  await Promise.all(
-    ['admin', 'partner', 'user'].map((role) =>
-      prisma.role.upsert({
-        where: { name: role },
-        create: { name: role },
-        update: {}
-      })
-    )
-  )
-
-  console.log('roles created')
+function addHours(date: Date, hours: number) {
+  return new Date(date.getTime() + hours * 3600000)
 }
 
-async function upsertUsers() {
-  await prisma.user.upsert({
-    where: { email: 'admin@example.com' },
-    create: {
-      name: 'admin',
-      email: 'admin@example.com',
-      password: await bcrypt.hash('secret', 12),
-      role: { connect: { name: 'admin' } }
-    },
-    update: {}
-  })
-
-  console.log('admin user created')
-  console.log('email : admin@example.com')
-  console.log('password : secret')
-}
-
-async function upsertRegionsAndCities() {
-  let createdRegions = 0
-  let createdCities = 0
-
-  const regionsByKey = new Map<string, string>()
-
-  for (const regionKey of MOROCCO_REGIONS) {
-    const region = await prisma.region.upsert({
-      where: { name_key: regionKey },
-      create: { name_key: regionKey },
-      update: {}
-    })
-
-    regionsByKey.set(regionKey, region.id)
-    createdRegions += 1
-  }
-
-  for (const citySeed of MOROCCO_CITIES) {
-    const regionId = regionsByKey.get(citySeed.region_key)
-    if (!regionId) continue
-
-    await prisma.city.upsert({
-      where: { name_key: citySeed.name_key },
-      create: {
-        name_key: citySeed.name_key,
-        coords: citySeed.coords,
-        images: [...citySeed.images],
-        region: { connect: { id: regionId } }
-      },
-      update: {
-        coords: citySeed.coords,
-        images: [...citySeed.images],
-        region: { connect: { id: regionId } }
-      }
-    })
-
-    createdCities += 1
-  }
-
-  console.log(`${createdRegions} regions upserted`)
-  console.log(`${createdCities} cities upserted`)
-}
-
-async function upsertCategoriesAndPlacesFromDataset() {
-  const dataset = readDatasetPlaces()
-
-  const regionByKey = new Map<string, { id: string }>()
-  const cityByKey = new Map<string, { id: string }>()
-
-  const regions = await prisma.region.findMany({
-    select: { id: true, name_key: true }
-  })
-  regions.forEach((region) => regionByKey.set(region.name_key, { id: region.id }))
-
-  const cities = await prisma.city.findMany({
-    select: { id: true, name_key: true }
-  })
-  cities.forEach((city) => cityByKey.set(city.name_key, { id: city.id }))
-
-  const categoryIdsByType = new Map<string, string>()
-  for (const type of new Set(dataset.map((item) => item.type.trim()).filter(Boolean))) {
-    const typeKey = normalizeText(type)
-    const category = await prisma.category.upsert({
-      where: { name_key: `category.${typeKey}.name` },
-      create: {
-        name_key: `category.${typeKey}.name`,
-        description_key: `category.${typeKey}.description`
-      },
-      update: {}
-    })
-    categoryIdsByType.set(type, category.id)
-  }
-
-  let createdCities = 0
-  for (const item of dataset) {
-    const key = cityKeyFromLabel(item.city)
-    if (cityByKey.has(key)) continue
-
-    const regionKey = regionKeyFromLabel(item.region)
-    if (!regionKey) continue
-    const region = regionByKey.get(regionKey)
-    if (!region) continue
-
-    const city = await prisma.city.upsert({
-      where: { name_key: key },
-      create: {
-        name_key: key,
-        coords: { lat: item.latitude, lng: item.longitude },
-        images: [],
-        region: { connect: { id: region.id } }
-      },
-      update: {
-        region: { connect: { id: region.id } }
-      }
-    })
-
-    cityByKey.set(key, { id: city.id })
-    createdCities += 1
-  }
-
-  let seededPlaces = 0
-  for (const item of dataset) {
-    const cityKey = cityKeyFromLabel(item.city)
-    const city = cityByKey.get(cityKey)
-    if (!city) continue
-
-    const categoryId = categoryIdsByType.get(item.type)
-    if (!categoryId) continue
-
-    const tags = [item.type, ...(item.categories ?? [])]
-      .map((tag) => normalizeText(tag))
-      .filter(Boolean)
-
-    await prisma.place.upsert({
-      where: { name_key: `place.${item.id}.name` },
-      create: {
-        name_key: `place.${item.id}.name`,
-        description_key: `place.${item.id}.description`,
-        coords: { lat: item.latitude, lng: item.longitude },
-        images: [],
-        video: '',
-        tags,
-        entryFee: parseEntryFee(item.price_range),
-        openingHours: item.opening_hours ?? 'N/A',
-        city: { connect: { id: city.id } },
-        category: { connect: { id: categoryId } }
-      },
-      update: {
-        coords: { lat: item.latitude, lng: item.longitude },
-        tags,
-        entryFee: parseEntryFee(item.price_range),
-        openingHours: item.opening_hours ?? 'N/A',
-        city: { connect: { id: city.id } },
-        category: { connect: { id: categoryId } }
-      }
-    })
-
-    seededPlaces += 1
-  }
-
-  console.log(`${createdCities} dataset cities upserted`)
-  console.log(`${categoryIdsByType.size} categories upserted from dataset types`)
-  console.log(`${seededPlaces} places upserted from dataset`)
-}
-
-async function upsertTranslationsFromDataset() {
-  const dataset = readDatasetPlaces()
-  const datasetById = new Map(dataset.map((item) => [item.id, item] as const))
-  const languageIds = await upsertLanguages()
-
-  const regions = await prisma.region.findMany({ select: { id: true, name_key: true } })
-  for (const region of regions) {
-    const labels = REGION_LABELS[region.name_key] ?? {
-      en: keyToHumanLabel(region.name_key, 'region'),
-      fr: keyToHumanLabel(region.name_key, 'region'),
-      ar: keyToHumanLabel(region.name_key, 'region')
-    }
-
-    for (const language of SUPPORTED_LANGUAGES) {
-      const languageId = languageIds.get(language)
-      if (!languageId) continue
-
-      await prisma.regionTranslation.upsert({
-        where: { regionId_languageId: { regionId: region.id, languageId } },
-        create: {
-          region: { connect: { id: region.id } },
-          language: { connect: { id: languageId } },
-          name: labels[language]
-        },
-        update: { name: labels[language] }
-      })
-    }
-  }
-
-  const cities = await prisma.city.findMany({ select: { id: true, name_key: true } })
-  for (const city of cities) {
-    const defaultLabel = keyToHumanLabel(city.name_key, 'city')
-
-    for (const language of SUPPORTED_LANGUAGES) {
-      const languageId = languageIds.get(language)
-      if (!languageId) continue
-
-      await prisma.cityTranslation.upsert({
-        where: { cityId_languageId: { cityId: city.id, languageId } },
-        create: {
-          city: { connect: { id: city.id } },
-          language: { connect: { id: languageId } },
-          name: defaultLabel
-        },
-        update: { name: defaultLabel }
-      })
-    }
-  }
-
-  const categories = await prisma.category.findMany({ select: { id: true, name_key: true, description_key: true } })
-  for (const category of categories) {
-    const categoryName = keyToHumanLabel(category.name_key, 'category')
-    const categoryDescription = keyToHumanLabel(category.description_key, 'category')
-
-    for (const language of SUPPORTED_LANGUAGES) {
-      const languageId = languageIds.get(language)
-      if (!languageId) continue
-
-      await prisma.categoryTranslation.upsert({
-        where: { categoryId_languageId: { categoryId: category.id, languageId } },
-        create: {
-          category: { connect: { id: category.id } },
-          language: { connect: { id: languageId } },
-          name: categoryName,
-          description: categoryDescription
-        },
-        update: {
-          name: categoryName,
-          description: categoryDescription
-        }
-      })
-    }
-  }
-
-  const places = await prisma.place.findMany({ select: { id: true, name_key: true, description_key: true } })
-  for (const place of places) {
-    const placeIdMatch = place.name_key.match(/^place\.([^.]+)\.name$/)
-    const datasetItem = placeIdMatch ? datasetById.get(placeIdMatch[1]) : undefined
-
-    for (const language of SUPPORTED_LANGUAGES) {
-      const languageId = languageIds.get(language)
-      if (!languageId) continue
-
-      const fallbackName = keyToHumanLabel(place.name_key, 'place')
-      const fallbackDescription = keyToHumanLabel(place.description_key, 'place')
-      const name = datasetItem?.name ?? fallbackName
-      const description = datasetItem?.description ?? fallbackDescription
-
-      await prisma.placeTranslation.upsert({
-        where: { placeId_languageId: { placeId: place.id, languageId } },
-        create: {
-          place: { connect: { id: place.id } },
-          language: { connect: { id: languageId } },
-          name,
-          description
-        },
-        update: {
-          name,
-          description
-        }
-      })
-    }
-  }
-
-  console.log('languages and translations upserted')
+async function clearData() {
+  await prisma.match.deleteMany()
+  await prisma.swipe.deleteMany()
+  await prisma.message.deleteMany()
+  await prisma.rating.deleteMany()
+  await prisma.booking.deleteMany()
+  await prisma.tripItem.deleteMany()
+  await prisma.tripCollaborator.deleteMany()
+  await prisma.trip.deleteMany()
+  await prisma.guidePastTrip.deleteMany()
+  await prisma.guideMedia.deleteMany()
+  await prisma.guide.deleteMany()
+  await prisma.attractionTagMap.deleteMany()
+  await prisma.attractionMedia.deleteMany()
+  await prisma.infoBlock.deleteMany()
+  await prisma.translation.deleteMany()
+  await prisma.attraction.deleteMany()
+  await prisma.tag.deleteMany()
+  await prisma.city.deleteMany()
+  await prisma.region.deleteMany()
+  await prisma.user.deleteMany()
 }
 
 async function main() {
-  await upsertRoles()
-  await upsertUsers()
-  await upsertRegionsAndCities()
-  await upsertCategoriesAndPlacesFromDataset()
-  await upsertTranslationsFromDataset()
+  await clearData()
 
-  console.log('Seeding completed')
+  const regionData = Array.from({ length: COUNTS.regions }, (_, index) => ({
+    id: randomUUID(),
+    name: `Region ${index + 1}`,
+    country: pick(COUNTRIES),
+    slug: `region-${String(index + 1).padStart(4, '0')}`,
+    description: `Region ${index + 1} travel highlights and local culture.`,
+    coverImage: imageFor(index)
+  }))
 
-  process.exit(0)
+  await createManyInBatches('regions', regionData, (data) => prisma.region.createMany({ data }))
+
+  const regionIds = regionData.map((region) => region.id)
+
+  const cityData = Array.from({ length: COUNTS.cities }, (_, index) => {
+    const regionId = regionIds[index % regionIds.length]
+    return {
+      id: randomUUID(),
+      regionId,
+      name: `City ${index + 1}`,
+      slug: `city-${String(index + 1).padStart(5, '0')}`,
+      lat: Number((rand() * 140 - 70).toFixed(6)),
+      lng: Number((rand() * 360 - 180).toFixed(6)),
+      timezone: pick(TIMEZONES),
+      description: `City ${index + 1} is known for food, views, and neighborhoods.`,
+      coverImage: imageFor(index + 1)
+    }
+  })
+
+  await createManyInBatches('cities', cityData, (data) => prisma.city.createMany({ data }))
+
+  const cityIds = cityData.map((city) => city.id)
+
+  const tagData = Array.from({ length: COUNTS.tags }, (_, index) => ({
+    id: randomUUID(),
+    name: `tag-${String(index + 1).padStart(4, '0')}`
+  }))
+
+  await createManyInBatches('tags', tagData, (data) => prisma.tag.createMany({ data }))
+
+  const tagIds = tagData.map((tag) => tag.id)
+
+  const attractionData = Array.from({ length: COUNTS.attractions }, (_, index) => {
+    const cityId = cityIds[index % cityIds.length]
+    return {
+      id: randomUUID(),
+      cityId,
+      name: `Attraction ${index + 1}`,
+      slug: `attraction-${String(index + 1).padStart(6, '0')}`,
+      type: pick(ATTRACTION_TYPES),
+      lat: Number((rand() * 140 - 70).toFixed(6)),
+      lng: Number((rand() * 360 - 180).toFixed(6)),
+      description: `Attraction ${index + 1} is a popular stop for visitors.`,
+      avgPrice: Number((rand() * 45 + 5).toFixed(2)),
+      durationMinutes: randInt(30, 240),
+      coverImage: imageFor(index + 2)
+    }
+  })
+
+  await createManyInBatches('attractions', attractionData, (data) => prisma.attraction.createMany({ data }))
+
+  const attractionIds = attractionData.map((attraction) => attraction.id)
+
+  const attractionMediaData = attractionData.flatMap((attraction, index) =>
+    Array.from({ length: COUNTS.attractionMediaPerAttraction }, (_, mediaIndex) => ({
+      id: randomUUID(),
+      attractionId: attraction.id,
+      type: pick(MEDIA_TYPES),
+      url: imageFor(index + mediaIndex),
+      caption: `Attraction ${index + 1} media ${mediaIndex + 1}`,
+      position: mediaIndex
+    }))
+  )
+
+  await createManyInBatches('attraction media', attractionMediaData, (data) => prisma.attractionMedia.createMany({ data }))
+
+  const attractionTagData = attractionData.flatMap((attraction) => {
+    const tags = pickManyUnique(tagIds, randInt(2, 4))
+    return tags.map((tagId) => ({
+      attractionId: attraction.id,
+      tagId
+    }))
+  })
+
+  await createManyInBatches('attraction tags', attractionTagData, (data) => prisma.attractionTagMap.createMany({ data }))
+
+  const adminCount = Math.min(2, COUNTS.users)
+  const guideCount = Math.min(COUNTS.guides, Math.max(0, COUNTS.users - adminCount))
+  const travelerCount = Math.max(0, COUNTS.users - adminCount - guideCount)
+
+  const adminUsers = Array.from({ length: adminCount }, (_, index) => ({
+    id: randomUUID(),
+    email: `admin${index + 1}@example.com`,
+    passwordHash: 'demo_hash_admin',
+    name: `Admin ${index + 1}`,
+    role: 'ADMIN' as const
+  }))
+
+  const guideUsers = Array.from({ length: guideCount }, (_, index) => ({
+    id: randomUUID(),
+    email: `guide${String(index + 1).padStart(5, '0')}@example.com`,
+    passwordHash: 'demo_hash_guide',
+    name: `Guide User ${index + 1}`,
+    avatarUrl: imageFor(index),
+    role: 'GUIDE' as const,
+    preferences: {
+      focus: pick(['history', 'food', 'nature', 'nightlife', 'culture']),
+      pace: pick(['slow', 'moderate', 'fast']),
+      languages: ['en']
+    }
+  }))
+
+  const travelerUsers = Array.from({ length: travelerCount }, (_, index) => ({
+    id: randomUUID(),
+    email: `traveler${String(index + 1).padStart(6, '0')}@example.com`,
+    passwordHash: 'demo_hash_traveler',
+    name: `Traveler ${index + 1}`,
+    avatarUrl: imageFor(index + 3),
+    role: 'TRAVELER' as const,
+    preferences: {
+      travelStyle: pickManyUnique(['food', 'history', 'nature', 'art', 'beach', 'nightlife'], randInt(1, 3)),
+      pace: pick(['slow', 'moderate', 'fast']),
+      budget: pick(['low', 'mid', 'high']),
+      currency: 'USD'
+    }
+  }))
+
+  const userData = [...adminUsers, ...guideUsers, ...travelerUsers]
+  await createManyInBatches('users', userData, (data) => prisma.user.createMany({ data }))
+
+  const guideData = guideUsers.map((user, index) => ({
+    id: randomUUID(),
+    userId: user.id,
+    headline: `Expert guide ${index + 1}`,
+    bio: `Guide ${index + 1} specializes in custom itineraries and local tips.`,
+    rateHourly: Number((rand() * 60 + 20).toFixed(2)),
+    rateDaily: Number((rand() * 350 + 120).toFixed(2)),
+    locationCityId: cityIds[index % cityIds.length],
+    contactEmail: user.email,
+    contactPhone: `+100000${String(index + 1).padStart(4, '0')}`,
+    verified: rand() > 0.4,
+    ratingAvg: Number((rand() * 1.5 + 3.5).toFixed(2)),
+    ratingCount: randInt(3, 150)
+  }))
+
+  await createManyInBatches('guides', guideData, (data) => prisma.guide.createMany({ data }))
+
+  const guideIds = guideData.map((guide) => guide.id)
+
+  const guideMediaData = guideData.flatMap((guide, index) =>
+    Array.from({ length: COUNTS.guideMediaPerGuide }, (_, mediaIndex) => ({
+      id: randomUUID(),
+      guideId: guide.id,
+      type: pick(MEDIA_TYPES),
+      url: imageFor(index + mediaIndex),
+      caption: `Guide ${index + 1} media ${mediaIndex + 1}`,
+      position: mediaIndex
+    }))
+  )
+
+  await createManyInBatches('guide media', guideMediaData, (data) => prisma.guideMedia.createMany({ data }))
+
+  const guidePastTripData = guideData.flatMap((guide, index) =>
+    Array.from({ length: COUNTS.guidePastTripsPerGuide }, (_, tripIndex) => ({
+      id: randomUUID(),
+      guideId: guide.id,
+      title: `Past trip ${index + 1}-${tripIndex + 1}`,
+      location: `Region ${randInt(1, COUNTS.regions)}`,
+      startDate: addDays(new Date('2025-01-01T08:00:00Z'), randInt(1, 250)),
+      endDate: addDays(new Date('2025-01-01T08:00:00Z'), randInt(251, 350)),
+      summary: `Highlights from past trip ${index + 1}-${tripIndex + 1}.`,
+      mediaUrl: imageFor(index + 1)
+    }))
+  )
+
+  await createManyInBatches('guide past trips', guidePastTripData, (data) => prisma.guidePastTrip.createMany({ data }))
+
+  const travelerIds = travelerUsers.map((user) => user.id)
+  const tripBaseDate = new Date('2026-01-01T09:00:00Z')
+
+  const tripData = Array.from({ length: COUNTS.trips }, (_, index) => {
+    const ownerUserId = travelerIds[index % travelerIds.length]
+    const startDate = addDays(tripBaseDate, randInt(1, 330))
+    const endDate = addDays(startDate, randInt(3, 12))
+    return {
+      id: randomUUID(),
+      ownerUserId,
+      title: `Trip ${index + 1}`,
+      status: pick(TRIP_STATUS),
+      startDate,
+      endDate,
+      budgetTotal: Number((rand() * 4000 + 500).toFixed(2)),
+      currency: 'USD'
+    }
+  })
+
+  await createManyInBatches('trips', tripData, (data) => prisma.trip.createMany({ data }))
+
+  const tripIds = tripData.map((trip) => trip.id)
+
+  const tripCollaboratorData = tripData.flatMap((trip) => {
+    const collaborators = pickManyUnique(travelerIds, randInt(1, 3)).filter((id) => id !== trip.ownerUserId)
+    return collaborators.map((userId) => ({
+      tripId: trip.id,
+      userId,
+      role: pick(COLLAB_ROLES)
+    }))
+  })
+
+  await createManyInBatches('trip collaborators', tripCollaboratorData, (data) =>
+    prisma.tripCollaborator.createMany({ data })
+  )
+
+  const tripItemsData = Array.from({ length: COUNTS.tripItems }, (_, index) => {
+    const trip = tripData[index % tripData.length]
+    const day = randInt(1, 8)
+    const time = addHours(addDays(trip.startDate ?? tripBaseDate, day - 1), randInt(8, 20))
+    return {
+      id: randomUUID(),
+      tripId: trip.id,
+      day,
+      title: `Activity ${index + 1}`,
+      location: `Area ${randInt(1, 50)}`,
+      time,
+      notes: `Notes for activity ${index + 1}.`,
+      type: pick(['arrival', 'sightseeing', 'excursion', 'food', 'relax'])
+    }
+  })
+
+  await createManyInBatches('trip items', tripItemsData, (data) => prisma.tripItem.createMany({ data }))
+
+  const bookingsData = Array.from({ length: COUNTS.bookings }, (_, index) => {
+    const trip = tripData[index % tripData.length]
+    const startDate = addDays(trip.startDate ?? tripBaseDate, randInt(0, 5))
+    const endDate = addDays(startDate, randInt(1, 6))
+    return {
+      id: randomUUID(),
+      tripId: trip.id,
+      userId: trip.ownerUserId,
+      type: pick(BOOKING_TYPES),
+      provider: `Provider ${randInt(1, 30)}`,
+      externalRef: `REF-${randInt(100000, 999999)}`,
+      price: Number((rand() * 900 + 50).toFixed(2)),
+      currency: 'USD',
+      status: pick(BOOKING_STATUS),
+      startDate,
+      endDate
+    }
+  })
+
+  await createManyInBatches('bookings', bookingsData, (data) => prisma.booking.createMany({ data }))
+
+  const ratingsData = Array.from({ length: COUNTS.ratings }, (_, index) => ({
+    id: randomUUID(),
+    fromUserId: travelerIds[index % travelerIds.length],
+    guideId: guideIds[index % guideIds.length],
+    tripId: tripIds[index % tripIds.length],
+    score: randInt(3, 5),
+    comment: `Review ${index + 1} from traveler feedback.`
+  }))
+
+  await createManyInBatches('ratings', ratingsData, (data) => prisma.rating.createMany({ data }))
+
+  const messagesData = Array.from({ length: COUNTS.messages }, (_, index) => ({
+    id: randomUUID(),
+    fromUserId: travelerIds[index % travelerIds.length],
+    toGuideId: guideIds[index % guideIds.length],
+    tripId: tripIds[index % tripIds.length],
+    message: `Message ${index + 1} about trip details.`,
+    status: pick(['sent', 'read', 'archived'])
+  }))
+
+  await createManyInBatches('messages', messagesData, (data) => prisma.message.createMany({ data }))
+
+  const swipesData = Array.from({ length: COUNTS.swipes }, (_, index) => ({
+    id: randomUUID(),
+    fromUserId: travelerIds[index % travelerIds.length],
+    targetGuideId: guideIds[index % guideIds.length],
+    direction: pick(SWIPE_DIRECTIONS)
+  }))
+
+  await createManyInBatches('swipes', swipesData, (data) => prisma.swipe.createMany({ data }))
+
+  const matchesData = Array.from({ length: COUNTS.matches }, (_, index) => ({
+    id: randomUUID(),
+    userId: travelerIds[index % travelerIds.length],
+    guideId: guideIds[index % guideIds.length],
+    status: pick(MATCH_STATUS)
+  }))
+
+  await createManyInBatches('matches', matchesData, (data) => prisma.match.createMany({ data }))
+
+  const infoBlocks: Array<{
+    id: string
+    scope: 'REGION' | 'CITY' | 'ATTRACTION'
+    regionId?: string
+    cityId?: string
+    attractionId?: string
+    title: string
+    content: string
+    category: string
+    language: string
+  }> = []
+
+  const perScope = Math.floor(COUNTS.infoBlocks / 3)
+  for (let i = 0; i < perScope; i += 1) {
+    infoBlocks.push({
+      id: randomUUID(),
+      scope: 'REGION',
+      regionId: regionIds[i % regionIds.length],
+      title: `Region tip ${i + 1}`,
+      content: `Helpful region tip ${i + 1} for visitors.`,
+      category: pick(INFO_CATEGORIES),
+      language: 'en'
+    })
+  }
+
+  for (let i = 0; i < perScope; i += 1) {
+    infoBlocks.push({
+      id: randomUUID(),
+      scope: 'CITY',
+      cityId: cityIds[i % cityIds.length],
+      title: `City tip ${i + 1}`,
+      content: `Helpful city tip ${i + 1} for visitors.`,
+      category: pick(INFO_CATEGORIES),
+      language: 'en'
+    })
+  }
+
+  for (let i = 0; i < COUNTS.infoBlocks - perScope * 2; i += 1) {
+    infoBlocks.push({
+      id: randomUUID(),
+      scope: 'ATTRACTION',
+      attractionId: attractionIds[i % attractionIds.length],
+      title: `Attraction tip ${i + 1}`,
+      content: `Helpful attraction tip ${i + 1} for visitors.`,
+      category: pick(INFO_CATEGORIES),
+      language: 'en'
+    })
+  }
+
+  await createManyInBatches('info blocks', infoBlocks, (data) => prisma.infoBlock.createMany({ data }))
+
+  const translations = Array.from({ length: COUNTS.translations }, (_, index) => {
+    const type = pick(['region', 'city', 'attraction'] as const)
+    const entityId =
+      type === 'region'
+        ? regionIds[index % regionIds.length]
+        : type === 'city'
+          ? cityIds[index % cityIds.length]
+          : attractionIds[index % attractionIds.length]
+
+    return {
+      id: randomUUID(),
+      entityType: type,
+      entityId,
+      language: pick(['es', 'fr', 'pt']),
+      field: pick(['name', 'description']),
+      value: `Translated ${type} ${index + 1}`
+    }
+  })
+
+  await createManyInBatches('translations', translations, (data) => prisma.translation.createMany({ data }))
+
+  console.log('Seed completed', {
+    scale: SCALE,
+    users: userData.length,
+    guides: guideData.length,
+    regions: regionData.length,
+    cities: cityData.length,
+    attractions: attractionData.length,
+    trips: tripData.length
+  })
 }
+
 main()
+  .catch((error) => {
+    console.error('Seed failed:', error)
+    process.exitCode = 1
+  })
+  .finally(async () => {
+    await prisma.$disconnect()
+  })

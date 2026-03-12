@@ -7,7 +7,6 @@ import { CreateCityDto } from '@/admin/dto/city/create-city.dto';
 import { UpdateCityDto } from '@/admin/dto/city/update-city.dto';
 import { PrismaService } from '@/prisma/prisma.service';
 import { getPrismaErrorCode } from '@/prisma/prisma-error.util';
-import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class CityService {
@@ -17,15 +16,19 @@ export class CityService {
     try {
       return await this.prismaService.city.create({
         data: {
-          name_key: createCityDto.name_key,
-          coords: createCityDto.coords as Prisma.InputJsonValue,
-          images: createCityDto.images,
+          name: createCityDto.name,
+          slug: createCityDto.slug,
+          lat: createCityDto.lat,
+          lng: createCityDto.lng,
+          timezone: createCityDto.timezone,
+          description: createCityDto.description,
+          coverImage: createCityDto.coverImage,
           region: { connect: { id: createCityDto.regionId } },
         },
       });
     } catch (e) {
       if (getPrismaErrorCode(e) === 'P2002')
-        throw new ConflictException('City with same name key already exists');
+        throw new ConflictException('City with same slug already exists');
       throw e;
     }
   }
@@ -43,9 +46,13 @@ export class CityService {
       return await this.prismaService.city.update({
         where: { id },
         data: {
-          name_key: updateCityDto.name_key,
-          coords: updateCityDto.coords as Prisma.InputJsonValue | undefined,
-          images: updateCityDto.images,
+          name: updateCityDto.name,
+          slug: updateCityDto.slug,
+          lat: updateCityDto.lat,
+          lng: updateCityDto.lng,
+          timezone: updateCityDto.timezone,
+          description: updateCityDto.description,
+          coverImage: updateCityDto.coverImage,
           region: updateCityDto.regionId
             ? { connect: { id: updateCityDto.regionId } }
             : undefined,
@@ -53,7 +60,7 @@ export class CityService {
       });
     } catch (e) {
       if (getPrismaErrorCode(e) === 'P2002')
-        throw new ConflictException('City with same name key already exists');
+        throw new ConflictException('City with same slug already exists');
       if (getPrismaErrorCode(e) === 'P2025')
         throw new NotFoundException('City not found');
       throw e;

@@ -1,5 +1,11 @@
 import { Type } from 'class-transformer';
-import { IsEmail, IsOptional, IsString } from 'class-validator';
+import { IsEmail, IsEnum, IsOptional, IsString } from 'class-validator';
+
+enum UserRoleDto {
+  TRAVELER = 'TRAVELER',
+  GUIDE = 'GUIDE',
+  ADMIN = 'ADMIN',
+}
 
 export class CreateUserDto {
   @IsString()
@@ -12,10 +18,14 @@ export class CreateUserDto {
   password: string;
 
   @IsOptional()
-  @IsString()
-  preferences?: string;
+  preferences?: Record<string, unknown>;
 
+  @IsOptional()
   @IsString()
+  avatarUrl?: string;
+
+  @IsOptional()
+  @IsEnum(UserRoleDto)
   @Type(() => String)
-  roleId: string;
+  role?: UserRoleDto;
 }

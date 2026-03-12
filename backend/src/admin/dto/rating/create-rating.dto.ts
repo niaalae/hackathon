@@ -4,15 +4,19 @@ import { IsInt, IsOptional, IsString } from 'class-validator';
 export class CreateRatingDto {
   @IsInt()
   @Type(() => Number)
-  value: number;
+  score: number;
 
   @IsOptional()
   @IsString()
   comment?: string;
 
   @IsString()
-  placeId: string;
+  fromUserId: string;
 
   @IsString()
-  userId: string;
+  guideId: string;
+
+  @IsOptional()
+  @IsString()
+  tripId?: string;
 }

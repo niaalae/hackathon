@@ -14,43 +14,43 @@ export class CategoryService {
 
   async create(createCategoryDto: CreateCategoryDto) {
     try {
-      return await this.prismaService.category.create({ data: createCategoryDto });
+      return await this.prismaService.tag.create({ data: createCategoryDto });
     } catch (e) {
       if (getPrismaErrorCode(e) === 'P2002')
-        throw new ConflictException('Category key already exists');
+        throw new ConflictException('Tag already exists');
       throw e;
     }
   }
 
   findAll() {
-    return this.prismaService.category.findMany();
+    return this.prismaService.tag.findMany();
   }
 
   findOne(id: string) {
-    return this.prismaService.category.findUnique({ where: { id } });
+    return this.prismaService.tag.findUnique({ where: { id } });
   }
 
   async update(id: string, updateCategoryDto: UpdateCategoryDto) {
     try {
-      return await this.prismaService.category.update({
+      return await this.prismaService.tag.update({
         where: { id },
         data: updateCategoryDto,
       });
     } catch (e) {
       if (getPrismaErrorCode(e) === 'P2002')
-        throw new ConflictException('Category key already exists');
+        throw new ConflictException('Tag already exists');
       if (getPrismaErrorCode(e) === 'P2025')
-        throw new NotFoundException('Category not found');
+        throw new NotFoundException('Tag not found');
       throw e;
     }
   }
 
   async remove(id: string) {
     try {
-      return await this.prismaService.category.delete({ where: { id } });
+      return await this.prismaService.tag.delete({ where: { id } });
     } catch (e) {
       if (getPrismaErrorCode(e) === 'P2025')
-        throw new NotFoundException('Category not found');
+        throw new NotFoundException('Tag not found');
       throw e;
     }
   }

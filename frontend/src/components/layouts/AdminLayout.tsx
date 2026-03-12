@@ -17,21 +17,14 @@ export default function AdminLayout() {
   const { user, logout } = useAuthStore()
 
   const activePath = useMemo(() => location.pathname.replace(/\/+$/, ''), [location.pathname])
-  const activeLabel = useMemo(() => {
-    if (activePath === '/admin') return 'Dashboard'
-    const match = LINKS.find((l) => activePath.startsWith('/admin/' + l.to))
-    return match?.label ?? 'Admin'
-  }, [activePath])
 
   return (
     <main className='min-h-screen bg-[#f4f6f9] text-zinc-900'>
       <div className='mx-auto max-w-[1400px] px-4 py-6 sm:px-6'>
-        <div className='grid gap-6 lg:grid-cols-[200px,1fr]'>
-          <aside className='flex flex-col rounded-[18px] border border-zinc-200 bg-white p-4 shadow-sm'>
-            <div className='text-xs font-semibold uppercase tracking-[0.2em] text-zinc-400'>Admin</div>
-            <div className='mt-1 text-sm font-semibold text-zinc-900'>{user?.name ?? 'Guest'}</div>
-
-            <nav className='mt-4 space-y-1'>
+        <div className='grid gap-6 lg:grid-cols-[92px,1fr]'>
+          <aside className='flex flex-col items-center rounded-[18px] border border-zinc-200 bg-white py-4 shadow-sm'>
+            <div className='text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-400'>Admin</div>
+            <div className='mt-2 flex flex-col items-center gap-3'>
               {LINKS.map((link) => {
                 const isActive = activePath === '/admin' ? link.to === 'dashboard' : activePath.startsWith('/admin/' + link.to)
                 return (
@@ -39,45 +32,40 @@ export default function AdminLayout() {
                     key={link.to}
                     to={link.to}
                     data-active={isActive}
-                    className='flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-zinc-600 transition hover:bg-zinc-100 data-[active=true]:bg-orange-500/10 data-[active=true]:text-orange-600'
+                    className='group flex flex-col items-center gap-1 text-[10px] font-semibold text-zinc-400'
                   >
-                    <link.icon className='h-4 w-4' />
-                    {link.label}
+                    <span
+                      className={`flex h-10 w-10 items-center justify-center rounded-full border ${
+                        isActive ? 'border-orange-500 bg-orange-500 text-white' : 'border-zinc-200 bg-white text-zinc-500'
+                      }`}
+                    >
+                      <link.icon className='h-4 w-4' />
+                    </span>
+                    <span className='opacity-0 transition group-hover:opacity-100'>{link.label}</span>
                   </Link>
                 )
               })}
-            </nav>
+            </div>
 
-            <div className='mt-auto space-y-2 pt-6'>
+            <div className='mt-auto flex flex-col items-center gap-3 pt-4'>
               <button
                 onClick={() => navigate('/')}
-                className='flex w-full items-center gap-2 rounded-lg border border-zinc-200 px-3 py-2 text-xs font-semibold text-zinc-600'
+                className='flex h-10 w-10 items-center justify-center rounded-full border border-zinc-200 text-zinc-500'
+                title='Back to site'
               >
                 <ArrowLeft className='h-4 w-4' />
-                Back to site
               </button>
               <button
                 onClick={() => logout().then(() => navigate('/'))}
-                className='flex w-full items-center gap-2 rounded-lg bg-zinc-900 px-3 py-2 text-xs font-semibold text-white'
+                className='flex h-10 w-10 items-center justify-center rounded-full bg-zinc-900 text-white'
+                title='Sign out'
               >
                 <LogOut className='h-4 w-4' />
-                Sign out
               </button>
             </div>
           </aside>
 
           <section className='rounded-[22px] border border-zinc-200 bg-white shadow-[0_18px_50px_rgba(15,23,42,0.08)]'>
-            <header className='flex flex-wrap items-center justify-between gap-4 border-b border-zinc-200 px-6 py-4 sm:px-8'>
-              <div>
-                <div className='text-xs font-semibold uppercase tracking-[0.2em] text-zinc-400'>Admin</div>
-                <h1 className='text-2xl font-semibold text-zinc-900 sm:text-3xl'>{activeLabel}</h1>
-                <p className='text-xs text-zinc-500'>Route: {activePath}</p>
-              </div>
-              <div className='rounded-full border border-orange-200 bg-orange-500/10 px-4 py-2 text-xs font-semibold text-orange-600'>
-                Status: {user?.admin ? 'Admin' : 'Viewer'}
-              </div>
-            </header>
-
             <div className='bg-[#fbfaf7] px-6 py-6 sm:px-8'>
               <Outlet />
             </div>

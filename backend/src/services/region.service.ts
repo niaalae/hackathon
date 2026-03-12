@@ -17,7 +17,7 @@ export class RegionService {
       return await this.prismaService.region.create({ data: createRegionDto });
     } catch (e) {
       if (getPrismaErrorCode(e) === 'P2002')
-        throw new ConflictException('Region with same name key already exists');
+        throw new ConflictException('Region with same slug already exists');
       throw e;
     }
   }
@@ -38,7 +38,7 @@ export class RegionService {
       });
     } catch (e) {
       if (getPrismaErrorCode(e) === 'P2002')
-        throw new ConflictException('Region with same name key already exists');
+        throw new ConflictException('Region with same slug already exists');
       if (getPrismaErrorCode(e) === 'P2025')
         throw new NotFoundException('Region not found');
       throw e;

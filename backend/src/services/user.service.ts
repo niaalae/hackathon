@@ -1,55 +1,29 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from '@/admin/dto/user/create-user.dto';
 import { UpdateUserDto } from '@/admin/dto/user/update-user.dto';
 import { PrismaService } from '@/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { getPrismaErrorCode } from '@/prisma/prisma-error.util';
-import { EmbeddingService } from './embedding.service';
+import { normalizeJsonInput } from '@/prisma/prisma-json.util';
 
 @Injectable()
 export class UserService {
-  constructor(
-    private readonly prismaService: PrismaService,
-    private readonly embeddingService: EmbeddingService,
-  ) {}
-
-  private async saveUserPreferencesEmbedding(
-    userId: string,
-    preferences?: string,
-  ) {
-    const embedding = await this.embeddingService.embedText(preferences);
-
-    if (!embedding) {
-      await this.prismaService.$executeRaw`
-        UPDATE "User"
-        SET "preferences_embedding" = NULL
-        WHERE "id" = ${userId}
-      `;
-      return;
-    }
-
-    await this.prismaService.$executeRaw`
-      UPDATE "User"
-      SET "preferences_embedding" = ${this.embeddingService.toVectorLiteral(embedding)}::vector
-      WHERE "id" = ${userId}
-    `;
-  }
+  constructor(private readonly prismaService: PrismaService) {}
 
   async create(createUserDto: CreateUserDto) {
     try {
+      const preferences = normalizeJsonInput(createUserDto.preferences);
       const user = await this.prismaService.user.create({
         data: {
-          ...createUserDto,
-          password: await bcrypt.hash(createUserDto.password, 12),
+          name: createUserDto.name,
+          email: createUserDto.email,
+          passwordHash: await bcrypt.hash(createUserDto.password, 12),
+          avatarUrl: createUserDto.avatarUrl,
+          preferences,
+          role: createUserDto.role ?? 'TRAVELER',
         },
-        omit: { password: true },
+        omit: { passwordHash: true },
       });
-
-      await this.saveUserPreferencesEmbedding(user.id, createUserDto.preferences);
 
       return user;
     } catch (e) {
@@ -62,32 +36,36 @@ export class UserService {
   }
 
   async findAll() {
-    return this.prismaService.user.findMany({ omit: { password: true } });
+    return this.prismaService.user.findMany({ omit: { passwordHash: true } });
   }
 
   async findOne(id: string) {
     return this.prismaService.user.findUnique({
       where: { id },
-      omit: { password: true },
+      omit: { passwordHash: true },
     });
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
     try {
+      const preferences =
+        updateUserDto.preferences !== undefined
+          ? normalizeJsonInput(updateUserDto.preferences)
+          : undefined;
       const user = await this.prismaService.user.update({
         where: { id },
         data: {
-          ...updateUserDto,
-          password: updateUserDto.password
+          name: updateUserDto.name,
+          email: updateUserDto.email,
+          avatarUrl: updateUserDto.avatarUrl,
+          role: updateUserDto.role,
+          preferences,
+          passwordHash: updateUserDto.password
             ? await bcrypt.hash(updateUserDto.password, 12)
             : undefined,
         },
-        omit: { password: true },
+        omit: { passwordHash: true },
       });
-
-      if (updateUserDto.preferences !== undefined) {
-        await this.saveUserPreferencesEmbedding(user.id, updateUserDto.preferences);
-      }
 
       return user;
     } catch (e) {
@@ -105,7 +83,7 @@ export class UserService {
     try {
       return await this.prismaService.user.delete({
         where: { id },
-        omit: { password: true },
+        omit: { passwordHash: true },
       });
     } catch (e) {
       if (getPrismaErrorCode(e) === 'P2025')
@@ -114,48 +92,79 @@ export class UserService {
     }
   }
 
-  async applyPlaceFeedback(userId: string, placeId: string, liked: boolean) {
+  async applyPlaceFeedback(userId: string, attractionId: string, liked: boolean) {
     const user = await this.prismaService.user.findUnique({
       where: { id: userId },
-      select: { id: true },
+      select: { id: true, preferences: true },
     });
     if (!user) throw new NotFoundException('User not found');
 
-    const place = await this.prismaService.place.findUnique({
-      where: { id: placeId },
-      select: { id: true, name_key: true },
+    const attraction = await this.prismaService.attraction.findUnique({
+      where: { id: attractionId },
+      include: { tags: { include: { tag: true } } },
     });
-    if (!place) throw new NotFoundException('Place not found');
+    if (!attraction) throw new NotFoundException('Attraction not found');
 
-    const placeEmbedding = await this.embeddingService.embedText(place.name_key);
-    if (placeEmbedding) {
-      await this.prismaService.$executeRaw`
-        UPDATE "Place"
-        SET "name_embedding" = ${this.embeddingService.toVectorLiteral(placeEmbedding)}::vector
-        WHERE "id" = ${place.id}
-      `;
+    const preferences = (user.preferences ?? {}) as Record<string, unknown>;
+    const likedAttractions = new Set(
+      Array.isArray(preferences.likedAttractions) ? (preferences.likedAttractions as string[]) : [],
+    );
+    const dislikedAttractions = new Set(
+      Array.isArray(preferences.dislikedAttractions) ? (preferences.dislikedAttractions as string[]) : [],
+    );
+    const likedTags = new Set(
+      Array.isArray(preferences.likedTags) ? (preferences.likedTags as string[]) : [],
+    );
+    const dislikedTags = new Set(
+      Array.isArray(preferences.dislikedTags) ? (preferences.dislikedTags as string[]) : [],
+    );
+    const likedTypes = new Set(
+      Array.isArray(preferences.likedTypes) ? (preferences.likedTypes as string[]) : [],
+    );
+    const dislikedTypes = new Set(
+      Array.isArray(preferences.dislikedTypes) ? (preferences.dislikedTypes as string[]) : [],
+    );
+
+    const attractionTagNames = attraction.tags.map((tagMap) => tagMap.tag.name);
+
+    if (liked) {
+      likedAttractions.add(attractionId);
+      dislikedAttractions.delete(attractionId);
+      attractionTagNames.forEach((tag) => likedTags.add(tag));
+      attractionTagNames.forEach((tag) => dislikedTags.delete(tag));
+      if (attraction.type) {
+        likedTypes.add(attraction.type);
+        dislikedTypes.delete(attraction.type);
+      }
+    } else {
+      dislikedAttractions.add(attractionId);
+      likedAttractions.delete(attractionId);
+      attractionTagNames.forEach((tag) => dislikedTags.add(tag));
+      if (attraction.type) {
+        dislikedTypes.add(attraction.type);
+      }
     }
 
-    const updatedRows = await this.prismaService.$queryRaw<Array<{ id: string }>>`
-      UPDATE "User" u
-      SET "preferences_embedding" = CASE
-        WHEN p."name_embedding" IS NULL THEN u."preferences_embedding"
-        WHEN u."preferences_embedding" IS NULL AND ${liked} THEN p."name_embedding"
-        WHEN u."preferences_embedding" IS NULL AND NOT ${liked} THEN (p."name_embedding" * -1)
-        WHEN ${liked} THEN ((u."preferences_embedding" * 0.85) + (p."name_embedding" * 0.15))
-        ELSE ((u."preferences_embedding" * 0.85) - (p."name_embedding" * 0.15))
-      END
-      FROM "Place" p
-      WHERE u."id" = ${userId}
-        AND p."id" = ${placeId}
-      RETURNING u."id"
-    `;
+    const updatedPreferences = {
+      ...preferences,
+      likedAttractions: Array.from(likedAttractions),
+      dislikedAttractions: Array.from(dislikedAttractions),
+      likedTags: Array.from(likedTags),
+      dislikedTags: Array.from(dislikedTags),
+      likedTypes: Array.from(likedTypes),
+      dislikedTypes: Array.from(dislikedTypes),
+    };
+
+    await this.prismaService.user.update({
+      where: { id: userId },
+      data: { preferences: updatedPreferences },
+    });
 
     return {
       userId,
-      placeId,
+      placeId: attractionId,
       liked,
-      updated: updatedRows.length > 0,
+      updated: true,
     };
   }
 
@@ -166,11 +175,10 @@ export class UserService {
     });
     if (!user) throw new NotFoundException('User not found');
 
-    await this.prismaService.$executeRaw`
-      UPDATE "User"
-      SET "preferences_embedding" = NULL
-      WHERE "id" = ${userId}
-    `;
+    await this.prismaService.user.update({
+      where: { id: userId },
+      data: { preferences: normalizeJsonInput(null) },
+    });
 
     return { userId, reset: true };
   }
