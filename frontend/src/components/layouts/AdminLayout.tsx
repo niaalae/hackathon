@@ -26,24 +26,12 @@ export default function AdminLayout() {
   return (
     <main className='min-h-screen bg-[#f4f6f9] text-zinc-900'>
       <div className='mx-auto max-w-[1400px] px-4 py-6 sm:px-6'>
-        <div className='grid gap-6 lg:grid-cols-[280px,1fr]'>
-          <aside className='rounded-[26px] border border-[#eceff3] bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.08)]'>
-            <div className='rounded-[22px] border border-[#efe9df] bg-[#f7f2ea] p-4'>
-              <div className='flex items-center gap-3'>
-                <div className='h-12 w-12 overflow-hidden rounded-2xl bg-white'>
-                  <img src='/logo.png' alt='logo' className='h-full w-full object-cover' />
-                </div>
-                <div>
-                  <div className='text-xs font-semibold uppercase tracking-[0.2em] text-zinc-400'>Trippple</div>
-                  <div className='text-sm font-semibold text-zinc-900'>Admin panel</div>
-                </div>
-              </div>
-              <div className='mt-3 text-xs text-zinc-500'>
-                Signed in as <span className='font-semibold text-zinc-700'>{user?.name ?? 'Guest'}</span>
-              </div>
-            </div>
+        <div className='grid gap-6 lg:grid-cols-[200px,1fr]'>
+          <aside className='flex flex-col rounded-[18px] border border-zinc-200 bg-white p-4 shadow-sm'>
+            <div className='text-xs font-semibold uppercase tracking-[0.2em] text-zinc-400'>Admin</div>
+            <div className='mt-1 text-sm font-semibold text-zinc-900'>{user?.name ?? 'Guest'}</div>
 
-            <div className='mt-5 space-y-2'>
+            <nav className='mt-4 space-y-1'>
               {LINKS.map((link) => {
                 const isActive = activePath === '/admin' ? link.to === 'dashboard' : activePath.startsWith('/admin/' + link.to)
                 return (
@@ -51,52 +39,46 @@ export default function AdminLayout() {
                     key={link.to}
                     to={link.to}
                     data-active={isActive}
-                    className='flex items-center gap-3 rounded-2xl border border-transparent px-4 py-3 text-sm font-semibold text-zinc-700 transition duration-150 hover:border-[#eadfcf] hover:bg-[#f7f2ea] data-[active=true]:border-[#eadfcf] data-[active=true]:bg-[#f7f2ea]'
+                    className='flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-zinc-600 transition hover:bg-zinc-100 data-[active=true]:bg-orange-500/10 data-[active=true]:text-orange-600'
                   >
-                    <span className='flex h-9 w-9 items-center justify-center rounded-xl bg-white text-zinc-900 shadow-sm'>
-                      <link.icon className='h-4 w-4' />
-                    </span>
+                    <link.icon className='h-4 w-4' />
                     {link.label}
                   </Link>
                 )
               })}
-            </div>
+            </nav>
 
-            <div className='mt-6 space-y-2'>
+            <div className='mt-auto space-y-2 pt-6'>
               <button
                 onClick={() => navigate('/')}
-                className='flex w-full items-center gap-3 rounded-2xl border border-[#eceff3] bg-white px-4 py-3 text-sm font-semibold text-zinc-700 shadow-sm transition hover:-translate-y-0.5'
+                className='flex w-full items-center gap-2 rounded-lg border border-zinc-200 px-3 py-2 text-xs font-semibold text-zinc-600'
               >
-                <span className='flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-900 text-white'>
-                  <ArrowLeft className='h-4 w-4' />
-                </span>
+                <ArrowLeft className='h-4 w-4' />
                 Back to site
               </button>
               <button
                 onClick={() => logout().then(() => navigate('/'))}
-                className='flex w-full items-center gap-3 rounded-2xl border border-transparent bg-zinc-900 px-4 py-3 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(24,24,27,0.2)] transition hover:-translate-y-0.5 hover:bg-zinc-800'
+                className='flex w-full items-center gap-2 rounded-lg bg-zinc-900 px-3 py-2 text-xs font-semibold text-white'
               >
-                <span className='flex h-9 w-9 items-center justify-center rounded-xl bg-white/10'>
-                  <LogOut className='h-4 w-4' />
-                </span>
+                <LogOut className='h-4 w-4' />
                 Sign out
               </button>
             </div>
           </aside>
 
-          <section className='rounded-[28px] border border-[#eceff3] bg-white shadow-[0_24px_70px_rgba(15,23,42,0.08)]'>
-            <header className='flex flex-wrap items-center justify-between gap-4 border-b border-[#f0ebe2] px-6 py-5 sm:px-8'>
+          <section className='rounded-[22px] border border-zinc-200 bg-white shadow-[0_18px_50px_rgba(15,23,42,0.08)]'>
+            <header className='flex flex-wrap items-center justify-between gap-4 border-b border-zinc-200 px-6 py-4 sm:px-8'>
               <div>
                 <div className='text-xs font-semibold uppercase tracking-[0.2em] text-zinc-400'>Admin</div>
                 <h1 className='text-2xl font-semibold text-zinc-900 sm:text-3xl'>{activeLabel}</h1>
                 <p className='text-xs text-zinc-500'>Route: {activePath}</p>
               </div>
-              <div className='rounded-2xl border border-[#f0ebe2] bg-[#f7f2ea] px-4 py-2 text-xs font-semibold text-zinc-600'>
+              <div className='rounded-full border border-orange-200 bg-orange-500/10 px-4 py-2 text-xs font-semibold text-orange-600'>
                 Status: {user?.admin ? 'Admin' : 'Viewer'}
               </div>
             </header>
 
-            <div className='bg-[#fbfaf7] px-6 py-8 sm:px-8'>
+            <div className='bg-[#fbfaf7] px-6 py-6 sm:px-8'>
               <Outlet />
             </div>
           </section>

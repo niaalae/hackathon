@@ -1,10 +1,9 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   Car,
   Clock,
   DollarSign,
   Footprints,
-  Layers,
   MapPin,
   Navigation,
   Plus,
@@ -13,13 +12,18 @@ import {
   TrainFront,
   X,
 } from 'lucide-react'
+import { MapContainer, Marker, Popup, Polyline, TileLayer } from 'react-leaflet'
+import L from 'leaflet'
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
+import markerIcon from 'leaflet/dist/images/marker-icon.png'
+import markerShadow from 'leaflet/dist/images/marker-shadow.png'
 
 interface Pin {
   id: string
   name: string
   type: 'riad' | 'restaurant' | 'attraction' | 'market' | 'custom'
-  x: number
-  y: number
+  lat: number
+  lng: number
   description?: string
 }
 
@@ -34,14 +38,14 @@ interface RouteData {
 }
 
 const pins: Pin[] = [
-  { id: '1', name: 'Bab Boujloud', type: 'attraction', x: 45, y: 35, description: 'Famous Blue Gate entrance to Medina' },
-  { id: '2', name: 'Riad Fes Maya', type: 'riad', x: 50, y: 42, description: 'Traditional accommodation' },
-  { id: '3', name: 'Al-Qarawiyyin Mosque', type: 'attraction', x: 52, y: 38, description: 'Oldest university in the world' },
-  { id: '4', name: 'Chouara Tannery', type: 'attraction', x: 55, y: 32, description: 'Historic leather tannery' },
-  { id: '5', name: 'Cafe Clock', type: 'restaurant', x: 48, y: 40, description: 'Famous camel burger spot' },
-  { id: '6', name: 'Souk El Attarine', type: 'market', x: 51, y: 36, description: 'Spice and perfume market' },
-  { id: '7', name: 'Bab Mansour', type: 'attraction', x: 25, y: 55, description: 'Grand gate of Meknes' },
-  { id: '8', name: 'Volubilis Ruins', type: 'attraction', x: 15, y: 25, description: 'Roman archaeological site' },
+  { id: '1', name: 'Bab Boujloud', type: 'attraction', lat: 34.0618, lng: -4.9821, description: 'Famous Blue Gate entrance to Medina' },
+  { id: '2', name: 'Riad Fes Maya', type: 'riad', lat: 34.0611, lng: -4.9846, description: 'Traditional accommodation' },
+  { id: '3', name: 'Al-Qarawiyyin Mosque', type: 'attraction', lat: 34.0646, lng: -4.9767, description: 'Oldest university in the world' },
+  { id: '4', name: 'Chouara Tannery', type: 'attraction', lat: 34.0651, lng: -4.9732, description: 'Historic leather tannery' },
+  { id: '5', name: 'Cafe Clock', type: 'restaurant', lat: 34.0602, lng: -4.9815, description: 'Famous camel burger spot' },
+  { id: '6', name: 'Souk El Attarine', type: 'market', lat: 34.0658, lng: -4.9761, description: 'Spice and perfume market' },
+  { id: '7', name: 'Bab Mansour', type: 'attraction', lat: 33.8949, lng: -5.5616, description: 'Grand gate of Meknes' },
+  { id: '8', name: 'Volubilis Ruins', type: 'attraction', lat: 34.0724, lng: -5.5547, description: 'Roman archaeological site' },
 ]
 
 const routes: RouteData[] = [
@@ -64,11 +68,36 @@ const modeIcons = {
   transit: TrainFront,
 }
 
+const routeLines: Array<Array<[number, number]>> = [
+  [
+    [34.0611, -4.9846],
+    [34.0651, -4.9732],
+  ],
+  [
+    [34.0331, -5.0003],
+    [33.8949, -5.5616],
+  ],
+  [
+    [33.8949, -5.5616],
+    [34.0724, -5.5547],
+  ],
+]
+
+// Fix Leaflet default marker paths with Vite.
+// @ts-expect-error Leaflet internal override
+delete L.Icon.Default.prototype._getIconUrl
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: markerIcon2x,
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
+})
+
 export default function UserMaps() {
   const [selectedPin, setSelectedPin] = useState<Pin | null>(null)
   const [showRoutes, setShowRoutes] = useState(true)
   const [activeTab, setActiveTab] = useState<'pins' | 'routes'>('pins')
   const [transportMode, setTransportMode] = useState<'walking' | 'driving' | 'transit'>('walking')
+  const mapCenter = useMemo<[number, number]>(() => [34.0331, -5.0003], [])
 
   return (
     <div className='space-y-4'>
@@ -189,10 +218,7 @@ export default function UserMaps() {
         </div>
 
         <div className='relative flex-1 bg-zinc-50'>
-          <div className='absolute right-4 top-4 z-10 flex flex-col gap-2'>
-            <button className='rounded-full border border-zinc-200 bg-white p-2 shadow-sm'>
-              <Layers className='h-4 w-4 text-zinc-600' />
-            </button>
+          <div className='absolute right-4 top-4 z-10'>
             <button
               className={`rounded-full border border-zinc-200 p-2 shadow-sm ${showRoutes ? 'bg-orange-500 text-white' : 'bg-white text-zinc-600'}`}
               onClick={() => setShowRoutes(!showRoutes)}
@@ -201,36 +227,28 @@ export default function UserMaps() {
             </button>
           </div>
 
-          <div className='absolute inset-0 overflow-hidden'>
-            <svg className='h-full w-full opacity-10' xmlns='http://www.w3.org/2000/svg'>
-              <defs>
-                <pattern id='grid-map' width='40' height='40' patternUnits='userSpaceOnUse'>
-                  <path d='M 40 0 L 0 0 0 40' fill='none' stroke='currentColor' strokeWidth='0.5' />
-                </pattern>
-              </defs>
-              <rect width='100%' height='100%' fill='url(#grid-map)' />
-            </svg>
-
-            {showRoutes && (
-              <svg className='absolute inset-0 h-full w-full'>
-                <path d='M 50% 40% Q 35% 45% 25% 55%' className='stroke-orange-500 fill-none' strokeWidth='2' strokeDasharray='4' />
-                <path d='M 25% 55% Q 18% 40% 15% 25%' className='stroke-amber-500 fill-none' strokeWidth='2' strokeDasharray='4' />
-              </svg>
-            )}
-
+          <MapContainer center={mapCenter} zoom={10} className='h-full w-full'>
+            <TileLayer
+              attribution='&copy; OpenStreetMap contributors'
+              url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+            />
+            {showRoutes &&
+              routeLines.map((line, index) => (
+                <Polyline key={index} positions={line} pathOptions={{ color: index === 0 ? '#f97316' : '#f59e0b', weight: 3, dashArray: '6 6' }} />
+              ))}
             {pins.map((pin) => (
-              <button
+              <Marker
                 key={pin.id}
-                className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-full ${selectedPin?.id === pin.id ? 'scale-125' : 'hover:scale-110'} transition`}
-                style={{ left: `${pin.x}%`, top: `${pin.y}%` }}
-                onClick={() => setSelectedPin(pin)}
+                position={[pin.lat, pin.lng]}
+                eventHandlers={{ click: () => setSelectedPin(pin) }}
               >
-                <div className={`flex h-8 w-8 items-center justify-center rounded-full ${pinColors[pin.type]} text-white shadow-lg ring-2 ring-white`}>
-                  <MapPin className='h-4 w-4' />
-                </div>
-              </button>
+                <Popup>
+                  <div className='text-sm font-semibold text-zinc-900'>{pin.name}</div>
+                  <div className='text-xs text-zinc-500 capitalize'>{pin.type}</div>
+                </Popup>
+              </Marker>
             ))}
-          </div>
+          </MapContainer>
 
           {selectedPin && (
             <div className='absolute bottom-4 right-4 w-80 rounded-2xl border border-zinc-200 bg-white p-4 shadow-lg'>

@@ -191,49 +191,7 @@ export default function UserDashboard() {
         </div>
       </div>
 
-      <div className='rounded-[20px] border border-zinc-200 bg-white p-5 shadow-sm'>
-        <div className='flex items-center justify-between'>
-          <h3 className='text-lg font-semibold text-zinc-900'>Fes-Meknes Region</h3>
-          <Link to='/user/maps' className='text-sm text-orange-600 hover:underline'>
-            Expand
-          </Link>
-        </div>
-        <div className='mt-4 rounded-[16px] bg-zinc-50 p-4'>
-          <div className='relative h-48 overflow-hidden rounded-lg bg-white'>
-            <svg className='absolute inset-0 h-full w-full opacity-10' xmlns='http://www.w3.org/2000/svg'>
-              <defs>
-                <pattern id='grid' width='40' height='40' patternUnits='userSpaceOnUse'>
-                  <path d='M 40 0 L 0 0 0 40' fill='none' stroke='currentColor' strokeWidth='0.5' />
-                </pattern>
-              </defs>
-              <rect width='100%' height='100%' fill='url(#grid)' />
-            </svg>
-            {pins.map((pin) => (
-              <div
-                key={pin.id}
-                className='absolute -translate-x-1/2 -translate-y-1/2'
-                style={{ left: `${pin.x}%`, top: `${pin.y}%` }}
-              >
-                <div className={`h-3 w-3 rounded-full ${pinStyles[pin.status]} ring-2 ring-white`} />
-              </div>
-            ))}
-          </div>
-          <div className='mt-4 flex flex-wrap gap-4 text-xs text-zinc-500'>
-            <div className='flex items-center gap-2'>
-              <span className='h-2.5 w-2.5 rounded-full bg-orange-500' />
-              Upcoming
-            </div>
-            <div className='flex items-center gap-2'>
-              <span className='h-2.5 w-2.5 rounded-full bg-amber-500' />
-              Planning
-            </div>
-            <div className='flex items-center gap-2'>
-              <span className='h-2.5 w-2.5 rounded-full bg-zinc-400' />
-              Completed
-            </div>
-          </div>
-        </div>
-      </div>
+   
     </div>
   )
 }

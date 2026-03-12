@@ -21,6 +21,7 @@ import UserMaps from './pages/user/Maps'
 import UserTrips from './pages/user/Trips'
 import UserGroups from './pages/user/Groups'
 import UserAI from './pages/user/AI'
+import UserMatch from './pages/user/Match'
 
 gsap.registerPlugin(useGSAP, Flip)
 
@@ -48,6 +49,7 @@ function App() {
               <Route index element={<UserDashboard />} />
               <Route path='dashboard' element={<UserDashboard />} />
               <Route path='maps' element={<UserMaps />} />
+              <Route path='match' element={<UserMatch />} />
               <Route path='trips' element={<UserTrips />} />
               <Route path='groups' element={<UserGroups />} />
               <Route path='ai' element={<UserAI />} />
