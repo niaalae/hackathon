@@ -3,15 +3,10 @@ import { AuthWrapper, RefreshWrapper, UnauthWrapper } from '@/components/wrapper
 import { Login, Register } from '@/pages/auth/'
 import { AdminAnalytics, AdminDashboard, AdminSettings, AdminTrips, AdminUsers } from '@/pages/admin'
 import Home from '@/pages/Home'
-import TripPlanner from '@/pages/planning/TripPlanner'
-import Itineraries from '@/pages/planning/Itineraries'
-import TravelGuides from '@/pages/planning/TravelGuides'
-import BeachEvents from '@/pages/summer-parties/BeachEvents'
-import RooftopParties from '@/pages/summer-parties/RooftopParties'
-import FestivalGuide from '@/pages/summer-parties/FestivalGuide'
 import Pricing from '@/pages/Pricing'
 import FAQs from '@/pages/FAQs'
 import Maps from '@/pages/Maps'
+import Dashboard from '@/pages/Dashboard'
 import { useGSAP } from '@gsap/react'
 import { Flip } from 'gsap/all'
 import gsap from 'gsap'
@@ -29,6 +24,9 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route index element={<Home />} />
+        <Route path='pricing' element={<Pricing />} />
+        <Route path='faqs' element={<FAQs />} />
+        <Route path='dashboard' element={<Dashboard />} />
         <Route path='*' element={<>404</>} />
 
         <Route element={<RefreshWrapper />}>

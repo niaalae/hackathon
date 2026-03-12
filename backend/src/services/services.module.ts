@@ -7,6 +7,7 @@ import { PlaceService } from './place.service';
 import { RatingService } from './rating.service';
 import { TripService } from './trip.service';
 import { EmbeddingService } from './embedding.service';
+import { HeroAgentService } from './hero-agent.service';
 
 const services = [
   UserService,
@@ -17,6 +18,7 @@ const services = [
   RatingService,
   TripService,
   EmbeddingService,
+  HeroAgentService,
 ];
 
 @Module({

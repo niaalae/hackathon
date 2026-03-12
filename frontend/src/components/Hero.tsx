@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { ArrowRight } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
 const travelImages = [
   {
@@ -85,34 +86,63 @@ function ImageCard({ src, alt, className }: { src: string; alt: string; classNam
   )
 }
 
-function FadePlaceholder() {
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const [visible, setVisible] = useState(true)
+function TypePlaceholder() {
+  const [index, setIndex] = useState(0)
+  const [text, setText] = useState('')
+  const [isFading, setIsFading] = useState(false)
 
   useEffect(() => {
-    const cycle = () => {
-      setVisible(false)
-      setTimeout(() => {
-        setCurrentIndex((prev) => (prev + 1) % placeholders.length)
-        setVisible(true)
-      }, 500)
+    let typingTimeout: number | undefined
+    let fadeTimeout: number | undefined
+
+    const fullText = placeholders[index]
+    if (text.length < fullText.length) {
+      typingTimeout = window.setTimeout(() => {
+        setText(fullText.slice(0, text.length + 1))
+      }, 38)
+    } else {
+      fadeTimeout = window.setTimeout(() => {
+        setIsFading(true)
+        window.setTimeout(() => {
+          setIsFading(false)
+          setText('')
+          setIndex((prev) => (prev + 1) % placeholders.length)
+        }, 520)
+      }, 1200)
     }
-    const interval = setInterval(cycle, 3000)
-    return () => clearInterval(interval)
-  }, [])
+
+    return () => {
+      if (typingTimeout) window.clearTimeout(typingTimeout)
+      if (fadeTimeout) window.clearTimeout(fadeTimeout)
+    }
+  }, [index, text])
 
   return (
     <span
-      className="pointer-events-none select-none text-zinc-400 transition-opacity duration-500 ease-in-out"
-      style={{ opacity: visible ? 1 : 0 }}
+      className="pointer-events-none select-none text-zinc-400 transition-opacity duration-500 ease-out"
+      style={{ opacity: isFading ? 0 : 1 }}
     >
-      {placeholders[currentIndex]}
+      {text}
+      <span className="inline-block h-4 w-[1px] translate-y-[1px] bg-zinc-300/70 animate-pulse" />
     </span>
   )
 }
 
 export default function Hero() {
   const [query, setQuery] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const navigate = useNavigate()
+
+  const handleSubmit = () => {
+    const trimmed = query.trim()
+    if (!trimmed || isLoading) return
+    setIsLoading(true)
+    sessionStorage.setItem('heroPrompt', trimmed)
+    setTimeout(() => {
+      navigate(`/dashboard?prompt=${encodeURIComponent(trimmed)}`)
+      setIsLoading(false)
+    }, 1200)
+  }
 
   return (
     <section className="relative overflow-hidden bg-white pt-3 sm:pt-4 lg:pt-5">
@@ -154,19 +184,23 @@ export default function Hero() {
                     type="text"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') handleSubmit()
+                    }}
                     className="h-[54px] w-full rounded-2xl border border-zinc-200 bg-white px-5 text-[15px] text-zinc-800 shadow-sm outline-none focus:border-orange-300 focus:shadow-[0_0_0_3px_rgba(249,115,22,0.08)] transition-all duration-200"
                   />
                   {!query && (
                     <div className="absolute inset-0 flex items-center px-5 pointer-events-none">
-                      <FadePlaceholder />
+                      <TypePlaceholder />
                     </div>
                   )}
                 </div>
                 <button
-                  onClick={() => console.log(query)}
-                  className="flex h-[54px] w-full items-center justify-center gap-2 rounded-2xl bg-zinc-950 text-sm font-semibold text-white transition duration-200 hover:bg-zinc-800 active:scale-[0.98]"
+                  onClick={handleSubmit}
+                  disabled={isLoading}
+                  className="flex h-[54px] w-full items-center justify-center gap-2 rounded-2xl bg-zinc-950 text-sm font-semibold text-white transition duration-200 hover:bg-zinc-800 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
                 >
-                  Start Planning
+                  {isLoading ? 'Launching...' : 'Start Planning'}
                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10">
                     <ArrowRight className="h-4 w-4" />
                   </span>
@@ -180,19 +214,23 @@ export default function Hero() {
                     type="text"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') handleSubmit()
+                    }}
                     className="h-[52px] w-full bg-transparent pl-5 text-[15px] text-zinc-800 outline-none"
                   />
                   {!query && (
                     <div className="absolute inset-0 flex items-center pl-5 pointer-events-none">
-                      <FadePlaceholder />
+                      <TypePlaceholder />
                     </div>
                   )}
                 </div>
                 <button
-                  onClick={() => console.log(query)}
-                  className="inline-flex h-[52px] items-center justify-center gap-2 rounded-full bg-zinc-950 px-7 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(24,24,27,0.14)] transition duration-200 hover:-translate-y-0.5 hover:bg-zinc-800"
+                  onClick={handleSubmit}
+                  disabled={isLoading}
+                  className="inline-flex h-[52px] items-center justify-center gap-2 rounded-full bg-zinc-950 px-7 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(24,24,27,0.14)] transition duration-200 hover:-translate-y-0.5 hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-70"
                 >
-                  Start Planning
+                  {isLoading ? 'Launching...' : 'Start Planning'}
                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10">
                     <ArrowRight className="h-4 w-4" />
                   </span>
@@ -200,6 +238,23 @@ export default function Hero() {
               </div>
 
             </div>
+
+            {isLoading && (
+              <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-[#f8f3ee]/85 backdrop-blur-md">
+                <div className="relative w-[320px] overflow-hidden rounded-[28px] border border-orange-100/70 bg-white px-7 py-8 text-center shadow-[0_30px_80px_rgba(249,115,22,0.18)]">
+                  <div className="absolute -right-8 -top-10 h-28 w-28 rounded-full bg-orange-200/40 blur-2xl" />
+                  <div className="absolute -bottom-10 -left-10 h-24 w-24 rounded-full bg-amber-200/50 blur-2xl" />
+                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#111827] text-white shadow-[0_12px_26px_rgba(15,23,42,0.28)]">
+                    <ArrowRight className="h-5 w-5" />
+                  </div>
+                  <p className="text-sm font-semibold text-zinc-900">Preparing your dashboard</p>
+                  <p className="mt-2 text-xs text-zinc-500">Lining up bookings and collaborators</p>
+                  <div className="mt-5 h-2 w-full overflow-hidden rounded-full bg-orange-100">
+                    <div className="hero-loader h-full w-1/2 rounded-full bg-gradient-to-r from-orange-500 via-amber-400 to-orange-300" />
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Features */}
             <div className="mt-10 grid w-full max-w-[980px] grid-cols-2 gap-y-4 text-zinc-400 sm:mt-12 sm:grid-cols-3 lg:mt-14 lg:grid-cols-6">
@@ -246,6 +301,14 @@ export default function Hero() {
         @keyframes heroMarquee {
           from { transform: translateX(0); }
           to { transform: translateX(-50%); }
+        }
+        .hero-loader {
+          animation: heroLoader 1.1s ease-in-out infinite;
+        }
+        @keyframes heroLoader {
+          0% { transform: translateX(-20%); width: 35%; }
+          50% { transform: translateX(20%); width: 70%; }
+          100% { transform: translateX(-20%); width: 35%; }
         }
       `}</style>
     </section>
