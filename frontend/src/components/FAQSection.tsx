@@ -10,64 +10,52 @@ export default function FAQSection() {
         setOpenIndex(openIndex === index ? null : index)
     }
 
-    const faqs = [
-        { question: t('faq.q1'), answer: t('faq.a1') },
-        { question: t('faq.q2'), answer: t('faq.a2') },
-        { question: t('faq.q3'), answer: t('faq.a3') },
-        { question: t('faq.q4'), answer: t('faq.a4') },
-        { question: t('faq.q5'), answer: t('faq.a5') },
-        { question: t('faq.q6'), answer: t('faq.a6') },
-        { question: t('faq.q7'), answer: t('faq.a7') },
-        { question: t('faq.q8'), answer: t('faq.a8') }
-    ]
+    const faqCount = 8
+    const faqs = Array.from({ length: faqCount }, (_, i) => ({
+        question: t(`faq.q${i + 1}`),
+        answer: t(`faq.a${i + 1}`)
+    }))
 
     return (
-        <>
-            <style>
-                {`
-                    @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
-                    .faq-section {
-                        font-family: "Poppins", sans-serif;
-                    }
-                `}
-            </style>
+        <section className='faq-section w-full py-32 px-4 bg-white border-t border-neutral-100'>
+            <div className='w-full max-w-6xl mx-auto flex flex-col md:flex-row gap-16 md:gap-24 items-start relative'>
+                {/* Left Column - Sticky */}
+                <div className={`w-full md:w-1/3 md:sticky md:top-40 h-fit ${isRtl ? 'md:text-right' : 'md:text-left'}`}>
+                    <h2 className='text-4xl md:text-5xl font-bold text-neutral-900 mb-6 tracking-tight'>
+                        {t('faq.title')}
+                    </h2>
+                    <p className='text-neutral-500 text-xl leading-relaxed max-w-sm'>
+                        {t('faq.subtitle')}
+                    </p>
+                </div>
 
-            <section className='faq-section w-full flex flex-col items-center justify-center py-16 px-4 bg-white'>
-                <div className='w-full max-w-5xl'>
-                    <div className='mb-10'>
-                        <h2 className={`text-3xl font-semibold text-neutral-900 text-center ${isRtl ? 'md:text-right' : 'md:text-left'} mb-4`}>
-                            {t('faq.title')}
-                        </h2>
-                        <p className={`text-neutral-800 max-w-[416px] text-sm text-center ${isRtl ? 'md:text-right md:mr-0 md:ml-auto' : 'md:text-left md:ml-0 md:mr-auto'} mx-auto`}>
-                            {t('faq.subtitle')}
-                        </p>
-                    </div>
-
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4' dir={isRtl ? 'rtl' : 'ltr'}>
-                        {faqs.map((faq, index) => (
-                            <div key={index} onClick={() => toggleFAQ(index)} className={`bg-slate-50 p-3.5 rounded-lg cursor-pointer transition-all duration-300 border border-slate-200 hover:bg-slate-100 ${openIndex === index ? 'row-span-2' : ''}`}>
-                                <div className='flex items-center justify-between gap-4'>
-                                    <span className={`text-sm font-medium text-neutral-800 ${isRtl ? 'text-right' : 'text-left'}`}>{faq.question}</span>
-                                    <div className={`text-slate-400 p-1 rounded transition-colors ${openIndex === index ? 'bg-slate-200 text-slate-500' : 'hover:bg-slate-300 hover:text-slate-500'}`}>
-                                        {openIndex === index ? (
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-minus"><path d="M5 12h14" /></svg>
-                                        ) : (
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-plus"><path d="M5 12h14" /><path d="M12 5v14" /></svg>
-                                        )}
-                                    </div>
-                                </div>
-                                <div className={`grid transition-all duration-300 ease-in-out ${openIndex === index ? 'grid-rows-[1fr] opacity-100 mt-4' : 'grid-rows-[0fr] opacity-0'}`}>
-                                    <div className='overflow-hidden'>
-                                        <p className={`text-sm text-neutral-600 leading-relaxed ${isRtl ? 'text-right' : 'text-left'}`}>
-                                            {faq.answer}
-                                        </p>
-                                    </div>
+                {/* Right Column - Scrolling */}
+                <div className='w-full md:w-2/3 flex flex-col' dir={isRtl ? 'rtl' : 'ltr'}>
+                    {faqs.map((faq, index) => (
+                        <div
+                            key={index}
+                            onClick={() => toggleFAQ(index)}
+                            className='border-b border-neutral-200 py-8 cursor-pointer group'
+                        >
+                            <div className='flex items-center justify-between gap-8'>
+                                <h3 className={`text-xl font-semibold text-neutral-800 transition-colors group-hover:text-neutral-500 ${isRtl ? 'text-right' : 'text-left'}`}>
+                                    {faq.question}
+                                </h3>
+                                <div className={`flex-shrink-0 transition-all duration-300 w-6 h-6 flex items-center justify-center ${openIndex === index ? 'rotate-180 text-neutral-800' : 'text-neutral-400'}`}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
                                 </div>
                             </div>
-                        ))}
-                    </div>
+                            <div className={`grid transition-all duration-300 ease-in-out ${openIndex === index ? 'grid-rows-[1fr] opacity-100 mt-6' : 'grid-rows-[0fr] opacity-0'}`}>
+                                <div className='overflow-hidden'>
+                                    <p className={`text-lg text-neutral-500 leading-relaxed max-w-2xl ${isRtl ? 'text-right' : 'text-left'}`}>
+                                        {faq.answer}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
                 </div>
-            </section>
-        </>
+            </div>
+        </section>
     )
 }
