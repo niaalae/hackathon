@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthWrapper, RefreshWrapper, UnauthWrapper, AdminWrapper } from '@/components/wrappers'
-import { AdminLayout, Layout } from '@/components/layouts'
+import { AdminLayout } from '@/components/layouts'
 import { Login, Register } from '@/pages/auth/'
 import Home from '@/pages/Home'
 import { useGSAP } from '@gsap/react'
