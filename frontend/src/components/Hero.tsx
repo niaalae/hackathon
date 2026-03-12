@@ -59,7 +59,7 @@ const features = [
 export default function TravelHeroSection() {
   return (
     <section className="relative overflow-hidden bg-[#eaf4fb] pt-3 sm:pt-4 lg:pt-5">
-      <div className="mx-auto max-w-[1520px] px-3 sm:px-4 lg:px-6">
+      <div className="mx-auto px-3 sm:px-4 lg:px-6">
         <div className="relative overflow-hidden rounded-[28px] bg-[#f7f2ea] px-4 pb-5 pt-8 shadow-[0_20px_60px_rgba(15,23,42,0.06)] sm:rounded-[32px] sm:px-7 sm:pb-7 sm:pt-10 lg:rounded-[36px] lg:px-10 lg:pb-8 lg:pt-12">
           {/* background glow */}
           <div className="pointer-events-none absolute inset-0">
