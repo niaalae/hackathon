@@ -127,7 +127,7 @@ export default function Hero() {
                 <span
                   className="inline-block text-orange-500"
                   style={{
-                    fontFamily: '"Brush Script MT", "Segoe Script", "Lucida Handwriting", cursive',
+                    fontFamily: '"Dancing Script", cursive',
                     fontWeight: 700,
                     letterSpacing: '-0.01em',
                   }}
