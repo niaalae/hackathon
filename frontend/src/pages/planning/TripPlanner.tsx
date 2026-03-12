@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { MapPin, Calendar, Compass, Sparkles, ArrowRight, Clock, Users } from 'lucide-react'
+import { MapPin, Calendar, Compass, ArrowRight, Clock, Users } from 'lucide-react'
 import PageLayout from '@/components/layouts/PageLayout'
 
 const sampleItineraries = [
@@ -31,12 +31,10 @@ export default function TripPlanner() {
         <PageLayout>
             <div dir={isRtl ? 'rtl' : 'ltr'}>
                 {/* Hero */}
-                <section className="relative overflow-hidden bg-gradient-to-br from-orange-50 via-white to-sky-50 pt-20 pb-28">
-                    <div className="pointer-events-none absolute top-0 right-0 h-96 w-96 rounded-full bg-orange-100/40 blur-3xl" />
-                    <div className="pointer-events-none absolute bottom-0 left-0 h-80 w-80 rounded-full bg-sky-100/40 blur-3xl" />
+                <section className="relative bg-white pt-20 pb-28">
                     <div className="relative mx-auto max-w-4xl px-6 text-center">
-                        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-orange-200 bg-white px-4 py-2 text-xs font-semibold text-orange-600 shadow-sm">
-                            <Sparkles className="h-3.5 w-3.5" />
+                        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-semibold text-zinc-600 shadow-sm">
+                            <Compass className="h-3.5 w-3.5 text-orange-500" />
                             {t('nav.tripPlanner')}
                         </div>
                         <h1 className="text-4xl font-bold tracking-tight text-zinc-900 sm:text-5xl lg:text-6xl">

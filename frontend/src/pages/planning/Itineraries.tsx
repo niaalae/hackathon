@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { Route, Clock, Star, ArrowRight, Sparkles } from 'lucide-react'
+import { Route, Clock, Star, ArrowRight } from 'lucide-react'
 import PageLayout from '@/components/layouts/PageLayout'
 
 const itineraries = [
@@ -59,12 +59,6 @@ const itineraries = [
     },
 ]
 
-const difficultyColor: Record<string, string> = {
-    Easy: 'bg-green-50 text-green-600',
-    Moderate: 'bg-amber-50 text-amber-600',
-    Challenging: 'bg-red-50 text-red-600',
-}
-
 export default function Itineraries() {
     const { t, i18n } = useTranslation()
     const isRtl = i18n.language === 'ar'
@@ -73,11 +67,10 @@ export default function Itineraries() {
         <PageLayout>
             <div dir={isRtl ? 'rtl' : 'ltr'}>
                 {/* Hero */}
-                <section className="relative overflow-hidden bg-gradient-to-br from-sky-50 via-white to-orange-50 pt-20 pb-28">
-                    <div className="pointer-events-none absolute top-0 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-orange-100/30 blur-3xl" />
+                <section className="relative bg-white pt-20 pb-28">
                     <div className="relative mx-auto max-w-4xl px-6 text-center">
-                        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-sky-200 bg-white px-4 py-2 text-xs font-semibold text-sky-600 shadow-sm">
-                            <Route className="h-3.5 w-3.5" />
+                        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-semibold text-zinc-600 shadow-sm">
+                            <Route className="h-3.5 w-3.5 text-orange-500" />
                             {t('nav.itineraries')}
                         </div>
                         <h1 className="text-4xl font-bold tracking-tight text-zinc-900 sm:text-5xl lg:text-6xl">
@@ -113,12 +106,12 @@ export default function Itineraries() {
                                         <span className="flex items-center gap-1 rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-bold text-zinc-800 backdrop-blur">
                                             <Clock className="h-3 w-3" /> {item.days} days
                                         </span>
-                                        <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold backdrop-blur ${difficultyColor[item.difficulty]}`}>
+                                        <span className="rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-bold text-zinc-700 backdrop-blur">
                                             {item.difficulty}
                                         </span>
                                     </div>
-                                    <div className="absolute top-3 right-3 flex items-center gap-1 rounded-full bg-white/90 px-2 py-1 text-[11px] font-bold text-amber-600 backdrop-blur">
-                                        <Star className="h-3 w-3 fill-amber-400 text-amber-400" /> {item.rating}
+                                    <div className="absolute top-3 right-3 flex items-center gap-1 rounded-full bg-white/90 px-2 py-1 text-[11px] font-bold text-zinc-700 backdrop-blur">
+                                        <Star className="h-3 w-3 fill-orange-400 text-orange-400" /> {item.rating}
                                     </div>
                                 </div>
                                 <div className="flex flex-1 flex-col p-5">
@@ -142,11 +135,10 @@ export default function Itineraries() {
 
                 {/* CTA */}
                 <section className="mx-auto max-w-4xl px-6 pb-24">
-                    <div className="rounded-3xl bg-gradient-to-r from-zinc-900 to-zinc-800 p-10 text-center sm:p-14">
-                        <Sparkles className="mx-auto mb-4 h-8 w-8 text-orange-400" />
+                    <div className="rounded-3xl bg-zinc-900 p-10 text-center sm:p-14">
                         <h2 className="text-2xl font-bold text-white sm:text-3xl">Want a custom itinerary?</h2>
                         <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-zinc-400">
-                            Let our AI planner build a personalized route based on your interests, budget, and travel style.
+                            Let our planner build a personalized route based on your interests, budget, and travel style.
                         </p>
                         <button className="mt-8 inline-flex items-center gap-2 rounded-full bg-orange-500 px-8 py-3.5 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-orange-600 hover:shadow-lg">
                             Create Custom Itinerary <ArrowRight className="h-4 w-4" />

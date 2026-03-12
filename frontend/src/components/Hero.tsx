@@ -214,21 +214,17 @@ export default function Hero() {
             <div className="relative mt-10 w-full overflow-x-hidden overflow-y-visible pb-6 sm:mt-12 lg:mt-14">
               <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-12 bg-gradient-to-r from-white to-transparent sm:w-20" />
               <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-12 bg-gradient-to-l from-white to-transparent sm:w-20" />
-              <div className="hero-marquee flex w-max items-end gap-4 px-3 sm:gap-5 sm:px-4">
+              <div className="hero-marquee flex w-max items-center gap-4 px-3 sm:gap-5 sm:px-4">
                 {repeatedImages.map((image, index) => (
                   <ImageCard
                     key={`${image.id}-${index}`}
                     src={image.src}
                     alt={image.alt}
                     className={
-                      index % 8 === 0 ? 'h-[130px] w-[100px] sm:h-[160px] sm:w-[120px] lg:h-[190px] lg:w-[140px]'
-                        : index % 8 === 1 ? 'h-[140px] w-[120px] sm:h-[170px] sm:w-[148px] lg:h-[200px] lg:w-[170px]'
-                          : index % 8 === 2 ? 'h-[135px] w-[135px] sm:h-[165px] sm:w-[165px] lg:h-[195px] lg:w-[190px]'
-                            : index % 8 === 3 ? 'h-[140px] w-[105px] sm:h-[170px] sm:w-[125px] lg:h-[200px] lg:w-[145px]'
-                              : index % 8 === 4 ? 'h-[135px] w-[150px] sm:h-[165px] sm:w-[178px] lg:h-[195px] lg:w-[205px]'
-                                : index % 8 === 5 ? 'h-[140px] w-[112px] sm:h-[170px] sm:w-[135px] lg:h-[200px] lg:w-[155px]'
-                                  : index % 8 === 6 ? 'h-[135px] w-[135px] sm:h-[165px] sm:w-[165px] lg:h-[195px] lg:w-[190px]'
-                                    : 'h-[140px] w-[118px] sm:h-[170px] sm:w-[145px] lg:h-[200px] lg:w-[165px]'
+                      index % 4 === 0 ? 'h-[140px] w-[110px] sm:h-[170px] sm:w-[130px] lg:h-[200px] lg:w-[150px]'
+                        : index % 4 === 1 ? 'h-[140px] w-[160px] sm:h-[170px] sm:w-[190px] lg:h-[200px] lg:w-[220px]'
+                          : index % 4 === 2 ? 'h-[140px] w-[140px] sm:h-[170px] sm:w-[170px] lg:h-[200px] lg:w-[200px]'
+                            : 'h-[140px] w-[120px] sm:h-[170px] sm:w-[145px] lg:h-[200px] lg:w-[165px]'
                     }
                   />
                 ))}
