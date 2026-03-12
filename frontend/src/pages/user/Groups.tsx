@@ -72,7 +72,7 @@ export default function UserGroups() {
     <div className='space-y-6'>
       <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
         <div>
-          <h2 className='text-2xl font-semibold text-zinc-900'>Group Collaboration</h2>
+          <h2 className='text-xl font-semibold text-zinc-900 sm:text-2xl'>Group Collaboration</h2>
           <p className='text-sm text-zinc-500'>Plan trips together with friends and family</p>
         </div>
         <button className='flex items-center gap-2 rounded-full bg-orange-500 px-4 py-2 text-xs font-semibold text-white'>
@@ -81,15 +81,14 @@ export default function UserGroups() {
         </button>
       </div>
 
-      <div className='grid grid-cols-1 gap-6 lg:grid-cols-[320px,1fr]'>
+      <div className='grid grid-cols-1 gap-6 lg:grid-cols-[280px,1fr]'>
         <div className='space-y-3'>
           {groups.map((group) => (
             <button
               key={group.id}
               onClick={() => setSelectedGroup(group)}
-              className={`w-full rounded-[18px] border p-3 text-left ${
-                selectedGroup.id === group.id ? 'border-orange-500 bg-orange-500/5' : 'border-zinc-200 bg-white'
-              }`}
+              className={`w-full rounded-[18px] border p-3 text-left ${selectedGroup.id === group.id ? 'border-orange-500 bg-orange-500/5' : 'border-zinc-200 bg-white'
+                }`}
             >
               <div className='flex gap-3'>
                 <img src={group.image} alt={group.name} className='h-16 w-16 rounded-lg object-cover' />

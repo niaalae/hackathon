@@ -89,7 +89,7 @@ export default function UserMatch() {
   return (
     <div className='space-y-6'>
       <div>
-        <h2 className='text-2xl font-semibold text-zinc-900'>Match Trips</h2>
+        <h2 className='text-xl font-semibold text-zinc-900 sm:text-2xl'>Match Trips</h2>
         <p className='text-sm text-zinc-500'>Swipe through group trips and find your best fit.</p>
       </div>
 
@@ -97,7 +97,7 @@ export default function UserMatch() {
         <div className='h-2 rounded-full bg-orange-500' style={{ width: `${progress}%` }} />
       </div>
 
-      <div className='relative mx-auto h-[520px] max-w-[420px]'>
+      <div className='relative mx-auto h-[440px] max-w-[420px] sm:h-[520px]'>
         {next && (
           <div className='absolute inset-0 -translate-y-2 scale-95 rounded-[28px] bg-white shadow-[0_18px_40px_rgba(15,23,42,0.12)]' />
         )}

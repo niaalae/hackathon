@@ -23,6 +23,9 @@ import TripPlanner from '@/pages/planning/TripPlanner'
 import Itineraries from '@/pages/planning/Itineraries'
 import TravelGuides from '@/pages/planning/TravelGuides'
 
+// Components
+import ChatBot from '@/components/ChatBot'
+
 // Summer Parties
 import BeachEvents from '@/pages/summer-parties/BeachEvents'
 import FestivalGuide from '@/pages/summer-parties/FestivalGuide'
@@ -83,6 +86,7 @@ function App() {
           </Route>
         </Route>
       </Routes>
+      <ChatBot />
     </BrowserRouter>
   )
 }

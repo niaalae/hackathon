@@ -7,43 +7,43 @@ import { useNavigate } from 'react-router-dom'
 const travelImages = [
   {
     id: 1,
-    src: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200&auto=format&fit=crop',
-    alt: 'Beach travel',
+    src: '/assets/places/m3.jpeg',
+    alt: 'Morocco place 1',
   },
   {
     id: 2,
-    src: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1200&auto=format&fit=crop',
-    alt: 'Adventure hiking',
+    src: '/assets/places/m4.jpeg',
+    alt: 'Morocco place 2',
   },
   {
     id: 3,
-    src: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=1200&auto=format&fit=crop',
-    alt: 'Lake destination',
+    src: '/assets/places/m5.jpeg',
+    alt: 'Morocco place 3',
   },
   {
     id: 4,
-    src: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=1200&auto=format&fit=crop',
-    alt: 'Mountain road',
+    src: '/assets/places/m6.jpeg',
+    alt: 'Morocco place 4',
   },
   {
     id: 5,
-    src: 'https://images.unsplash.com/photo-1500375592092-40eb2168fd21?q=80&w=1200&auto=format&fit=crop',
-    alt: 'Blue sky',
+    src: '/assets/places/m7.jpeg',
+    alt: 'Morocco place 5',
   },
   {
     id: 6,
-    src: 'https://images.unsplash.com/photo-1493246507139-91e8fad9978e?q=80&w=1200&auto=format&fit=crop',
-    alt: 'Sunrise traveler',
+    src: '/assets/places/m3.jpeg',
+    alt: 'Morocco place 6',
   },
   {
     id: 7,
-    src: 'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?q=80&w=1200&auto=format&fit=crop',
-    alt: 'Sea cliffs',
+    src: '/assets/places/m4.jpeg',
+    alt: 'Morocco place 7',
   },
   {
     id: 8,
-    src: 'https://images.unsplash.com/photo-1504609773096-104ff2c73ba4?q=80&w=1200&auto=format&fit=crop',
-    alt: 'Kayak lake',
+    src: '/assets/places/m5.jpeg',
+    alt: 'Morocco place 8',
   },
 ]
 
@@ -66,20 +66,24 @@ const placeholders = [
 
 function ImageCard({ src, alt, className }: { src: string; alt: string; className: string }) {
   const [hasError, setHasError] = useState(false)
+
   return (
-    <div className={`relative shrink-0 overflow-hidden rounded-[18px] sm:rounded-[22px] shadow-[0_8px_28px_rgba(24,24,27,0.10)] ${className}`}>
+    <div
+      className={`relative shrink-0 overflow-hidden rounded-[18px] sm:rounded-[22px] shadow-[0_8px_28px_rgba(24,24,27,0.10)] ${className}`}
+    >
       {!hasError ? (
         <img
           src={src}
           alt={alt}
           loading="lazy"
-          referrerPolicy="no-referrer"
           onError={() => setHasError(true)}
-          className="h-full w-full object-cover"
+          className="h-full w-full object-cover object-center"
         />
       ) : (
         <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-sky-100 via-white to-orange-100">
-          <span className="px-3 text-center text-[10px] font-semibold text-zinc-500 sm:text-xs">{alt}</span>
+          <span className="px-3 text-center text-[10px] font-semibold text-zinc-500 sm:text-xs">
+            {alt}
+          </span>
         </div>
       )}
     </div>
@@ -123,7 +127,7 @@ function TypePlaceholder() {
       style={{ opacity: isFading ? 0 : 1 }}
     >
       {text}
-      <span className="inline-block h-4 w-[1px] translate-y-[1px] bg-zinc-300/70 animate-pulse" />
+      <span className="inline-block h-4 w-[1px] translate-y-[1px] animate-pulse bg-zinc-300/70" />
     </span>
   )
 }
@@ -149,8 +153,6 @@ export default function Hero() {
       <div className="mx-auto px-3 sm:px-4 lg:px-6">
         <div className="relative overflow-hidden rounded-[28px] bg-white px-4 pb-14 pt-8 shadow-[0_20px_60px_rgba(15,23,42,0.06)] sm:rounded-[32px] sm:px-7 sm:pb-16 sm:pt-10 lg:rounded-[36px] lg:px-10 lg:pb-20 lg:pt-12">
           <div className="relative mx-auto flex min-h-[720px] max-w-[1120px] flex-col items-center text-center sm:min-h-[800px] lg:min-h-[900px]">
-
-            {/* Heading */}
             <h1 className="mx-auto mt-2 max-w-[920px] text-[36px] font-semibold leading-[0.96] tracking-[-0.05em] text-zinc-950 sm:mt-4 sm:text-[52px] lg:mt-6 lg:text-[72px] xl:text-[80px]">
               <span className="block">
                 Make Your{' '}
@@ -168,16 +170,12 @@ export default function Hero() {
               <span className="block">Unforgettable!</span>
             </h1>
 
-            {/* Subtitle */}
             <p className="mx-auto mt-5 max-w-[760px] px-2 text-sm leading-7 text-zinc-600 sm:text-base sm:leading-8 lg:mt-6 lg:text-[16px]">
               Get your dream trip planned with trusted local recommendations, safe
               navigation, scam alerts, and transport help — all in one premium experience.
             </p>
 
-            {/* Input + Button */}
             <div className="mt-8 w-full max-w-[640px] px-1 sm:px-0">
-
-              {/* Mobile */}
               <div className="flex flex-col gap-2.5 sm:hidden">
                 <div className="relative">
                   <input
@@ -187,10 +185,10 @@ export default function Hero() {
                     onKeyDown={(event) => {
                       if (event.key === 'Enter') handleSubmit()
                     }}
-                    className="h-[54px] w-full rounded-2xl border border-zinc-200 bg-white px-5 text-[15px] text-zinc-800 shadow-sm outline-none focus:border-orange-300 focus:shadow-[0_0_0_3px_rgba(249,115,22,0.08)] transition-all duration-200"
+                    className="h-[54px] w-full rounded-2xl border border-zinc-200 bg-white px-5 text-[15px] text-zinc-800 shadow-sm outline-none transition-all duration-200 focus:border-orange-300 focus:shadow-[0_0_0_3px_rgba(249,115,22,0.08)]"
                   />
                   {!query && (
-                    <div className="absolute inset-0 flex items-center px-5 pointer-events-none">
+                    <div className="pointer-events-none absolute inset-0 flex items-center px-5">
                       <TypePlaceholder />
                     </div>
                   )}
@@ -207,8 +205,7 @@ export default function Hero() {
                 </button>
               </div>
 
-              {/* Desktop */}
-              <div className="hidden sm:flex w-full items-center gap-2 rounded-full border border-zinc-200 bg-white p-2 shadow-[0_8px_30px_rgba(24,24,27,0.08)] transition-all duration-200 focus-within:border-orange-300 focus-within:shadow-[0_8px_30px_rgba(249,115,22,0.10)]">
+              <div className="hidden w-full items-center gap-2 rounded-full border border-zinc-200 bg-white p-2 shadow-[0_8px_30px_rgba(24,24,27,0.08)] transition-all duration-200 focus-within:border-orange-300 focus-within:shadow-[0_8px_30px_rgba(249,115,22,0.10)] sm:flex">
                 <div className="relative flex-1">
                   <input
                     type="text"
@@ -220,7 +217,7 @@ export default function Hero() {
                     className="h-[52px] w-full bg-transparent pl-5 text-[15px] text-zinc-800 outline-none"
                   />
                   {!query && (
-                    <div className="absolute inset-0 flex items-center pl-5 pointer-events-none">
+                    <div className="pointer-events-none absolute inset-0 flex items-center pl-5">
                       <TypePlaceholder />
                     </div>
                   )}
@@ -236,7 +233,6 @@ export default function Hero() {
                   </span>
                 </button>
               </div>
-
             </div>
 
             {isLoading && (
@@ -256,16 +252,17 @@ export default function Hero() {
               </div>
             )}
 
-            {/* Features */}
             <div className="mt-10 grid w-full max-w-[980px] grid-cols-2 gap-y-4 text-zinc-400 sm:mt-12 sm:grid-cols-3 lg:mt-14 lg:grid-cols-6">
               {features.map((item) => (
-                <div key={item} className="text-center text-xs font-semibold tracking-tight sm:text-sm">
+                <div
+                  key={item}
+                  className="text-center text-xs font-semibold tracking-tight sm:text-sm"
+                >
                   {item}
                 </div>
               ))}
             </div>
 
-            {/* Marquee */}
             <div className="relative mt-10 w-full overflow-x-hidden overflow-y-visible pb-6 sm:mt-12 lg:mt-14">
               <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-12 bg-gradient-to-r from-white to-transparent sm:w-20" />
               <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-12 bg-gradient-to-l from-white to-transparent sm:w-20" />
@@ -276,16 +273,18 @@ export default function Hero() {
                     src={image.src}
                     alt={image.alt}
                     className={
-                      index % 4 === 0 ? 'h-[140px] w-[110px] sm:h-[170px] sm:w-[130px] lg:h-[200px] lg:w-[150px]'
-                        : index % 4 === 1 ? 'h-[140px] w-[160px] sm:h-[170px] sm:w-[190px] lg:h-[200px] lg:w-[220px]'
-                          : index % 4 === 2 ? 'h-[140px] w-[140px] sm:h-[170px] sm:w-[170px] lg:h-[200px] lg:w-[200px]'
+                      index % 4 === 0
+                        ? 'h-[140px] w-[110px] sm:h-[170px] sm:w-[130px] lg:h-[200px] lg:w-[150px]'
+                        : index % 4 === 1
+                          ? 'h-[140px] w-[160px] sm:h-[170px] sm:w-[190px] lg:h-[200px] lg:w-[220px]'
+                          : index % 4 === 2
+                            ? 'h-[140px] w-[140px] sm:h-[170px] sm:w-[170px] lg:h-[200px] lg:w-[200px]'
                             : 'h-[140px] w-[120px] sm:h-[170px] sm:w-[145px] lg:h-[200px] lg:w-[165px]'
                     }
                   />
                 ))}
               </div>
             </div>
-
           </div>
         </div>
       </div>
@@ -299,16 +298,29 @@ export default function Hero() {
           animation-play-state: paused;
         }
         @keyframes heroMarquee {
-          from { transform: translateX(0); }
-          to { transform: translateX(-50%); }
+          from {
+            transform: translateX(0);
+          }
+          to {
+            transform: translateX(-50%);
+          }
         }
         .hero-loader {
           animation: heroLoader 1.1s ease-in-out infinite;
         }
         @keyframes heroLoader {
-          0% { transform: translateX(-20%); width: 35%; }
-          50% { transform: translateX(20%); width: 70%; }
-          100% { transform: translateX(-20%); width: 35%; }
+          0% {
+            transform: translateX(-20%);
+            width: 35%;
+          }
+          50% {
+            transform: translateX(20%);
+            width: 70%;
+          }
+          100% {
+            transform: translateX(-20%);
+            width: 35%;
+          }
         }
       `}</style>
     </section>

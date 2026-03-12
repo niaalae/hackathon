@@ -159,7 +159,7 @@ export default function UserTrips() {
   return (
     <div className='space-y-6'>
       <div>
-        <h2 className='text-2xl font-semibold text-zinc-900'>Trip Hub</h2>
+        <h2 className='text-xl font-semibold text-zinc-900 sm:text-2xl'>Trip Hub</h2>
         <p className='text-sm text-zinc-500'>Manage all your Fes-Meknes bookings</p>
       </div>
 
@@ -196,9 +196,8 @@ export default function UserTrips() {
           ].map((tab) => (
             <button
               key={tab.key}
-              className={`flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold ${
-                activeTab === tab.key ? 'bg-orange-500 text-white' : 'bg-white text-zinc-600 border border-zinc-200'
-              }`}
+              className={`flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold ${activeTab === tab.key ? 'bg-orange-500 text-white' : 'bg-white text-zinc-600 border border-zinc-200'
+                }`}
               onClick={() => setActiveTab(tab.key as typeof activeTab)}
             >
               <tab.icon className='h-4 w-4' />
@@ -212,7 +211,7 @@ export default function UserTrips() {
         <div className='flex items-center gap-2'>
           <div className='relative'>
             <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400' />
-            <input placeholder='Search bookings...' className='h-10 w-48 rounded-full border border-zinc-200 bg-white pl-9 pr-3 text-sm text-zinc-600' />
+            <input placeholder='Search bookings...' className='h-10 w-full rounded-full border border-zinc-200 bg-white pl-9 pr-3 text-sm text-zinc-600 sm:w-48' />
           </div>
           <button className='rounded-full border border-zinc-200 p-2 text-zinc-600'>
             <Filter className='h-4 w-4' />
@@ -231,7 +230,7 @@ export default function UserTrips() {
                   </div>
                   <div className='grid flex-1 grid-cols-1 gap-4 md:grid-cols-3'>
                     <div>
-                      <p className='text-2xl font-semibold text-zinc-900'>{transport.from}</p>
+                      <p className='text-xl font-semibold text-zinc-900 sm:text-2xl'>{transport.from}</p>
                       <p className='text-sm text-zinc-500'>Departure</p>
                       <p className='mt-1 text-sm font-semibold text-zinc-900'>{transport.departure}</p>
                     </div>
@@ -245,7 +244,7 @@ export default function UserTrips() {
                       <p className='text-xs text-zinc-500'>{transport.route}</p>
                     </div>
                     <div className='md:text-right'>
-                      <p className='text-2xl font-semibold text-zinc-900'>{transport.to}</p>
+                      <p className='text-xl font-semibold text-zinc-900 sm:text-2xl'>{transport.to}</p>
                       <p className='text-sm text-zinc-500'>Arrival</p>
                       <p className='mt-1 text-sm font-semibold text-zinc-900'>{transport.arrival}</p>
                     </div>

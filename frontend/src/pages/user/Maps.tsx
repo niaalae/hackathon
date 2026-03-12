@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import {
   Car,
+  ChevronUp,
   Clock,
   DollarSign,
   Footprints,
@@ -97,17 +98,30 @@ export default function UserMaps() {
   const [showRoutes, setShowRoutes] = useState(true)
   const [activeTab, setActiveTab] = useState<'pins' | 'routes'>('pins')
   const [transportMode, setTransportMode] = useState<'walking' | 'driving' | 'transit'>('walking')
+  const [showPanel, setShowPanel] = useState(false)
   const mapCenter = useMemo<[number, number]>(() => [34.0331, -5.0003], [])
 
   return (
     <div className='space-y-4'>
       <div>
-        <h2 className='text-2xl font-semibold text-zinc-900'>Interactive Maps</h2>
+        <h2 className='text-xl font-semibold text-zinc-900 sm:text-2xl'>Interactive Maps</h2>
         <p className='text-sm text-zinc-500'>Explore Fes-Meknes region with custom routes and pins</p>
       </div>
 
-      <div className='flex h-[600px] overflow-hidden rounded-[24px] border border-zinc-200 bg-white shadow-sm'>
-        <div className='flex w-80 flex-col border-r border-zinc-200 bg-zinc-50'>
+      {/* Mobile panel toggle */}
+      <div className='lg:hidden'>
+        <button
+          onClick={() => setShowPanel(p => !p)}
+          className='flex w-full items-center justify-between rounded-[18px] border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 shadow-sm'
+        >
+          <span>{activeTab === 'pins' ? `${pins.length} Pins` : `${routes.length} Routes`}</span>
+          <ChevronUp className={`h-4 w-4 text-zinc-400 transition ${showPanel ? 'rotate-180' : ''}`} />
+        </button>
+      </div>
+
+      <div className='flex flex-col overflow-hidden rounded-[24px] border border-zinc-200 bg-white shadow-sm lg:h-[600px] lg:flex-row'>
+        {/* Sidebar — hidden on mobile unless toggled */}
+        <div className={`flex w-full flex-col border-b border-zinc-200 bg-zinc-50 lg:w-72 lg:border-b-0 lg:border-r ${showPanel ? 'block' : 'hidden lg:flex'}`}>
           <div className='p-4'>
             <div className='relative'>
               <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400' />
@@ -132,7 +146,7 @@ export default function UserMaps() {
             </div>
           </div>
 
-          <div className='flex-1 overflow-y-auto p-4'>
+          <div className='max-h-[250px] flex-1 overflow-y-auto p-4 lg:max-h-none'>
             {activeTab === 'pins' && (
               <div className='space-y-3'>
                 <button className='flex w-full items-center justify-center gap-2 rounded-full border border-dashed border-zinc-300 bg-white py-2 text-xs font-semibold text-zinc-600'>
@@ -217,7 +231,7 @@ export default function UserMaps() {
           </div>
         </div>
 
-        <div className='relative flex-1 bg-zinc-50'>
+        <div className='relative h-[350px] flex-none bg-zinc-50 sm:h-[450px] lg:h-auto lg:flex-1'>
           <div className='absolute right-4 top-4 z-10'>
             <button
               className={`rounded-full border border-zinc-200 p-2 shadow-sm ${showRoutes ? 'bg-orange-500 text-white' : 'bg-white text-zinc-600'}`}
@@ -251,7 +265,7 @@ export default function UserMaps() {
           </MapContainer>
 
           {selectedPin && (
-            <div className='absolute bottom-4 right-4 w-80 rounded-2xl border border-zinc-200 bg-white p-4 shadow-lg'>
+            <div className='absolute bottom-4 left-4 right-4 rounded-2xl border border-zinc-200 bg-white p-4 shadow-lg sm:left-auto sm:w-80'>
               <div className='flex items-start justify-between'>
                 <div>
                   <div className='text-sm font-semibold text-zinc-900'>{selectedPin.name}</div>

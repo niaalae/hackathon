@@ -8,6 +8,7 @@ import { RatingService } from './rating.service';
 import { TripService } from './trip.service';
 import { EmbeddingService } from './embedding.service';
 import { HeroAgentService } from './hero-agent.service';
+import { ChatService } from './chat.service';
 
 const services = [
   UserService,
@@ -19,10 +20,11 @@ const services = [
   TripService,
   EmbeddingService,
   HeroAgentService,
+  ChatService,
 ];
 
 @Module({
   providers: services,
   exports: services,
 })
-export class ServicesModule {}
+export class ServicesModule { }
