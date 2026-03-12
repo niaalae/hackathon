@@ -8,14 +8,29 @@ import { CreatePlaceDto } from '@/admin/dto/place/create-place.dto';
 import { UpdatePlaceDto } from '@/admin/dto/place/update-place.dto';
 import { getPrismaErrorCode } from '@/prisma/prisma-error.util';
 import { Prisma } from '@prisma/client';
+import { EmbeddingService } from './embedding.service';
 
 @Injectable()
 export class PlaceService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly embeddingService: EmbeddingService,
+  ) {}
+
+  private async savePlaceEmbedding(placeId: string, text?: string) {
+    const embedding = await this.embeddingService.embedText(text);
+    if (!embedding) return;
+
+    await this.prismaService.$executeRaw`
+      UPDATE "Place"
+      SET "name_embedding" = ${this.embeddingService.toVectorLiteral(embedding)}::vector
+      WHERE "id" = ${placeId}
+    `;
+  }
 
   async create(createPlaceDto: CreatePlaceDto) {
     try {
-      return await this.prismaService.place.create({
+      const place = await this.prismaService.place.create({
         data: {
           name_key: createPlaceDto.name_key,
           description_key: createPlaceDto.description_key,
@@ -29,6 +44,10 @@ export class PlaceService {
           category: { connect: { id: createPlaceDto.categoryId } },
         },
       });
+
+      await this.savePlaceEmbedding(place.id, createPlaceDto.name_key);
+
+      return place;
     } catch (e) {
       if (getPrismaErrorCode(e) === 'P2002')
         throw new ConflictException('Place key already exists');
@@ -46,7 +65,7 @@ export class PlaceService {
 
   async update(id: string, updatePlaceDto: UpdatePlaceDto) {
     try {
-      return await this.prismaService.place.update({
+      const place = await this.prismaService.place.update({
         where: { id },
         data: {
           name_key: updatePlaceDto.name_key,
@@ -65,6 +84,12 @@ export class PlaceService {
             : undefined,
         },
       });
+
+      if (updatePlaceDto.name_key !== undefined) {
+        await this.savePlaceEmbedding(place.id, updatePlaceDto.name_key);
+      }
+
+      return place;
     } catch (e) {
       if (getPrismaErrorCode(e) === 'P2002')
         throw new ConflictException('Place key already exists');
@@ -82,5 +107,33 @@ export class PlaceService {
         throw new NotFoundException('Place not found');
       throw e;
     }
+  }
+
+  async findRecommendedForUser(userId: string, limit = 10) {
+    const user = await this.prismaService.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    });
+
+    if (!user) throw new NotFoundException('User not found');
+
+    const rows = await this.prismaService.$queryRaw<
+      Array<Record<string, unknown>>
+    >`
+      SELECT
+        p.*,
+        COALESCE(AVG(r.value), 0)::float AS "avgRating",
+        (p."name_embedding" <=> u."preferences_embedding")::float AS "distance"
+      FROM "Place" p
+      JOIN "User" u ON u.id = ${userId}
+      LEFT JOIN "Rating" r ON r."placeId" = p.id
+      WHERE u."preferences_embedding" IS NOT NULL
+        AND p."name_embedding" IS NOT NULL
+      GROUP BY p.id, u."preferences_embedding"
+      ORDER BY "distance" ASC, "avgRating" DESC
+      LIMIT ${limit}
+    `;
+
+    return rows;
   }
 }

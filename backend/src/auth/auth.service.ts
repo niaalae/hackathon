@@ -6,24 +6,36 @@ import { LoginDto } from './dto/login.dto'
 import { Request, Response } from 'express'
 import * as bcrypt from 'bcrypt'
 import { getPrismaErrorCode } from '@/prisma/prisma-error.util'
+import { EmbeddingService } from '@/services/embedding.service'
 
 @Injectable()
 export class AuthService {
   constructor(
     private prismaService: PrismaService,
-    private readonly jwtService: JwtService
+    private readonly jwtService: JwtService,
+    private readonly embeddingService: EmbeddingService
   ) {}
 
   async register(data: RegisterDto) {
     try {
-      await this.prismaService.user.create({
+      const user = await this.prismaService.user.create({
         data: {
           name: data.name,
           email: data.email,
           password: await bcrypt.hash(data.password, 12),
+          preferences: data.preferences,
           role: { connect: { id: data.roleId } }
         }
       })
+
+      const embedding = await this.embeddingService.embedText(data.preferences)
+      if (embedding) {
+        await this.prismaService.$executeRaw`
+          UPDATE "User"
+          SET "preferences_embedding" = ${this.embeddingService.toVectorLiteral(embedding)}::vector
+          WHERE "id" = ${user.id}
+        `
+      }
     } catch (e) {
       if (getPrismaErrorCode(e) === 'P2002') throw new ConflictException('A user with the same email is already registered')
       throw e

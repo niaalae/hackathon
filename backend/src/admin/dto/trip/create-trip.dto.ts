@@ -4,8 +4,14 @@ export class CreateTripDto {
   @IsDateString()
   dateTime: string;
 
+  @IsOptional()
   @IsString()
-  tripPolyline: string;
+  tripPolyline?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsArray({ each: true })
+  routeCoords?: number[][];
 
   @IsString()
   cityId: string;

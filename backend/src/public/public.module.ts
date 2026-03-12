@@ -6,6 +6,7 @@ import { CityPublicController } from './controllers/city.controller';
 import { PlacePublicController } from './controllers/place.controller';
 import { TripPublicController } from './controllers/trip.controller';
 import { RatingPublicController } from './controllers/rating.controller';
+import { UserPublicController } from './controllers/user.controller';
 
 @Module({
   imports: [ServicesModule],
@@ -16,6 +17,7 @@ import { RatingPublicController } from './controllers/rating.controller';
     PlacePublicController,
     TripPublicController,
     RatingPublicController,
+    UserPublicController,
   ],
 })
 export class PublicModule {}

@@ -6,6 +6,7 @@ import { CategoryService } from './category.service';
 import { PlaceService } from './place.service';
 import { RatingService } from './rating.service';
 import { TripService } from './trip.service';
+import { EmbeddingService } from './embedding.service';
 
 const services = [
   UserService,
@@ -15,6 +16,7 @@ const services = [
   PlaceService,
   RatingService,
   TripService,
+  EmbeddingService,
 ];
 
 @Module({

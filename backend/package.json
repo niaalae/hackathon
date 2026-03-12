@@ -24,6 +24,7 @@
     "seed": "tsx ./prisma/seed.ts"
   },
   "dependencies": {
+    "@mapbox/polyline": "^1.2.1",
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@nestjs/jwt": "^11.0.2",
@@ -36,6 +37,7 @@
     "class-validator": "^0.14.4",
     "cookie-parser": "^1.4.7",
     "dotenv": "^17.3.1",
+    "openai": "^6.27.0",
     "pg": "^8.19.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
