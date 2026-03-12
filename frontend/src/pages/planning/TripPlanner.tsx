@@ -18,7 +18,7 @@ const sampleItineraries = [
     {
         title: 'Sahara & Mountains',
         duration: '5 days',
-        image: 'https://images.unsplash.com/photo-1489749798305-4fea3ae63d23?q=80&w=600&auto=format&fit=crop',
+        image: 'https://plus.unsplash.com/premium_photo-1699536873907-9e9ff18868e3?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8U2FoYXJhJTIwJTI2JTIwTW91bnRhaW5zfGVufDB8fDB8fHww',
         highlights: ['Atlas Mountains', 'Merzouga', 'Todra Gorges'],
     },
 ]
