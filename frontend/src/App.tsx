@@ -10,27 +10,27 @@ import gsap from 'gsap'
 gsap.registerPlugin(useGSAP, Flip)
 
 function App() {
-	return (
-		<BrowserRouter>
-			<Routes>
-				<Route index element={<Home />} />
-				<Route path='*' element={<>404</>} />
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route index element={<Home />} />
+        <Route path="*" element={<>404</>} />
 
-				<Route element={<RefreshWrapper />}>
-					<Route element={<AuthWrapper />}>
-						<Route element={<AdminWrapper />}>
-							<Route path='admin' element={<AdminLayout />}></Route>
-						</Route>
-					</Route>
+        <Route element={<RefreshWrapper />}>
+          <Route element={<AuthWrapper />}>
+            <Route element={<AdminWrapper />}>
+              <Route path="admin" element={<AdminLayout />}></Route>
+            </Route>
+          </Route>
 
-					<Route element={<UnauthWrapper />}>
-						<Route path='login' element={<Login />} />
-						<Route path='register' element={<Register />} />
-					</Route>
-				</Route>
-			</Routes>
-		</BrowserRouter>
-	)
+          <Route element={<UnauthWrapper />}>
+            <Route path="login" element={<Login />} />
+            <Route path="register" element={<Register />} />
+          </Route>
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  )
 }
 
 export default App

@@ -8,9 +8,13 @@ import Footer from "../components/Footer";
 function Home() {
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-[#eaf4fb]">
-      <div className="relative z-10">
+      <div className="relative z-20">
         <Navbar />
-        <Hero />
+      </div>
+
+      <Hero />
+
+      <div className="relative z-10">
         <CollaborationSection />
         <PricingSection />
         <FAQSection />

@@ -1,3 +1,6 @@
+'use client'
+
+import { ArrowRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { ArrowRight, Sparkles } from 'lucide-react'
 
@@ -60,8 +63,12 @@ export default function TravelHeroSection() {
   ]
 
   return (
+    <section className="relative overflow-hidden bg-[#ffffff] pt-3 sm:pt-4 lg:pt-5">
     <section className="relative overflow-hidden bg-[#eaf4fb] pt-3 sm:pt-4 lg:pt-5" dir={isRtl ? 'rtl' : 'ltr'}>
       <div className="mx-auto px-3 sm:px-4 lg:px-6">
+        <div className="relative overflow-hidden rounded-[28px] bg-[#ffffff] px-4 pb-8 pt-8 shadow-[0_20px_60px_rgba(15,23,42,0.06)] sm:rounded-[32px] sm:px-7 sm:pb-10 sm:pt-10 lg:rounded-[36px] lg:px-10 lg:pb-12 lg:pt-12">
+          <div className="relative mx-auto flex min-h-[620px] max-w-[1120px] flex-col items-center text-center sm:min-h-[680px] lg:min-h-[760px]">
+            <h1 className="mx-auto mt-2 max-w-[920px] text-[40px] font-semibold leading-[0.95] tracking-[-0.06em] text-zinc-950 sm:mt-4 sm:text-[56px] lg:mt-6 lg:text-[78px] xl:text-[86px]">
         <div className="relative overflow-hidden rounded-[28px] bg-[#f7f2ea] px-4 pb-5 pt-8 shadow-[0_20px_60px_rgba(15,23,42,0.06)] sm:rounded-[32px] sm:px-7 sm:pb-7 sm:pt-10 lg:rounded-[36px] lg:px-10 lg:pb-8 lg:pt-12">
           {/* background glow */}
           <div className="pointer-events-none absolute inset-0">
@@ -94,6 +101,10 @@ export default function TravelHeroSection() {
               <span className="block">{t('hero.title3')}</span>
             </h1>
 
+            <p className="mx-auto mt-5 max-w-[760px] px-2 text-sm leading-7 text-zinc-600 sm:text-base sm:leading-8 lg:mt-6 lg:text-[16px]">
+              Get your dream trip planned with trusted local recommendations, safe
+              navigation, scam alerts, and transport help — all in one premium
+              experience.
             <p className="mx-auto mt-5 max-w-[760px] text-sm leading-7 text-zinc-600 sm:text-base sm:leading-8 lg:mt-6 lg:text-[16px]">
               {t('hero.description')}
             </p>
@@ -118,30 +129,31 @@ export default function TravelHeroSection() {
               ))}
             </div>
 
-            <div className="relative mt-8 w-full overflow-hidden pb-1 sm:mt-10">
-              <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-[#f7f2ea] to-transparent sm:w-16" />
-              <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-[#f7f2ea] to-transparent sm:w-16" />
+            <div className="relative mt-10 w-full overflow-x-hidden overflow-y-visible pb-4 sm:mt-12 lg:mt-14">
+              <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-[#ffffff] to-transparent sm:w-16" />
+              <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-[#ffffff] to-transparent sm:w-16" />
 
-              <div className="hero-marquee flex w-max items-end gap-3 sm:gap-4">
+              <div className="hero-marquee flex w-max items-end gap-3 px-2 sm:gap-4 sm:px-3">
                 {repeatedImages.map((image, index) => (
                   <div
                     key={`${image.id}-${index}`}
-                    className={`shrink-0 overflow-hidden rounded-[22px] shadow-[0_10px_24px_rgba(24,24,27,0.08)] ${index % 8 === 0
-                      ? 'h-[110px] w-[82px] sm:h-[130px] sm:w-[95px] lg:h-[150px] lg:w-[108px]'
-                      : index % 8 === 1
-                        ? 'h-[118px] w-[104px] sm:h-[138px] sm:w-[120px] lg:h-[158px] lg:w-[138px]'
-                        : index % 8 === 2
-                          ? 'h-[114px] w-[118px] sm:h-[134px] sm:w-[135px] lg:h-[154px] lg:w-[154px]'
-                          : index % 8 === 3
-                            ? 'h-[118px] w-[84px] sm:h-[138px] sm:w-[98px] lg:h-[158px] lg:w-[112px]'
-                            : index % 8 === 4
-                              ? 'h-[114px] w-[126px] sm:h-[134px] sm:w-[145px] lg:h-[154px] lg:w-[166px]'
-                              : index % 8 === 5
-                                ? 'h-[118px] w-[94px] sm:h-[138px] sm:w-[108px] lg:h-[158px] lg:w-[124px]'
-                                : index % 8 === 6
-                                  ? 'h-[114px] w-[116px] sm:h-[134px] sm:w-[132px] lg:h-[154px] lg:w-[150px]'
-                                  : 'h-[118px] w-[102px] sm:h-[138px] sm:w-[116px] lg:h-[158px] lg:w-[132px]'
-                      }`}
+                    className={`shrink-0 overflow-hidden rounded-[22px] shadow-[0_10px_24px_rgba(24,24,27,0.08)] ${
+                      index % 8 === 0
+                        ? 'h-[102px] w-[78px] sm:h-[122px] sm:w-[92px] lg:h-[142px] lg:w-[104px]'
+                        : index % 8 === 1
+                          ? 'h-[110px] w-[98px] sm:h-[130px] sm:w-[114px] lg:h-[150px] lg:w-[132px]'
+                          : index % 8 === 2
+                            ? 'h-[106px] w-[112px] sm:h-[126px] sm:w-[128px] lg:h-[146px] lg:w-[148px]'
+                            : index % 8 === 3
+                              ? 'h-[110px] w-[82px] sm:h-[130px] sm:w-[96px] lg:h-[150px] lg:w-[110px]'
+                              : index % 8 === 4
+                                ? 'h-[106px] w-[120px] sm:h-[126px] sm:w-[138px] lg:h-[146px] lg:w-[158px]'
+                                : index % 8 === 5
+                                  ? 'h-[110px] w-[90px] sm:h-[130px] sm:w-[104px] lg:h-[150px] lg:w-[120px]'
+                                  : index % 8 === 6
+                                    ? 'h-[106px] w-[110px] sm:h-[126px] sm:w-[126px] lg:h-[146px] lg:w-[146px]'
+                                    : 'h-[110px] w-[96px] sm:h-[130px] sm:w-[112px] lg:h-[150px] lg:w-[128px]'
+                    }`}
                   >
                     <img
                       src={image.src}
