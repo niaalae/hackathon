@@ -1,5 +1,17 @@
 {
   "app.title": "تطبيق الهاكاثون",
   "nav.home": "الرئيسية",
-  "nav.login": "تسجيل الدخول"
+  "nav.login": "تسجيل الدخول",
+  "nav.planning": "التخطيط",
+  "nav.tripPlanner": "مخطط الرحلات",
+  "nav.itineraries": "مسارات الرحلة",
+  "nav.travelGuides": "أدلة السفر",
+  "nav.summerParties": "حفلات الصيف",
+  "nav.beachEvents": "فعاليات الشاطئ",
+  "nav.rooftopParties": "حفلات الأسطح",
+  "nav.festivalGuide": "دليل المهرجانات",
+  "nav.pricing": "الأسعار",
+  "nav.faqs": "الأسئلة الشائعة",
+  "nav.register": "تسجيل",
+  "nav.language": "اللغة"
 }

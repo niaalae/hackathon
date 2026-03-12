@@ -1,5 +1,17 @@
 {
   "app.title": "Hackathon App",
   "nav.home": "Home",
-  "nav.login": "Login"
+  "nav.login": "Login",
+  "nav.planning": "Planning",
+  "nav.tripPlanner": "Trip Planner",
+  "nav.itineraries": "Itineraries",
+  "nav.travelGuides": "Travel Guides",
+  "nav.summerParties": "Summer-Parties",
+  "nav.beachEvents": "Beach Events",
+  "nav.rooftopParties": "Rooftop Parties",
+  "nav.festivalGuide": "Festival Guide",
+  "nav.pricing": "Pricing",
+  "nav.faqs": "FAQs",
+  "nav.register": "Register",
+  "nav.language": "Language"
 }

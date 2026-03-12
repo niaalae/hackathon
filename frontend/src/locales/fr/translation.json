@@ -1,5 +1,17 @@
 {
   "app.title": "Application Hackathon",
   "nav.home": "Accueil",
-  "nav.login": "Connexion"
+  "nav.login": "Connexion",
+  "nav.planning": "Planification",
+  "nav.tripPlanner": "Planification de Voyage",
+  "nav.itineraries": "Itinéraires",
+  "nav.travelGuides": "Guides de Voyage",
+  "nav.summerParties": "Fêtes d'Été",
+  "nav.beachEvents": "Événements à la Plage",
+  "nav.rooftopParties": "Fêtes sur les Toits",
+  "nav.festivalGuide": "Guide des Festivals",
+  "nav.pricing": "Tarifs",
+  "nav.faqs": "FAQ",
+  "nav.register": "S'inscrire",
+  "nav.language": "Langue"
 }

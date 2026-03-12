@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthWrapper, RefreshWrapper, UnauthWrapper, AdminWrapper } from '@/components/wrappers'
 import { AdminLayout, Layout } from '@/components/layouts'
-import { Login } from '@/pages/auth/'
+import { Login, Register } from '@/pages/auth/'
 import Home from '@/pages/Home'
 import { useGSAP } from '@gsap/react'
 import { Flip } from 'gsap/all'
@@ -13,8 +13,8 @@ function App() {
 	return (
 		<BrowserRouter>
 			<Routes>
-					<Route index element={<Home />} />
-					<Route path='*' element={<>404</>} />
+				<Route index element={<Home />} />
+				<Route path='*' element={<>404</>} />
 
 				<Route element={<RefreshWrapper />}>
 					<Route element={<AuthWrapper />}>
@@ -25,6 +25,7 @@ function App() {
 
 					<Route element={<UnauthWrapper />}>
 						<Route path='login' element={<Login />} />
+						<Route path='register' element={<Register />} />
 					</Route>
 				</Route>
 			</Routes>

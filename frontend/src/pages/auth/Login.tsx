@@ -1,7 +1,7 @@
 import { useAuthStore } from '@/stores/authStore'
-import { ArrowLeft, Loader2, Eye, EyeOff, Mail, Lock } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 
 interface LoginData {
   email: string
@@ -11,11 +11,10 @@ interface LoginData {
 export default function Login() {
   const { login } = useAuthStore()
   const navigate = useNavigate()
-  
+
   const [loginData, setLoginData] = useState<LoginData>({ email: '', password: '' })
   const [errors, setErrors] = useState({ email: '', password: '' })
   const [loading, setLoading] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
 
   async function formLogin(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -48,120 +47,66 @@ export default function Login() {
   }
 
   return (
-    <div className="relative min-h-screen w-full bg-[#FAFAFA] flex justify-center items-center p-4 sm:p-6 overflow-hidden">
-      
-      {/* Ambient Background Glows */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40vw] h-[40vw] rounded-full bg-primary/20 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40vw] h-[40vw] rounded-full bg-blue-400/10 blur-[120px] pointer-events-none" />
+    <main className="flex items-center justify-center w-full min-h-screen px-4 bg-white">
+      <form className="flex w-full flex-col max-w-96" onSubmit={formLogin}>
 
-      {/* Glass Back Button */}
-      <button 
-        onClick={() => navigate('/')}
-        className="absolute top-6 left-6 z-10 flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/60 backdrop-blur-md border border-white/80 shadow-[0_2px_10px_rgba(0,0,0,0.02)] text-sm font-medium text-neutral-600 hover:text-neutral-900 hover:bg-white/80 transition-all duration-300 group"
-      >
-        <ArrowLeft size={18} className="group-hover:-translate-x-0.5 transition-transform duration-300" /> 
-        <span className="hidden sm:block">Return</span>
-      </button>
+        <Link to="/" className="mb-8" title="Go to Home">
+          <svg className="size-10" width="30" height="33" viewBox="0 0 30 33" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="m8 4.55 6.75 3.884 6.75-3.885M8 27.83v-7.755L1.25 16.19m27 0-6.75 3.885v7.754M1.655 8.658l13.095 7.546 13.095-7.546M14.75 31.25V16.189m13.5 5.976V10.212a2.98 2.98 0 0 0-1.5-2.585L16.25 1.65a3.01 3.01 0 0 0-3 0L2.75 7.627a3 3 0 0 0-1.5 2.585v11.953a2.98 2.98 0 0 0 1.5 2.585l10.5 5.977a3.01 3.01 0 0 0 3 0l10.5-5.977a3 3 0 0 0 1.5-2.585"
+              stroke="#1d293d" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </Link>
 
-      {/* Premium Glass Card */}
-      <div className="relative z-10 w-full max-w-[420px]">
-        <div className="bg-white/70 backdrop-blur-2xl border border-white shadow-[0_8px_40px_-12px_rgba(0,0,0,0.08)] rounded-[2rem] p-8 sm:p-10">
-          
-          {/* Header */}
-          <div className="mb-10 text-center">
-            <h2 className="text-3xl font-extrabold tracking-tight text-neutral-900 mb-2">
-              Welcome back
-            </h2>
-            <p className="text-sm text-neutral-500 font-medium">
-              Enter your credentials to access your account
-            </p>
-          </div>
+        <h2 className="text-4xl font-medium text-gray-900">Sign in</h2>
 
-          <form className="space-y-5" onSubmit={formLogin}>
-            
-            {/* Email Input */}
-            <div>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Mail size={18} className={`transition-colors duration-300 ${errors.email ? 'text-red-400' : 'text-neutral-400 group-focus-within:text-primary'}`} />
-                </div>
-                <input
-                  type="email"
-                  placeholder="name@company.com"
-                  value={loginData.email}
-                  onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
-                  className={`block w-full rounded-2xl border-0 py-3.5 pl-11 pr-4 text-neutral-900 shadow-sm ring-1 ring-inset transition-all duration-300 placeholder:text-neutral-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 bg-white/50 hover:bg-white focus:bg-white
-                    ${errors.email 
-                      ? 'ring-red-300 focus:ring-red-500' 
-                      : 'ring-neutral-200/80 focus:ring-primary'
-                    }`}
-                />
-              </div>
-              {errors.email && (
-                <p className="mt-2 text-xs font-medium text-red-500 pl-1">{errors.email}</p>
-              )}
-            </div>
+        <p className="mt-4 text-base text-gray-500/90">
+          Please enter email and password to access.
+        </p>
 
-            {/* Password Input */}
-            <div>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Lock size={18} className={`transition-colors duration-300 ${errors.password ? 'text-red-400' : 'text-neutral-400 group-focus-within:text-primary'}`} />
-                </div>
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
-                  value={loginData.password}
-                  onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
-                  className={`block w-full rounded-2xl border-0 py-3.5 pl-11 pr-12 text-neutral-900 shadow-sm ring-1 ring-inset transition-all duration-300 placeholder:text-neutral-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 bg-white/50 hover:bg-white focus:bg-white
-                    ${errors.password 
-                      ? 'ring-red-300 focus:ring-red-500' 
-                      : 'ring-neutral-200/80 focus:ring-primary'
-                    }`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-neutral-400 hover:text-neutral-600 transition-colors focus:outline-none"
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-              {errors.password && (
-                <p className="mt-2 text-xs font-medium text-red-500 pl-1">{errors.password}</p>
-              )}
-            </div>
-
-            {/* Action Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="mt-6 w-full flex justify-center items-center gap-2 rounded-2xl bg-primary px-4 py-4 text-sm font-bold text-white shadow-[0_8px_20px_-6px_var(--color-primary)] hover:shadow-[0_12px_25px_-8px_var(--color-primary)] hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary transition-all duration-300 disabled:opacity-70 disabled:hover:translate-y-0 disabled:hover:shadow-none disabled:cursor-not-allowed"
-            >
-              {loading ? (
-                <Loader2 size={20} className="animate-spin" />
-              ) : (
-                'Sign In to Dashboard'
-              )}
-            </button>
-          </form>
-
-          {/* Footer */}
-          <div className="mt-10 text-center">
-            <p className="text-sm text-neutral-500">
-              New to the platform?{' '}
-              <button 
-                type="button" 
-                onClick={() => navigate('/register', { replace: true })}
-                className="font-bold text-primary hover:text-primary/80 transition-colors focus:outline-none"
-              >
-                Create an account
-              </button>
-            </p>
-          </div>
-          
+        <div className="mt-10">
+          <label className="font-medium text-gray-900">Email</label>
+          <input
+            placeholder="Please enter your email"
+            className={`mt-2 rounded-md ring text-gray-900 focus:ring-2 outline-none px-3 py-3 w-full bg-white ${errors.email ? 'ring-red-500 focus:ring-red-600' : 'ring-gray-200 focus:ring-indigo-600'}`}
+            type="email"
+            name="email"
+            value={loginData.email}
+            onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+          />
+          {errors.email && (
+            <p className="mt-1 text-xs font-medium text-red-500">{errors.email}</p>
+          )}
         </div>
-      </div>
-    </div>
+
+        <div className="mt-6">
+          <label className="font-medium text-gray-900">Password</label>
+          <input
+            placeholder="Please enter your password"
+            className={`mt-2 rounded-md ring text-gray-900 focus:ring-2 outline-none px-3 py-3 w-full bg-white ${errors.password ? 'ring-red-500 focus:ring-red-600' : 'ring-gray-200 focus:ring-indigo-600'}`}
+            type="password"
+            name="password"
+            value={loginData.password}
+            onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+          />
+          {errors.password && (
+            <p className="mt-1 text-xs font-medium text-red-500">{errors.password}</p>
+          )}
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="mt-8 py-3 w-full flex justify-center items-center gap-2 cursor-pointer rounded-md bg-indigo-600 text-white transition hover:bg-indigo-700 disabled:opacity-70 disabled:cursor-not-allowed"
+        >
+          {loading ? <Loader2 className="animate-spin size-5" /> : 'Login'}
+        </button>
+        <p className='text-center text-gray-600 py-8'>
+          Don't have an account?{' '}
+          <button type="button" onClick={() => navigate('/register')} className="text-indigo-600 font-medium hover:underline">
+            Sign up
+          </button>
+        </p>
+      </form>
+    </main>
   )
 }
