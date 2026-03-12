@@ -11,6 +11,7 @@ import RooftopParties from '@/pages/summer-parties/RooftopParties'
 import FestivalGuide from '@/pages/summer-parties/FestivalGuide'
 import Pricing from '@/pages/Pricing'
 import FAQs from '@/pages/FAQs'
+import Maps from '@/pages/Maps'
 import { useGSAP } from '@gsap/react'
 import { Flip } from 'gsap/all'
 import gsap from 'gsap'
@@ -36,6 +37,7 @@ function App() {
         {/* Standalone */}
         <Route path="pricing" element={<Pricing />} />
         <Route path="faqs" element={<FAQs />} />
+        <Route path="maps" element={<Maps />} />
 
         <Route path="*" element={<>404</>} />
 
