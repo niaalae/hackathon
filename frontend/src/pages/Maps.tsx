@@ -33,48 +33,83 @@ const defaultPins: PinData[] = [
 ]
 const defaultIds = new Set(defaultPins.map(p => p.id))
 
+// ─── OSRM public API (no key needed, uses OpenStreetMap data) ───────────────
+// Using foot-walking profile — perfect for Fez Medina narrow streets
+const OSRM_BASE = 'https://router.project-osrm.org/route/v1/foot'
+
 function straightDist(a: PinData, b: PinData) {
     return Math.round(Math.sqrt((b.lat - a.lat) ** 2 + (b.lng - a.lng) ** 2) * 111000)
 }
 
 async function fetchSegment(a: PinData, b: PinData): Promise<SegmentResult> {
     const straight = straightDist(a, b)
-    const fallback: SegmentResult = { points: [[a.lat, a.lng], [b.lat, b.lng]], distanceM: straight, failed: true }
+    const fallback: SegmentResult = {
+        points: [[a.lat, a.lng], [b.lat, b.lng]],
+        distanceM: straight,
+        failed: true,
+    }
+
     try {
-        const res = await fetch(
-            `/osrm/route/v1/foot/${a.lng},${a.lat};${b.lng},${b.lat}?overview=full&geometries=geojson&radiuses=400;400`,
-            { signal: AbortSignal.timeout(8000) }
-        )
+        // overview=full gives the complete road geometry
+        // geometries=geojson gives [lng, lat] coordinate pairs
+        // radiuses=500;500 snaps to nearest road within 500m
+        const url = `${OSRM_BASE}/${a.lng},${a.lat};${b.lng},${b.lat}?overview=full&geometries=geojson&radiuses=500;500`
+        const res = await fetch(url, { signal: AbortSignal.timeout(10000) })
+
         if (!res.ok) return fallback
+
         const data = await res.json()
+
         if (data.code !== 'Ok' || !data.routes?.length) return fallback
+
         const route = data.routes[0]
-        if (route.distance > straight * 7) return fallback
+
+        // Sanity check: if routed distance is >8x straight line, something went wrong
+        if (route.distance > straight * 8) return fallback
+
+        // OSRM returns [lng, lat] — Leaflet needs [lat, lng]
+        const points: LatLngExpression[] = route.geometry.coordinates.map(
+            ([lng, lat]: [number, number]) => [lat, lng]
+        )
+
         return {
-            points: route.geometry.coordinates.map(([lng, lat]: [number, number]) => [lat, lng]),
+            points,
             distanceM: Math.round(route.distance),
             failed: false,
         }
-    } catch { return fallback }
+    } catch {
+        return fallback
+    }
 }
 
 function useSegmentedRoute(pins: PinData[]) {
     const [segments, setSegments] = useState<SegmentResult[]>([])
     const [loading, setLoading] = useState(false)
+
+    // Re-fetch only when pin positions actually change
     const key = pins.map(p => `${p.lat.toFixed(5)},${p.lng.toFixed(5)}`).join('|')
 
     useEffect(() => {
         if (pins.length < 2) { setSegments([]); return }
+
         let cancelled = false
         setLoading(true)
-        Promise.all(pins.slice(0, -1).map((pin, i) => fetchSegment(pin, pins[i + 1]))).then(results => {
-            if (!cancelled) { setSegments(results); setLoading(false) }
+
+        // Fetch all segments in parallel
+        Promise.all(
+            pins.slice(0, -1).map((pin, i) => fetchSegment(pin, pins[i + 1]))
+        ).then(results => {
+            if (!cancelled) {
+                setSegments(results)
+                setLoading(false)
+            }
         })
+
         return () => { cancelled = true }
     }, [key]) // eslint-disable-line
 
     const totalDist = segments.reduce((s, seg) => s + seg.distanceM, 0)
-    const walkMins = Math.round(totalDist / 1000 * 12)
+    const walkMins = Math.round(totalDist / 1000 * 12) // ~5km/h walking pace
     return { segments, loading, totalDist, walkMins }
 }
 
@@ -112,11 +147,14 @@ export default function Maps() {
     }, [nextId])
 
     const removePin = (id: number) => setPins(prev => prev.filter(p => p.id !== id))
-    const updateName = (id: number, name: string) => setPins(prev => prev.map(p => p.id === id ? { ...p, name } : p))
+    const updateName = (id: number, name: string) =>
+        setPins(prev => prev.map(p => p.id === id ? { ...p, name } : p))
 
     const distBig = fmtDistBig(totalDist)
 
-    const StatPill = ({ icon, label, value, unit }: { icon: React.ReactNode; label: string; value: string; unit: string }) => (
+    const StatPill = ({ icon, label, value, unit }: {
+        icon: React.ReactNode; label: string; value: string; unit: string
+    }) => (
         <div className="flex flex-col items-center gap-0.5 px-4 py-3">
             <div className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest text-zinc-400 mb-0.5">
                 {icon}{label}
@@ -154,7 +192,8 @@ export default function Maps() {
                                 />
                             ) : (
                                 <>
-                                    <span onClick={() => setEditingPin(pin.id)}
+                                    <span
+                                        onClick={() => setEditingPin(pin.id)}
                                         className="block truncate text-[13px] font-bold text-zinc-900 leading-tight">
                                         {pin.name}
                                     </span>
@@ -164,7 +203,8 @@ export default function Maps() {
                                 </>
                             )}
                         </div>
-                        <button onClick={() => removePin(pin.id)}
+                        <button
+                            onClick={() => removePin(pin.id)}
                             className="shrink-0 h-7 w-7 flex items-center justify-center rounded-full text-zinc-300 hover:text-red-500 hover:bg-red-50 transition opacity-100 lg:opacity-0 lg:group-hover:opacity-100">
                             <X className="h-3.5 w-3.5" />
                         </button>
@@ -176,7 +216,10 @@ export default function Maps() {
                                 ? <span className="text-[10px] text-zinc-400 animate-pulse py-1">routing…</span>
                                 : segments[i]
                                     ? <span className={`text-[10px] font-bold tracking-wide py-1 ${segments[i].failed ? 'text-amber-500' : 'text-[#FC4C02]'}`}>
-                                        {segments[i].failed ? `~${fmtDist(segments[i].distanceM)}` : fmtDist(segments[i].distanceM)}
+                                        {segments[i].failed
+                                            ? `~${fmtDist(segments[i].distanceM)} (straight line)`
+                                            : fmtDist(segments[i].distanceM)
+                                        }
                                     </span>
                                     : null
                             }
@@ -234,7 +277,8 @@ export default function Maps() {
                                 Route
                             </button>
                             {pins.length > 0 && (
-                                <button onClick={() => { setPins([]); setNextId(1) }}
+                                <button
+                                    onClick={() => { setPins([]); setNextId(1) }}
                                     className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1.5 rounded-full border border-zinc-200 text-zinc-400 hover:border-red-400 hover:text-red-500 transition">
                                     Clear
                                 </button>
@@ -284,7 +328,8 @@ export default function Maps() {
                             </div>
                             <div className="flex items-center gap-1.5 shrink-0">
                                 {pins.length > 0 && (
-                                    <button onClick={e => { e.stopPropagation(); setPins([]); setNextId(1) }}
+                                    <button
+                                        onClick={e => { e.stopPropagation(); setPins([]); setNextId(1) }}
                                         className="text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-full border border-zinc-200 text-zinc-400">
                                         Clear
                                     </button>
@@ -294,7 +339,10 @@ export default function Maps() {
                                     className={`text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-full border transition ${showRoute ? 'border-[#FC4C02] text-[#FC4C02]' : 'border-zinc-200 text-zinc-400'}`}>
                                     Route
                                 </button>
-                                {panelOpen ? <ChevronDown className="h-4 w-4 text-zinc-400" /> : <ChevronUp className="h-4 w-4 text-zinc-400" />}
+                                {panelOpen
+                                    ? <ChevronDown className="h-4 w-4 text-zinc-400" />
+                                    : <ChevronUp className="h-4 w-4 text-zinc-400" />
+                                }
                             </div>
                         </div>
                     </button>
@@ -330,19 +378,46 @@ export default function Maps() {
                         <FitBounds pins={pins} />
 
                         {pins.map((pin, i) => (
-                            <Marker key={pin.id} position={[pin.lat, pin.lng]} icon={createIcon(i + 1, defaultIds.has(pin.id))}>
+                            <Marker
+                                key={pin.id}
+                                position={[pin.lat, pin.lng]}
+                                icon={createIcon(i + 1, defaultIds.has(pin.id))}>
                                 <Popup>
-                                    <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '10px 14px', minWidth: 140, textAlign: 'center', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
-                                        <p style={{ color: '#FC4C02', fontWeight: 900, fontSize: 13, margin: '0 0 2px' }}>{i + 1}. {pin.name}</p>
-                                        <p style={{ color: '#9ca3af', fontSize: 10, margin: '0 0 8px', fontFamily: 'monospace' }}>{pin.lat.toFixed(4)}, {pin.lng.toFixed(4)}</p>
+                                    <div style={{
+                                        background: '#fff',
+                                        border: '1px solid #e5e7eb',
+                                        borderRadius: 12,
+                                        padding: '10px 14px',
+                                        minWidth: 140,
+                                        textAlign: 'center',
+                                        boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                                    }}>
+                                        <p style={{ color: '#FC4C02', fontWeight: 900, fontSize: 13, margin: '0 0 2px' }}>
+                                            {i + 1}. {pin.name}
+                                        </p>
+                                        <p style={{ color: '#9ca3af', fontSize: 10, margin: '0 0 8px', fontFamily: 'monospace' }}>
+                                            {pin.lat.toFixed(4)}, {pin.lng.toFixed(4)}
+                                        </p>
                                         {i < pins.length - 1 && segments[i] && (
                                             <p style={{ color: '#FC4C02', fontSize: 10, margin: '0 0 8px', fontWeight: 700 }}>
                                                 🚶 {fmtDist(segments[i].distanceM)} to next
+                                                {segments[i].failed && ' (approx)'}
                                             </p>
                                         )}
                                         <button
                                             onClick={() => removePin(pin.id)}
-                                            style={{ color: '#ef4444', fontSize: 11, fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, margin: '0 auto' }}>
+                                            style={{
+                                                color: '#ef4444',
+                                                fontSize: 11,
+                                                fontWeight: 700,
+                                                background: 'none',
+                                                border: 'none',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: 4,
+                                                margin: '0 auto',
+                                            }}>
                                             ✕ Remove
                                         </button>
                                     </div>
@@ -353,10 +428,16 @@ export default function Maps() {
                         {showRoute && segments.map((seg, i) => (
                             <Fragment key={i}>
                                 {/* Outer glow */}
-                                <Polyline positions={seg.points} pathOptions={{ color: '#FC4C02', weight: 14, opacity: 0.08 }} />
+                                <Polyline
+                                    positions={seg.points}
+                                    pathOptions={{ color: '#FC4C02', weight: 14, opacity: 0.08 }}
+                                />
                                 {/* Mid glow */}
-                                <Polyline positions={seg.points} pathOptions={{ color: '#FC4C02', weight: 8, opacity: 0.2 }} />
-                                {/* Core line */}
+                                <Polyline
+                                    positions={seg.points}
+                                    pathOptions={{ color: '#FC4C02', weight: 8, opacity: 0.2 }}
+                                />
+                                {/* Core line — dashed amber if OSRM failed, solid orange if road-snapped */}
                                 <Polyline
                                     positions={seg.points}
                                     pathOptions={seg.failed
