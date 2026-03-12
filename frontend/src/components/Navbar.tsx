@@ -59,6 +59,7 @@ export default function Navbar() {
       items: [t('nav.beachEvents'), t('nav.rooftopParties'), t('nav.festivalGuide')],
     },
     { label: t('nav.pricing'), href: '/pricing', dropdown: false },
+    { label: t('nav.maps'), href: '/maps', dropdown: false },
     { label: t('nav.faqs'), href: '/faqs', dropdown: false },
   ]
 

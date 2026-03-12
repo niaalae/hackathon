@@ -6,8 +6,15 @@ import path from "path";
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  server:{
-    host:true
+  server: {
+    host: true,
+    proxy: {
+      '/osrm': {
+        target: 'https://router.project-osrm.org',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/osrm/, ''),
+      },
+    },
   },
   resolve: {
     alias: {
