@@ -1,180 +1,166 @@
 'use client'
 
-import { ArrowRight, Star, MapPin, Heart, X } from 'lucide-react'
+import { ArrowRight, Sparkles } from 'lucide-react'
 
-const profiles = [
+const travelImages = [
   {
     id: 1,
-    name: 'Sofia',
-    age: 28,
-    from: 'Spain',
-    where: 'Taghazout',
-    bio: 'Looking for surf partners',
-    img: '/surf-morocco.png',
+    src: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200&auto=format&fit=crop',
+    alt: 'Beach travel',
   },
   {
     id: 2,
-    name: 'Marcus',
-    age: 32,
-    from: 'Germany',
-    where: 'Chefchaouen',
-    bio: 'Photographer in the blue city',
-    img: '/chefchaouen.png',
+    src: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1200&auto=format&fit=crop',
+    alt: 'Adventure hiking',
+  },
+  {
+    id: 3,
+    src: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=1200&auto=format&fit=crop',
+    alt: 'Lake destination',
+  },
+  {
+    id: 4,
+    src: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=1200&auto=format&fit=crop',
+    alt: 'Mountain road',
+  },
+  {
+    id: 5,
+    src: 'https://images.unsplash.com/photo-1500375592092-40eb2168fd21?q=80&w=1200&auto=format&fit=crop',
+    alt: 'Blue sky',
+  },
+  {
+    id: 6,
+    src: 'https://images.unsplash.com/photo-1493246507139-91e8fad9978e?q=80&w=1200&auto=format&fit=crop',
+    alt: 'Sunrise traveler',
   },
 ]
 
-function GradientMesh() {
+const repeatedImages = [...travelImages, ...travelImages]
+
+export default function TravelHeroSection() {
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden">
-      <div
-        className="absolute -top-40 -right-40 h-[500px] w-[500px] rounded-full"
-        style={{
-          background: 'radial-gradient(circle, rgba(249, 115, 22, 0.15) 0%, transparent 70%)',
-          filter: 'blur(60px)',
-        }}
-      />
-      <div
-        className="absolute top-1/2 -left-20 h-[400px] w-[400px] rounded-full"
-        style={{
-          background: 'radial-gradient(circle, rgba(168, 85, 247, 0.08) 0%, transparent 70%)',
-          filter: 'blur(80px)',
-        }}
-      />
-      <div
-        className="absolute bottom-0 right-1/4 h-[300px] w-[300px] rounded-full"
-        style={{
-          background: 'radial-gradient(circle, rgba(59, 130, 246, 0.06) 0%, transparent 70%)',
-          filter: 'blur(60px)',
-        }}
-      />
-    </div>
-  )
-}
-
-export default function HeroSection() {
-  const current = profiles[0]
-  const next = profiles[1]
-
-  return (
-    <section className="relative overflow-hidden px-6 pb-24 pt-32">
-      <GradientMesh />
-
-      <div className="relative mx-auto max-w-6xl">
-        <div className="grid items-center gap-16 lg:grid-cols-2">
-          <div>
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-zinc-700/50 bg-zinc-800/50 px-3 py-1.5">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
-              </span>
-              <span className="text-[11px] text-zinc-400">12,847 travelers this month</span>
-            </div>
-
-            <h1 className="mb-6 text-4xl font-bold tracking-tight leading-[1.1] sm:text-5xl lg:text-6xl">
-              Travel Morocco
-              <br />
-              <span className="bg-gradient-to-r from-orange-400 via-orange-500 to-amber-500 bg-clip-text text-transparent">
-                without the stress
-              </span>
-            </h1>
-
-            <p className="mb-8 max-w-lg text-lg leading-relaxed text-zinc-400">
-              Smart navigation, real-time scam alerts, and trusted local
-              recommendations. Everything you need for a safe, authentic Morocco
-              experience.
-            </p>
-
-            <div className="mb-10 flex flex-col gap-4 sm:flex-row">
-              <button className="flex h-12 items-center justify-center rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 px-6 text-[15px] font-medium text-white shadow-xl shadow-orange-500/20 transition hover:from-orange-600 hover:to-orange-700">
-                Download free
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </button>
-
-              <button className="flex h-12 items-center justify-center rounded-xl border border-zinc-700 px-6 text-[15px] text-zinc-300 transition hover:bg-zinc-800/50 hover:text-white">
-                <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M8 5v14l11-7z" />
-                </svg>
-                Watch demo
-              </button>
-            </div>
-
-            <div className="flex items-center gap-6">
-              <div className="flex items-center gap-1.5">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
-                ))}
-                <span className="ml-1.5 text-sm text-zinc-400">4.9 on App Store</span>
-              </div>
-            </div>
+    <section className="relative overflow-hidden bg-[#eaf4fb] pt-24">
+      <div className="mx-auto max-w-[1500px] px-4 sm:px-6 lg:px-8">
+        <div className="relative overflow-hidden rounded-[34px] bg-[#f7f2ea] px-6 pb-8 pt-14 shadow-[0_25px_80px_rgba(15,23,42,0.08)] sm:px-10 lg:px-14 lg:pb-10 lg:pt-16">
+          {/* soft background glow */}
+          <div className="pointer-events-none absolute inset-0">
+            <div className="absolute left-1/2 top-[-120px] h-[260px] w-[260px] -translate-x-1/2 rounded-full bg-orange-200/30 blur-3xl" />
+            <div className="absolute bottom-[-80px] left-[15%] h-[180px] w-[180px] rounded-full bg-sky-200/30 blur-3xl" />
+            <div className="absolute bottom-[-80px] right-[15%] h-[180px] w-[180px] rounded-full bg-orange-100/40 blur-3xl" />
           </div>
 
-          <div className="relative flex justify-center">
-            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-              <div className="h-[400px] w-[400px] rounded-full border border-zinc-800/30" />
-              <div className="absolute h-[300px] w-[300px] rounded-full border border-zinc-800/20" />
-            </div>
-
-            <div className="relative h-[400px] w-full max-w-[280px]">
-              <div
-                className="absolute inset-0 overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900"
-                style={{ transform: 'scale(0.95) translateY(16px)', opacity: 0.4 }}
-              >
-                <img
-                  src={next.img}
-                  alt=""
-                  className="h-full w-full object-cover opacity-70"
-                />
+          <div className="relative mx-auto flex min-h-[720px] max-w-6xl flex-col items-center justify-between">
+            {/* top content */}
+            <div className="w-full text-center">
+              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white/80 px-4 py-2 text-xs font-semibold text-zinc-700 shadow-sm backdrop-blur">
+                <Sparkles className="h-3.5 w-3.5 text-orange-500" />
+                Explore Morocco smarter
               </div>
 
-              <div className="absolute inset-0 overflow-hidden rounded-2xl border border-zinc-700 bg-zinc-900 shadow-2xl shadow-black/50">
-                <img
-                  src={current.img}
-                  alt={current.name}
-                  className="h-full w-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+              <h1 className="mx-auto max-w-5xl text-[48px] font-semibold leading-[0.95] tracking-[-0.06em] text-zinc-950 sm:text-[68px] lg:text-[92px]">
+                Make Your{' '}
+                <span
+                  className="inline-block text-orange-500"
+                  style={{
+                    fontFamily: '"Brush Script MT", "Segoe Script", "Lucida Handwriting", cursive',
+                    fontWeight: 600,
+                  }}
+                >
+                  Morocco Journey
+                </span>
+                <br />
+                Unforgettable!
+              </h1>
 
-                <div className="absolute bottom-0 left-0 right-0 p-5">
-                  <div className="mb-3 flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full border border-zinc-600 bg-gradient-to-br from-zinc-700 to-zinc-800" />
-                    <div>
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-lg font-semibold">{current.name}</span>
-                        <span className="text-sm text-zinc-400">{current.age}</span>
-                      </div>
-                      <div className="flex items-center gap-1 text-xs text-zinc-500">
-                        <MapPin className="h-3 w-3" />
-                        {current.from} · {current.where}
-                      </div>
-                    </div>
+              <p className="mx-auto mt-6 max-w-3xl text-base leading-8 text-zinc-600 sm:text-lg">
+                Get your dream trip planned with trusted local recommendations,
+                safe navigation, scam alerts, and transport help — all in one
+                premium experience.
+              </p>
+
+              <div className="mt-8 flex items-center justify-center">
+                <button className="inline-flex items-center gap-2 rounded-full bg-zinc-950 px-7 py-4 text-sm font-semibold text-white shadow-[0_18px_35px_rgba(24,24,27,0.16)] transition duration-200 hover:-translate-y-0.5 hover:bg-zinc-800">
+                  Start Planning
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10">
+                    <ArrowRight className="h-4 w-4" />
+                  </span>
+                </button>
+              </div>
+
+              <div className="mt-12 grid grid-cols-2 gap-y-4 text-zinc-400 sm:grid-cols-3 lg:grid-cols-6">
+                {[
+                  'Trusted stays',
+                  'Route help',
+                  'Safe spots',
+                  'Guided plans',
+                  'City picks',
+                  'Local gems',
+                ].map((item) => (
+                  <div
+                    key={item}
+                    className="text-center text-sm font-semibold tracking-tight"
+                  >
+                    {item}
                   </div>
-
-                  <p className="mb-3 text-sm text-zinc-300">{current.bio}</p>
-
-                  <div className="flex gap-2">
-                    <span className="rounded-full bg-zinc-800/80 px-2.5 py-1 text-[11px] text-zinc-400">
-                      Travel
-                    </span>
-                    <span className="rounded-full bg-zinc-800/80 px-2.5 py-1 text-[11px] text-zinc-400">
-                      Adventure
-                    </span>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
 
-            <div className="absolute -bottom-16 left-1/2 flex -translate-x-1/2 items-center gap-4">
-              <button className="flex h-12 w-12 items-center justify-center rounded-full border border-zinc-700 bg-zinc-800/80 text-zinc-400 transition-all duration-200 hover:border-rose-500/50 hover:bg-rose-500/10 hover:text-rose-400">
-                <X className="h-5 w-5" />
-              </button>
+            {/* bottom carousel */}
+            <div className="relative mt-10 w-full overflow-hidden pb-2">
+              <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-20 bg-gradient-to-r from-[#f7f2ea] to-transparent" />
+              <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-20 bg-gradient-to-l from-[#f7f2ea] to-transparent" />
 
-              <button className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-lg shadow-emerald-500/30 transition-transform duration-200 hover:scale-110">
-                <Heart className="h-6 w-6 fill-white" />
-              </button>
+              <div className="hero-marquee flex w-max items-end gap-4">
+                {repeatedImages.map((image, index) => (
+                  <div
+                    key={`${image.id}-${index}`}
+                    className={`shrink-0 overflow-hidden rounded-[26px] shadow-[0_12px_30px_rgba(24,24,27,0.08)] ${
+                      index % 6 === 0
+                        ? 'h-[140px] w-[100px] sm:h-[160px] sm:w-[115px] lg:h-[185px] lg:w-[130px]'
+                        : index % 6 === 1
+                        ? 'h-[150px] w-[130px] sm:h-[170px] sm:w-[150px] lg:h-[195px] lg:w-[175px]'
+                        : index % 6 === 2
+                        ? 'h-[145px] w-[145px] sm:h-[165px] sm:w-[165px] lg:h-[190px] lg:w-[190px]'
+                        : index % 6 === 3
+                        ? 'h-[150px] w-[100px] sm:h-[170px] sm:w-[115px] lg:h-[195px] lg:w-[130px]'
+                        : index % 6 === 4
+                        ? 'h-[145px] w-[155px] sm:h-[165px] sm:w-[175px] lg:h-[190px] lg:w-[205px]'
+                        : 'h-[150px] w-[115px] sm:h-[170px] sm:w-[130px] lg:h-[195px] lg:w-[145px]'
+                    }`}
+                  >
+                    <img
+                      src={image.src}
+                      alt={image.alt}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </div>
+
+      <style>{`
+        .hero-marquee {
+          animation: heroMarquee 32s linear infinite;
+          will-change: transform;
+        }
+
+        .hero-marquee:hover {
+          animation-play-state: paused;
+        }
+
+        @keyframes heroMarquee {
+          from {
+            transform: translateX(0);
+          }
+          to {
+            transform: translateX(-50%);
+          }
+        }
+      `}</style>
     </section>
   )
 }
