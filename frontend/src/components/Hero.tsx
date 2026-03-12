@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { ArrowRight } from 'lucide-react'
 
 const travelImages = [
@@ -56,13 +57,60 @@ const features = [
   'Local gems',
 ]
 
+const searchPlaceholders = ['Discover places', 'Book a trip']
+
+function ImageCard({
+  src,
+  alt,
+  className,
+}: {
+  src: string
+  alt: string
+  className: string
+}) {
+  const [hasError, setHasError] = useState(false)
+
+  return (
+    <div
+      className={`relative shrink-0 overflow-hidden rounded-[22px] shadow-[0_10px_24px_rgba(24,24,27,0.08)] ${className}`}
+    >
+      {!hasError ? (
+        <img
+          src={src}
+          alt={alt}
+          loading="lazy"
+          referrerPolicy="no-referrer"
+          onError={() => setHasError(true)}
+          className="h-full w-full object-cover"
+        />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-sky-100 via-white to-orange-100">
+          <span className="px-3 text-center text-[10px] font-semibold text-zinc-500 sm:text-xs">
+            {alt}
+          </span>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function Hero() {
+  const [placeholderIndex, setPlaceholderIndex] = useState(0)
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPlaceholderIndex((prev) => (prev + 1) % searchPlaceholders.length)
+    }, 2200)
+
+    return () => clearInterval(interval)
+  }, [])
+
   return (
     <section className="relative overflow-hidden bg-[#ffffff] pt-3 sm:pt-4 lg:pt-5">
       <div className="mx-auto px-3 sm:px-4 lg:px-6">
         <div className="relative overflow-hidden rounded-[28px] bg-[#ffffff] px-4 pb-8 pt-8 shadow-[0_20px_60px_rgba(15,23,42,0.06)] sm:rounded-[32px] sm:px-7 sm:pb-10 sm:pt-10 lg:rounded-[36px] lg:px-10 lg:pb-12 lg:pt-12">
           <div className="relative mx-auto flex min-h-[620px] max-w-[1120px] flex-col items-center text-center sm:min-h-[680px] lg:min-h-[760px]">
-            <h1 className="mx-auto mt-2 max-w-[920px] text-[40px] font-semibold leading-[0.95] tracking-[-0.06em] text-zinc-950 sm:mt-4 sm:text-[56px] lg:mt-6 lg:text-[78px] xl:text-[86px]">
+            <h1 className="mx-auto mt-2 max-w-[920px] text-[36px] font-semibold leading-[0.96] tracking-[-0.05em] text-zinc-950 sm:mt-4 sm:text-[52px] lg:mt-6 lg:text-[72px] xl:text-[80px]">
               <span className="block">
                 Make Your{' '}
                 <span
@@ -86,13 +134,21 @@ export default function Hero() {
               experience.
             </p>
 
-            <div className="mt-7 sm:mt-8">
-              <button className="inline-flex items-center gap-2 rounded-full bg-zinc-950 px-6 py-3.5 text-sm font-semibold text-white shadow-[0_16px_30px_rgba(24,24,27,0.14)] transition duration-200 hover:-translate-y-0.5 hover:bg-zinc-800">
-                Start Planning
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10">
-                  <ArrowRight className="h-4 w-4" />
-                </span>
-              </button>
+            <div className="mt-7 w-full max-w-[760px] sm:mt-8">
+              <div className="flex w-full flex-col gap-2 rounded-full border border-zinc-200 bg-white p-2 shadow-[0_16px_30px_rgba(24,24,27,0.08)] sm:flex-row sm:items-center">
+                <div className="flex h-[52px] flex-1 items-center rounded-full bg-zinc-50 px-5 text-left text-sm text-zinc-500 sm:h-[56px] sm:px-6 sm:text-[15px]">
+                  <span className="transition-opacity duration-300">
+                    {searchPlaceholders[placeholderIndex]}
+                  </span>
+                </div>
+
+                <button className="inline-flex h-[52px] items-center justify-center gap-2 rounded-full bg-zinc-950 px-6 text-sm font-semibold text-white shadow-[0_16px_30px_rgba(24,24,27,0.14)] transition duration-200 hover:-translate-y-0.5 hover:bg-zinc-800 sm:h-[56px] sm:px-7">
+                  Start Planning
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10">
+                    <ArrowRight className="h-4 w-4" />
+                  </span>
+                </button>
+              </div>
             </div>
 
             <div className="mt-10 grid w-full max-w-[980px] grid-cols-2 gap-y-4 text-zinc-400 sm:mt-12 sm:grid-cols-3 lg:mt-14 lg:grid-cols-6">
@@ -112,9 +168,11 @@ export default function Hero() {
 
               <div className="hero-marquee flex w-max items-end gap-3 px-2 sm:gap-4 sm:px-3">
                 {repeatedImages.map((image, index) => (
-                  <div
+                  <ImageCard
                     key={`${image.id}-${index}`}
-                    className={`shrink-0 overflow-hidden rounded-[22px] shadow-[0_10px_24px_rgba(24,24,27,0.08)] ${
+                    src={image.src}
+                    alt={image.alt}
+                    className={
                       index % 8 === 0
                         ? 'h-[102px] w-[78px] sm:h-[122px] sm:w-[92px] lg:h-[142px] lg:w-[104px]'
                         : index % 8 === 1
@@ -130,14 +188,8 @@ export default function Hero() {
                                   : index % 8 === 6
                                     ? 'h-[106px] w-[110px] sm:h-[126px] sm:w-[126px] lg:h-[146px] lg:w-[146px]'
                                     : 'h-[110px] w-[96px] sm:h-[130px] sm:w-[112px] lg:h-[150px] lg:w-[128px]'
-                    }`}
-                  >
-                    <img
-                      src={image.src}
-                      alt={image.alt}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
+                    }
+                  />
                 ))}
               </div>
             </div>
