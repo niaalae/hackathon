@@ -10,7 +10,7 @@ model User {
     email                String                       @unique
     password             String
     preferences          String?
-    preferencesEmbedding Unsupported("vector(1536)")? @map("preferences_embedding")
+    // preferencesEmbedding Unsupported("vector(1536)")? @map("preferences_embedding")
     roleId               String
     role                 Role                         @relation(fields: [roleId], references: [id])
     tripUsers            TripUser[]
