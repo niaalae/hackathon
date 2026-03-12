@@ -1,31 +1,18 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
-
-import EN_cities from "@/locales/en/cities.json";
-import EN_regions from "@/locales/en/regions.json";
-import FR_cities from "@/locales/fr/cities.json";
-import FR_regions from "@/locales/fr/regions.json";
-import AR_cities from "@/locales/ar/cities.json";
-import AR_regions from "@/locales/ar/regions.json";
+import en from "@/locales/en/translation.json";
+import fr from "@/locales/fr/translation.json";
+import ar from "@/locales/ar/translation.json";
 
 i18n.use(initReactI18next).init({
   resources: {
-    en: {
-      cities: EN_cities,
-      regions: EN_regions,
-    },
-    fr: {
-      cities: FR_cities,
-      regions: FR_regions,
-    },
-    ar: {
-      cities: AR_cities,
-      regions: AR_regions,
-    },
+      en: { translation: en },
+      fr: { translation: fr },
+      ar: { translation: ar }
   },
-  ns: ["cities", "regions"],
-  defaultNS: "cities",
+  supportedLngs: ["en", "fr", "ar"],
   lng: "en",
+  fallbackLng: "en",
   interpolation: {
     escapeValue: false
   }

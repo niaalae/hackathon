@@ -3,6 +3,7 @@ model Category {
   name_key        String  @unique
   description_key String  @unique
   places          Place[]
+  translations    CategoryTranslation[]
 }
 
 model Place {
@@ -22,6 +23,7 @@ model Place {
   category        Category                     @relation(fields: [categoryId], references: [id])
   ratings         Rating[]
   tripPlaces      TripPlaces[]
+  translations    PlaceTranslation[]
 }
 
 model Rating {
@@ -32,4 +34,30 @@ model Rating {
   place   Place   @relation(fields: [placeId], references: [id])
   userId  String
   user    User    @relation(fields: [userId], references: [id])
+}
+
+model CategoryTranslation {
+  id            String @id @default(uuid())
+  categoryId    String
+  languageId    String
+  name          String
+  description   String?
+
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  language Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@unique([categoryId, languageId])
+}
+
+model PlaceTranslation {
+  id            String @id @default(uuid())
+  placeId       String
+  languageId    String
+  name          String
+  description   String?
+
+  place    Place    @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  language Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@unique([placeId, languageId])
 }

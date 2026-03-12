@@ -109,6 +109,61 @@ type DatasetPlace = {
   categories?: string[]
 }
 
+type LocaleCode = 'en' | 'fr' | 'ar'
+
+const SUPPORTED_LANGUAGES: readonly LocaleCode[] = ['en', 'fr', 'ar']
+
+const REGION_LABELS: Record<string, Record<LocaleCode, string>> = {
+  'region.tangier_tetouan_al_hoceima': {
+    en: 'Tangier-Tetouan-Al Hoceima',
+    fr: 'Tanger-Tétouan-Al Hoceïma',
+    ar: 'جهة طنجة-تطوان-الحسيمة'
+  },
+  'region.oriental': { en: 'Oriental', fr: 'Oriental', ar: 'الجهة الشرقية' },
+  'region.fes_meknes': { en: 'Fès-Meknès', fr: 'Fès-Meknès', ar: 'جهة فاس-مكناس' },
+  'region.rabat_sale_kenitra': {
+    en: 'Rabat-Salé-Kénitra',
+    fr: 'Rabat-Salé-Kénitra',
+    ar: 'جهة الرباط-سلا-القنيطرة'
+  },
+  'region.beni_mellal_khenifra': {
+    en: 'Béni Mellal-Khénifra',
+    fr: 'Béni Mellal-Khénifra',
+    ar: 'جهة بني ملال-خنيفرة'
+  },
+  'region.casablanca_settat': {
+    en: 'Casablanca-Settat',
+    fr: 'Casablanca-Settat',
+    ar: 'جهة الدار البيضاء-سطات'
+  },
+  'region.marrakesh_safi': {
+    en: 'Marrakesh-Safi',
+    fr: 'Marrakech-Safi',
+    ar: 'جهة مراكش-آسفي'
+  },
+  'region.draa_tafilalet': {
+    en: 'Drâa-Tafilalet',
+    fr: 'Drâa-Tafilalet',
+    ar: 'جهة درعة-تافيلالت'
+  },
+  'region.souss_massa': { en: 'Souss-Massa', fr: 'Souss-Massa', ar: 'جهة سوس-ماسة' },
+  'region.guelmim_oued_noun': {
+    en: 'Guelmim-Oued Noun',
+    fr: 'Guelmim-Oued Noun',
+    ar: 'جهة كلميم-واد نون'
+  },
+  'region.laayoune_sakia_el_hamra': {
+    en: 'Laâyoune-Sakia El Hamra',
+    fr: 'Laâyoune-Sakia El Hamra',
+    ar: 'جهة العيون-الساقية الحمراء'
+  },
+  'region.dakhla_oued_ed_dahab': {
+    en: 'Dakhla-Oued Ed-Dahab',
+    fr: 'Dakhla-Oued Ed-Dahab',
+    ar: 'جهة الداخلة-وادي الذهب'
+  }
+}
+
 function normalizeText(value: string) {
   return value
     .normalize('NFKD')
@@ -117,6 +172,16 @@ function normalizeText(value: string) {
     .replace(/['’]/g, ' ')
     .replace(/[^a-z0-9]+/g, '_')
     .replace(/^_+|_+$/g, '')
+}
+
+function keyToHumanLabel(value: string, prefix: string): string {
+  return value
+    .replace(`${prefix}.`, '')
+    .replace(/\.(name|description)$/g, '')
+    .split('_')
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ')
 }
 
 function parseEntryFee(value?: string): number {
@@ -157,6 +222,21 @@ function readDatasetPlaces(): DatasetPlace[] {
   const datasetPath = join(process.cwd(), 'prisma', 'dataset.json')
   const raw = readFileSync(datasetPath, 'utf-8')
   return JSON.parse(raw) as DatasetPlace[]
+}
+
+async function upsertLanguages() {
+  const languageIds = new Map<LocaleCode, string>()
+
+  for (const language of SUPPORTED_LANGUAGES) {
+    const row = await prisma.language.upsert({
+      where: { language },
+      create: { language },
+      update: {}
+    })
+    languageIds.set(language, row.id)
+  }
+
+  return languageIds
 }
 
 async function upsertRoles() {
@@ -335,11 +415,119 @@ async function upsertCategoriesAndPlacesFromDataset() {
   console.log(`${seededPlaces} places upserted from dataset`)
 }
 
+async function upsertTranslationsFromDataset() {
+  const dataset = readDatasetPlaces()
+  const datasetById = new Map(dataset.map((item) => [item.id, item] as const))
+  const languageIds = await upsertLanguages()
+
+  const regions = await prisma.region.findMany({ select: { id: true, name_key: true } })
+  for (const region of regions) {
+    const labels = REGION_LABELS[region.name_key] ?? {
+      en: keyToHumanLabel(region.name_key, 'region'),
+      fr: keyToHumanLabel(region.name_key, 'region'),
+      ar: keyToHumanLabel(region.name_key, 'region')
+    }
+
+    for (const language of SUPPORTED_LANGUAGES) {
+      const languageId = languageIds.get(language)
+      if (!languageId) continue
+
+      await prisma.regionTranslation.upsert({
+        where: { regionId_languageId: { regionId: region.id, languageId } },
+        create: {
+          region: { connect: { id: region.id } },
+          language: { connect: { id: languageId } },
+          name: labels[language]
+        },
+        update: { name: labels[language] }
+      })
+    }
+  }
+
+  const cities = await prisma.city.findMany({ select: { id: true, name_key: true } })
+  for (const city of cities) {
+    const defaultLabel = keyToHumanLabel(city.name_key, 'city')
+
+    for (const language of SUPPORTED_LANGUAGES) {
+      const languageId = languageIds.get(language)
+      if (!languageId) continue
+
+      await prisma.cityTranslation.upsert({
+        where: { cityId_languageId: { cityId: city.id, languageId } },
+        create: {
+          city: { connect: { id: city.id } },
+          language: { connect: { id: languageId } },
+          name: defaultLabel
+        },
+        update: { name: defaultLabel }
+      })
+    }
+  }
+
+  const categories = await prisma.category.findMany({ select: { id: true, name_key: true, description_key: true } })
+  for (const category of categories) {
+    const categoryName = keyToHumanLabel(category.name_key, 'category')
+    const categoryDescription = keyToHumanLabel(category.description_key, 'category')
+
+    for (const language of SUPPORTED_LANGUAGES) {
+      const languageId = languageIds.get(language)
+      if (!languageId) continue
+
+      await prisma.categoryTranslation.upsert({
+        where: { categoryId_languageId: { categoryId: category.id, languageId } },
+        create: {
+          category: { connect: { id: category.id } },
+          language: { connect: { id: languageId } },
+          name: categoryName,
+          description: categoryDescription
+        },
+        update: {
+          name: categoryName,
+          description: categoryDescription
+        }
+      })
+    }
+  }
+
+  const places = await prisma.place.findMany({ select: { id: true, name_key: true, description_key: true } })
+  for (const place of places) {
+    const placeIdMatch = place.name_key.match(/^place\.([^.]+)\.name$/)
+    const datasetItem = placeIdMatch ? datasetById.get(placeIdMatch[1]) : undefined
+
+    for (const language of SUPPORTED_LANGUAGES) {
+      const languageId = languageIds.get(language)
+      if (!languageId) continue
+
+      const fallbackName = keyToHumanLabel(place.name_key, 'place')
+      const fallbackDescription = keyToHumanLabel(place.description_key, 'place')
+      const name = datasetItem?.name ?? fallbackName
+      const description = datasetItem?.description ?? fallbackDescription
+
+      await prisma.placeTranslation.upsert({
+        where: { placeId_languageId: { placeId: place.id, languageId } },
+        create: {
+          place: { connect: { id: place.id } },
+          language: { connect: { id: languageId } },
+          name,
+          description
+        },
+        update: {
+          name,
+          description
+        }
+      })
+    }
+  }
+
+  console.log('languages and translations upserted')
+}
+
 async function main() {
   await upsertRoles()
   await upsertUsers()
   await upsertRegionsAndCities()
   await upsertCategoriesAndPlacesFromDataset()
+  await upsertTranslationsFromDataset()
 
   console.log('Seeding completed')
 

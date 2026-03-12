@@ -28,6 +28,18 @@ export interface RegionModel {
   name_key: string;
 }
 
+export interface LanguageModel {
+  id: string;
+  language: string;
+}
+
+export interface RegionTranslationModel {
+  id: string;
+  regionId: string;
+  languageId: string;
+  name: string;
+}
+
 export interface CityModel {
   id: string;
   name_key: string;
@@ -36,10 +48,25 @@ export interface CityModel {
   regionId: string;
 }
 
+export interface CityTranslationModel {
+  id: string;
+  cityId: string;
+  languageId: string;
+  name: string;
+}
+
 export interface CategoryModel {
   id: string;
   name_key: string;
   description_key: string;
+}
+
+export interface CategoryTranslationModel {
+  id: string;
+  categoryId: string;
+  languageId: string;
+  name: string;
+  description?: string | null;
 }
 
 export interface PlaceModel {
@@ -54,6 +81,14 @@ export interface PlaceModel {
   openingHours: string;
   cityId: string;
   categoryId: string;
+}
+
+export interface PlaceTranslationModel {
+  id: string;
+  placeId: string;
+  languageId: string;
+  name: string;
+  description?: string | null;
 }
 
 export interface RatingModel {
