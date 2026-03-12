@@ -45,10 +45,15 @@ export default function Footer() {
                             {t('footer.quickLinks')}
                         </h4>
                         <ul className="space-y-4">
-                            {[t('nav.home'), t('nav.planning'), t('nav.pricing'), t('nav.faqs')].map((item) => (
-                                <li key={item}>
-                                    <Link to="#" className="text-sm text-gray-500 hover:text-orange-500 transition-colors">
-                                        {item}
+                            {[
+                                { label: t('nav.home'), to: '/' },
+                                { label: t('nav.planning'), to: '/planning/trip-planner' },
+                                { label: t('nav.pricing'), to: '/pricing' },
+                                { label: t('nav.faqs'), to: '/faqs' },
+                            ].map((item) => (
+                                <li key={item.label}>
+                                    <Link to={item.to} className="text-sm text-gray-500 hover:text-orange-500 transition-colors">
+                                        {item.label}
                                     </Link>
                                 </li>
                             ))}

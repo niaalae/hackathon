@@ -35,22 +35,31 @@ export default function Navbar() {
     setLangDropdownOpen(false)
   }
 
+  const dropdownRoutes: Record<string, string> = {
+    [t('nav.tripPlanner')]: '/planning/trip-planner',
+    [t('nav.itineraries')]: '/planning/itineraries',
+    [t('nav.travelGuides')]: '/planning/travel-guides',
+    [t('nav.beachEvents')]: '/summer-parties/beach-events',
+    [t('nav.rooftopParties')]: '/summer-parties/rooftop-parties',
+    [t('nav.festivalGuide')]: '/summer-parties/festival-guide',
+  }
+
   const navLinks: NavLink[] = [
     { label: t('nav.home'), href: '/', active: true, dropdown: false },
     {
       label: t('nav.planning'),
-      href: '#',
+      href: '/planning/trip-planner',
       dropdown: true,
       items: [t('nav.tripPlanner'), t('nav.itineraries'), t('nav.travelGuides')],
     },
     {
       label: t('nav.summerParties'),
-      href: '#',
+      href: '/summer-parties/beach-events',
       dropdown: true,
       items: [t('nav.beachEvents'), t('nav.rooftopParties'), t('nav.festivalGuide')],
     },
-    { label: t('nav.pricing'), href: '#', dropdown: false },
-    { label: t('nav.faqs'), href: '#', dropdown: false },
+    { label: t('nav.pricing'), href: '/pricing', dropdown: false },
+    { label: t('nav.faqs'), href: '/faqs', dropdown: false },
   ]
 
   const languages = [
@@ -114,7 +123,7 @@ export default function Navbar() {
                         {link.items?.map((item) => (
                           <Link
                             key={item}
-                            to="#"
+                            to={dropdownRoutes[item] || '#'}
                             className="flex items-center px-3.5 py-2.5 text-[13px] font-medium text-gray-600 rounded-xl hover:bg-gray-50 hover:text-gray-900 transition-colors duration-100 whitespace-nowrap"
                           >
                             {item}
@@ -234,7 +243,7 @@ export default function Navbar() {
                       {link.items?.map((item) => (
                         <Link
                           key={item}
-                          to="#"
+                          to={dropdownRoutes[item] || '#'}
                           className="px-4 py-2 text-[13px] text-gray-500 hover:text-gray-900 rounded-lg hover:bg-gray-50 transition-colors duration-100"
                           onClick={() => setMobileOpen(false)}
                         >

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { ArrowRight } from 'lucide-react'
 
 const travelImages = [
@@ -61,13 +61,12 @@ const placeholders = [
   'Book me a riad in Marrakech...',
   'Plan a 7-day Morocco trip...',
   'Find transport from Fez to Chefchaouen...',
-  'Get me a Sahara Desert guide...',
 ]
 
 function ImageCard({ src, alt, className }: { src: string; alt: string; className: string }) {
   const [hasError, setHasError] = useState(false)
   return (
-    <div className={`relative shrink-0 overflow-hidden rounded-[22px] shadow-[0_10px_24px_rgba(24,24,27,0.08)] ${className}`}>
+    <div className={`relative shrink-0 overflow-hidden rounded-[18px] sm:rounded-[22px] shadow-[0_8px_28px_rgba(24,24,27,0.10)] ${className}`}>
       {!hasError ? (
         <img
           src={src}
@@ -86,22 +85,51 @@ function ImageCard({ src, alt, className }: { src: string; alt: string; classNam
   )
 }
 
-export default function Hero() {
-  const [placeholderIndex, setPlaceholderIndex] = useState(0)
-  const [query, setQuery] = useState('')
+function TypingPlaceholder() {
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [displayText, setDisplayText] = useState('')
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  const tick = useCallback(() => {
+    const fullText = placeholders[currentIndex]
+    if (!isDeleting) {
+      setDisplayText(fullText.substring(0, displayText.length + 1))
+      if (displayText.length + 1 === fullText.length) {
+        setTimeout(() => setIsDeleting(true), 1800)
+        return
+      }
+    } else {
+      setDisplayText(fullText.substring(0, displayText.length - 1))
+      if (displayText.length - 1 === 0) {
+        setIsDeleting(false)
+        setCurrentIndex((prev) => (prev + 1) % placeholders.length)
+        return
+      }
+    }
+  }, [displayText, isDeleting, currentIndex])
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setPlaceholderIndex((prev) => (prev + 1) % placeholders.length)
-    }, 2500)
-    return () => clearInterval(interval)
-  }, [])
+    const speed = isDeleting ? 30 : 60
+    const timer = setTimeout(tick, speed)
+    return () => clearTimeout(timer)
+  }, [tick, isDeleting])
+
+  return (
+    <span className="pointer-events-none select-none text-zinc-400">
+      {displayText}
+      <span className="inline-block w-[2px] h-[18px] bg-orange-400 align-middle ml-[1px] animate-pulse" />
+    </span>
+  )
+}
+
+export default function Hero() {
+  const [query, setQuery] = useState('')
 
   return (
     <section className="relative overflow-hidden bg-white pt-3 sm:pt-4 lg:pt-5">
       <div className="mx-auto px-3 sm:px-4 lg:px-6">
-        <div className="relative overflow-hidden rounded-[28px] bg-white px-4 pb-8 pt-8 shadow-[0_20px_60px_rgba(15,23,42,0.06)] sm:rounded-[32px] sm:px-7 sm:pb-10 sm:pt-10 lg:rounded-[36px] lg:px-10 lg:pb-12 lg:pt-12">
-          <div className="relative mx-auto flex min-h-[620px] max-w-[1120px] flex-col items-center text-center sm:min-h-[680px] lg:min-h-[760px]">
+        <div className="relative overflow-hidden rounded-[28px] bg-white px-4 pb-14 pt-8 shadow-[0_20px_60px_rgba(15,23,42,0.06)] sm:rounded-[32px] sm:px-7 sm:pb-16 sm:pt-10 lg:rounded-[36px] lg:px-10 lg:pb-20 lg:pt-12">
+          <div className="relative mx-auto flex min-h-[720px] max-w-[1120px] flex-col items-center text-center sm:min-h-[800px] lg:min-h-[900px]">
 
             {/* Heading */}
             <h1 className="mx-auto mt-2 max-w-[920px] text-[36px] font-semibold leading-[0.96] tracking-[-0.05em] text-zinc-950 sm:mt-4 sm:text-[52px] lg:mt-6 lg:text-[72px] xl:text-[80px]">
@@ -132,13 +160,19 @@ export default function Hero() {
 
               {/* Mobile */}
               <div className="flex flex-col gap-2.5 sm:hidden">
-                <input
-                  type="text"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder={placeholders[placeholderIndex]}
-                  className="h-[54px] w-full rounded-2xl border border-zinc-200 bg-white px-5 text-[15px] text-zinc-800 shadow-sm outline-none placeholder:text-zinc-400 focus:border-orange-300 focus:shadow-[0_0_0_3px_rgba(249,115,22,0.08)] transition-all duration-200"
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    className="h-[54px] w-full rounded-2xl border border-zinc-200 bg-white px-5 text-[15px] text-zinc-800 shadow-sm outline-none focus:border-orange-300 focus:shadow-[0_0_0_3px_rgba(249,115,22,0.08)] transition-all duration-200"
+                  />
+                  {!query && (
+                    <div className="absolute inset-0 flex items-center px-5 pointer-events-none">
+                      <TypingPlaceholder />
+                    </div>
+                  )}
+                </div>
                 <button
                   onClick={() => console.log(query)}
                   className="flex h-[54px] w-full items-center justify-center gap-2 rounded-2xl bg-zinc-950 text-sm font-semibold text-white transition duration-200 hover:bg-zinc-800 active:scale-[0.98]"
@@ -152,13 +186,19 @@ export default function Hero() {
 
               {/* Desktop */}
               <div className="hidden sm:flex w-full items-center gap-2 rounded-full border border-zinc-200 bg-white p-2 shadow-[0_8px_30px_rgba(24,24,27,0.08)] transition-all duration-200 focus-within:border-orange-300 focus-within:shadow-[0_8px_30px_rgba(249,115,22,0.10)]">
-                <input
-                  type="text"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder={placeholders[placeholderIndex]}
-                  className="h-[52px] flex-1 bg-transparent pl-5 text-[15px] text-zinc-800 outline-none placeholder:text-zinc-400"
-                />
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    className="h-[52px] w-full bg-transparent pl-5 text-[15px] text-zinc-800 outline-none"
+                  />
+                  {!query && (
+                    <div className="absolute inset-0 flex items-center pl-5 pointer-events-none">
+                      <TypingPlaceholder />
+                    </div>
+                  )}
+                </div>
                 <button
                   onClick={() => console.log(query)}
                   className="inline-flex h-[52px] items-center justify-center gap-2 rounded-full bg-zinc-950 px-7 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(24,24,27,0.14)] transition duration-200 hover:-translate-y-0.5 hover:bg-zinc-800"
@@ -182,24 +222,24 @@ export default function Hero() {
             </div>
 
             {/* Marquee */}
-            <div className="relative mt-10 w-full overflow-x-hidden overflow-y-visible pb-4 sm:mt-12 lg:mt-14">
-              <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-white to-transparent sm:w-16" />
-              <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-white to-transparent sm:w-16" />
-              <div className="hero-marquee flex w-max items-end gap-3 px-2 sm:gap-4 sm:px-3">
+            <div className="relative mt-10 w-full overflow-x-hidden overflow-y-visible pb-6 sm:mt-12 lg:mt-14">
+              <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-12 bg-gradient-to-r from-white to-transparent sm:w-20" />
+              <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-12 bg-gradient-to-l from-white to-transparent sm:w-20" />
+              <div className="hero-marquee flex w-max items-end gap-4 px-3 sm:gap-5 sm:px-4">
                 {repeatedImages.map((image, index) => (
                   <ImageCard
                     key={`${image.id}-${index}`}
                     src={image.src}
                     alt={image.alt}
                     className={
-                      index % 8 === 0 ? 'h-[102px] w-[78px] sm:h-[122px] sm:w-[92px] lg:h-[142px] lg:w-[104px]'
-                        : index % 8 === 1 ? 'h-[110px] w-[98px] sm:h-[130px] sm:w-[114px] lg:h-[150px] lg:w-[132px]'
-                          : index % 8 === 2 ? 'h-[106px] w-[112px] sm:h-[126px] sm:w-[128px] lg:h-[146px] lg:w-[148px]'
-                            : index % 8 === 3 ? 'h-[110px] w-[82px] sm:h-[130px] sm:w-[96px] lg:h-[150px] lg:w-[110px]'
-                              : index % 8 === 4 ? 'h-[106px] w-[120px] sm:h-[126px] sm:w-[138px] lg:h-[146px] lg:w-[158px]'
-                                : index % 8 === 5 ? 'h-[110px] w-[90px] sm:h-[130px] sm:w-[104px] lg:h-[150px] lg:w-[120px]'
-                                  : index % 8 === 6 ? 'h-[106px] w-[110px] sm:h-[126px] sm:w-[126px] lg:h-[146px] lg:w-[146px]'
-                                    : 'h-[110px] w-[96px] sm:h-[130px] sm:w-[112px] lg:h-[150px] lg:w-[128px]'
+                      index % 8 === 0 ? 'h-[130px] w-[100px] sm:h-[160px] sm:w-[120px] lg:h-[190px] lg:w-[140px]'
+                        : index % 8 === 1 ? 'h-[140px] w-[120px] sm:h-[170px] sm:w-[148px] lg:h-[200px] lg:w-[170px]'
+                          : index % 8 === 2 ? 'h-[135px] w-[135px] sm:h-[165px] sm:w-[165px] lg:h-[195px] lg:w-[190px]'
+                            : index % 8 === 3 ? 'h-[140px] w-[105px] sm:h-[170px] sm:w-[125px] lg:h-[200px] lg:w-[145px]'
+                              : index % 8 === 4 ? 'h-[135px] w-[150px] sm:h-[165px] sm:w-[178px] lg:h-[195px] lg:w-[205px]'
+                                : index % 8 === 5 ? 'h-[140px] w-[112px] sm:h-[170px] sm:w-[135px] lg:h-[200px] lg:w-[155px]'
+                                  : index % 8 === 6 ? 'h-[135px] w-[135px] sm:h-[165px] sm:w-[165px] lg:h-[195px] lg:w-[190px]'
+                                    : 'h-[140px] w-[118px] sm:h-[170px] sm:w-[145px] lg:h-[200px] lg:w-[165px]'
                     }
                   />
                 ))}
@@ -212,7 +252,7 @@ export default function Hero() {
 
       <style>{`
         .hero-marquee {
-          animation: heroMarquee 30s linear infinite;
+          animation: heroMarquee 35s linear infinite;
           will-change: transform;
         }
         .hero-marquee:hover {

@@ -2,10 +2,6 @@
 
 @import 'tailwindcss';
 
-<<<<<<< HEAD
-
-=======
->>>>>>> c5a678b (tt):
 @theme {
   --color-background: oklch(93.2% 0.032 255.585);
   --color-primary: oklch(64.78% 0.1035 229.52);
