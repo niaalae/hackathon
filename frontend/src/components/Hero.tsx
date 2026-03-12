@@ -126,23 +126,22 @@ export default function TravelHeroSection() {
                 {repeatedImages.map((image, index) => (
                   <div
                     key={`${image.id}-${index}`}
-                    className={`shrink-0 overflow-hidden rounded-[22px] shadow-[0_10px_24px_rgba(24,24,27,0.08)] ${
-                      index % 8 === 0
-                        ? 'h-[110px] w-[82px] sm:h-[130px] sm:w-[95px] lg:h-[150px] lg:w-[108px]'
-                        : index % 8 === 1
+                    className={`shrink-0 overflow-hidden rounded-[22px] shadow-[0_10px_24px_rgba(24,24,27,0.08)] ${index % 8 === 0
+                      ? 'h-[110px] w-[82px] sm:h-[130px] sm:w-[95px] lg:h-[150px] lg:w-[108px]'
+                      : index % 8 === 1
                         ? 'h-[118px] w-[104px] sm:h-[138px] sm:w-[120px] lg:h-[158px] lg:w-[138px]'
                         : index % 8 === 2
-                        ? 'h-[114px] w-[118px] sm:h-[134px] sm:w-[135px] lg:h-[154px] lg:w-[154px]'
-                        : index % 8 === 3
-                        ? 'h-[118px] w-[84px] sm:h-[138px] sm:w-[98px] lg:h-[158px] lg:w-[112px]'
-                        : index % 8 === 4
-                        ? 'h-[114px] w-[126px] sm:h-[134px] sm:w-[145px] lg:h-[154px] lg:w-[166px]'
-                        : index % 8 === 5
-                        ? 'h-[118px] w-[94px] sm:h-[138px] sm:w-[108px] lg:h-[158px] lg:w-[124px]'
-                        : index % 8 === 6
-                        ? 'h-[114px] w-[116px] sm:h-[134px] sm:w-[132px] lg:h-[154px] lg:w-[150px]'
-                        : 'h-[118px] w-[102px] sm:h-[138px] sm:w-[116px] lg:h-[158px] lg:w-[132px]'
-                    }`}
+                          ? 'h-[114px] w-[118px] sm:h-[134px] sm:w-[135px] lg:h-[154px] lg:w-[154px]'
+                          : index % 8 === 3
+                            ? 'h-[118px] w-[84px] sm:h-[138px] sm:w-[98px] lg:h-[158px] lg:w-[112px]'
+                            : index % 8 === 4
+                              ? 'h-[114px] w-[126px] sm:h-[134px] sm:w-[145px] lg:h-[154px] lg:w-[166px]'
+                              : index % 8 === 5
+                                ? 'h-[118px] w-[94px] sm:h-[138px] sm:w-[108px] lg:h-[158px] lg:w-[124px]'
+                                : index % 8 === 6
+                                  ? 'h-[114px] w-[116px] sm:h-[134px] sm:w-[132px] lg:h-[154px] lg:w-[150px]'
+                                  : 'h-[118px] w-[102px] sm:h-[138px] sm:w-[116px] lg:h-[158px] lg:w-[132px]'
+                      }`}
                   >
                     <img
                       src={image.src}

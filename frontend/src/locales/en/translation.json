@@ -13,5 +13,14 @@
   "nav.pricing": "Pricing",
   "nav.faqs": "FAQs",
   "nav.register": "Register",
-  "nav.language": "Language"
+  "nav.language": "Language",
+  "colab.badge": "Planning together",
+  "colab.title": "Group collaboration",
+  "colab.subtitle": "made effortless.",
+  "colab.desc": "Stop jumping between endless WhatsApp threads and messy Google Docs. Keep everything for your Morocco trip in one shared space.",
+  "colab.benefit1": "Shared dates & availability",
+  "colab.benefit2": "Real-time budget tracking",
+  "colab.benefit3": "Shared photo galleries",
+  "colab.benefit4": "No more chaotic group chats",
+  "colab.activeFriends": "4 Friends Active"
 }

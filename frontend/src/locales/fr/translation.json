@@ -13,5 +13,14 @@
   "nav.pricing": "Tarifs",
   "nav.faqs": "FAQ",
   "nav.register": "S'inscrire",
-  "nav.language": "Langue"
+  "nav.language": "Langue",
+  "colab.badge": "Planifier ensemble",
+  "colab.title": "Collaboration de groupe",
+  "colab.subtitle": "en toute simplicité.",
+  "colab.desc": "Arrêtez de jongler entre les fils interminables de WhatsApp et les Google Docs désordonnés. Gardez tout pour votre voyage au Maroc dans un espace partagé.",
+  "colab.benefit1": "Dates et disponibilités partagées",
+  "colab.benefit2": "Suivi du budget en temps réel",
+  "colab.benefit3": "Galeries photos partagées",
+  "colab.benefit4": "Plus de discussions de groupe chaotiques",
+  "colab.activeFriends": "4 amis actifs"
 }

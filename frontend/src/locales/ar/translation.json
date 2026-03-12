@@ -13,5 +13,14 @@
   "nav.pricing": "الأسعار",
   "nav.faqs": "الأسئلة الشائعة",
   "nav.register": "تسجيل",
-  "nav.language": "اللغة"
+  "nav.language": "اللغة",
+  "colab.badge": "التخطيط معاً",
+  "colab.title": "التعاون الجماعي",
+  "colab.subtitle": "أصبح سهلاً.",
+  "colab.desc": "توقف عن التنقل بين محادثات WhatsApp التي لا تنتهي ومستندات Google المشتتة. احتفظ بكل شيء لرحلتك إلى المغرب في مساحة مشتركة واحدة.",
+  "colab.benefit1": "التواريخ والتوافر المشترك",
+  "colab.benefit2": "تتبع الميزانية في الوقت الفعلي",
+  "colab.benefit3": "معارض صور مشتركة",
+  "colab.benefit4": "لا مزيد من دردشات المجموعات الفوضوية",
+  "colab.activeFriends": "٤ أصدقاء نشطون"
 }
