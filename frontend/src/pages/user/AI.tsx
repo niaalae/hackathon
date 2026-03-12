@@ -84,7 +84,7 @@ export default function UserAI() {
   return (
     <div className='space-y-6'>
       <div>
-        <h2 className='text-2xl font-semibold text-zinc-900'>AI Travel Agent</h2>
+        <h2 className='text-xl font-semibold text-zinc-900 sm:text-2xl'>AI Travel Agent</h2>
         <p className='text-sm text-zinc-500'>Get personalized recommendations for Fes-Meknes</p>
       </div>
 
@@ -100,7 +100,7 @@ export default function UserAI() {
             ))}
           </div>
 
-          <div className='mt-4 flex flex-wrap gap-2'>
+          <div className='mt-4 flex gap-2 overflow-x-auto pb-2'>
             {quickPrompts.map((prompt) => (
               <button
                 key={prompt.label}

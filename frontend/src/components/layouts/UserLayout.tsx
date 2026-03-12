@@ -86,9 +86,8 @@ export default function UserLayout() {
         {messages.map((message) => (
           <div key={message.id} className={message.role === 'user' ? 'flex justify-end' : 'flex justify-start'}>
             <div
-              className={`max-w-[85%] rounded-2xl px-4 py-2 text-sm ${
-                message.role === 'user' ? 'bg-orange-500 text-white' : 'bg-zinc-100 text-zinc-700'
-              }`}
+              className={`max-w-[85%] rounded-2xl px-4 py-2 text-sm ${message.role === 'user' ? 'bg-orange-500 text-white' : 'bg-zinc-100 text-zinc-700'
+                }`}
             >
               {message.content}
             </div>
@@ -141,7 +140,7 @@ export default function UserLayout() {
           </div>
         </header>
 
-        <section className='rounded-[28px] border border-[#eceff3] bg-white p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-8'>
+        <section className='rounded-[28px] border border-[#eceff3] bg-white p-4 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-6 lg:p-8'>
           <Outlet />
         </section>
       </div>
@@ -182,20 +181,18 @@ export default function UserLayout() {
                 className={`group flex flex-1 flex-col items-center ${isCenter ? '-mt-6' : ''}`}
               >
                 <span
-                  className={`flex items-center justify-center rounded-full ${
-                    isCenter
+                  className={`flex items-center justify-center rounded-full ${isCenter
                       ? 'h-11 w-11 bg-orange-500 text-white shadow-[0_12px_24px_rgba(249,115,22,0.35)]'
                       : isActive
                         ? 'h-8 w-8 bg-orange-500 text-white'
                         : 'h-8 w-8 border border-zinc-200 bg-white text-zinc-500'
-                  }`}
+                    }`}
                 >
                   <item.icon className={`${isCenter ? 'h-5 w-5' : 'h-4 w-4'}`} />
                 </span>
                 <span
-                  className={`text-[10px] transition-all duration-200 ${
-                    isCenter ? 'font-semibold text-orange-600' : isActive ? 'text-orange-600' : 'text-zinc-400'
-                  } opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 group-focus-visible:opacity-100 group-focus-visible:translate-y-0`}
+                  className={`text-[10px] transition-all duration-200 ${isCenter ? 'font-semibold text-orange-600' : isActive ? 'text-orange-600' : 'text-zinc-400'
+                    } opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 group-focus-visible:opacity-100 group-focus-visible:translate-y-0`}
                 >
                   {item.label}
                 </span>

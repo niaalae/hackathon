@@ -106,7 +106,7 @@ export default function UserDashboard() {
   return (
     <div className='space-y-6'>
       <div>
-        <h2 className='text-2xl font-semibold text-zinc-900'>Dashboard</h2>
+        <h2 className='text-xl font-semibold text-zinc-900 sm:text-2xl'>Dashboard</h2>
         <p className='text-sm text-zinc-500'>Welcome back! Explore the Fes-Meknes region.</p>
       </div>
 
@@ -121,7 +121,7 @@ export default function UserDashboard() {
             <div className='flex items-start justify-between'>
               <div className='space-y-2'>
                 <p className='text-sm text-zinc-500'>{stat.title}</p>
-                <p className='text-3xl font-semibold text-zinc-900'>{stat.value}</p>
+                <p className='text-2xl font-semibold text-zinc-900 sm:text-3xl'>{stat.value}</p>
                 <p className='text-sm text-zinc-500'>{stat.change}</p>
               </div>
               <div className='rounded-xl bg-orange-500/15 p-3 text-orange-500'>
@@ -191,7 +191,7 @@ export default function UserDashboard() {
         </div>
       </div>
 
-   
+
     </div>
   )
 }
