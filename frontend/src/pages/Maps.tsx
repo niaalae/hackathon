@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, Fragment } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents, useMap } from 'react-leaflet'
 import { DivIcon } from 'leaflet'
 import type { LatLngExpression } from 'leaflet'
@@ -351,7 +351,7 @@ export default function Maps() {
                         ))}
 
                         {showRoute && segments.map((seg, i) => (
-                            <div key={i}>
+                            <Fragment key={i}>
                                 {/* Outer glow */}
                                 <Polyline positions={seg.points} pathOptions={{ color: '#FC4C02', weight: 14, opacity: 0.08 }} />
                                 {/* Mid glow */}
@@ -364,7 +364,7 @@ export default function Maps() {
                                         : { color: '#FC4C02', weight: 4, opacity: 1, lineCap: 'round', lineJoin: 'round' }
                                     }
                                 />
-                            </div>
+                            </Fragment>
                         ))}
                     </MapContainer>
                 </div>

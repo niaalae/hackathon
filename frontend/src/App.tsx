@@ -17,6 +17,16 @@ import UserTrips from './pages/user/Trips'
 import UserGroups from './pages/user/Groups'
 import UserAI from './pages/user/AI'
 
+// Planning
+import TripPlanner from '@/pages/planning/TripPlanner'
+import Itineraries from '@/pages/planning/Itineraries'
+import TravelGuides from '@/pages/planning/TravelGuides'
+
+// Summer Parties
+import BeachEvents from '@/pages/summer-parties/BeachEvents'
+import FestivalGuide from '@/pages/summer-parties/FestivalGuide'
+import RooftopParties from '@/pages/summer-parties/RooftopParties'
+
 gsap.registerPlugin(useGSAP, Flip)
 
 function App() {
@@ -27,6 +37,18 @@ function App() {
         <Route path='pricing' element={<Pricing />} />
         <Route path='faqs' element={<FAQs />} />
         <Route path='dashboard' element={<Dashboard />} />
+        <Route path='maps' element={<Maps />} />
+
+        {/* Planning */}
+        <Route path='planning/trip-planner' element={<TripPlanner />} />
+        <Route path='planning/itineraries' element={<Itineraries />} />
+        <Route path='planning/travel-guides' element={<TravelGuides />} />
+
+        {/* Summer Parties */}
+        <Route path='summer-parties/beach-events' element={<BeachEvents />} />
+        <Route path='summer-parties/festival-guide' element={<FestivalGuide />} />
+        <Route path='summer-parties/rooftop-parties' element={<RooftopParties />} />
+
         <Route path='*' element={<>404</>} />
 
         <Route element={<RefreshWrapper />}>
