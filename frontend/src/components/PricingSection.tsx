@@ -31,7 +31,7 @@ export default function PricingSection() {
                                 { text: t('pricing.features.c4'), included: false },
                             ].map((item, i) => (
                                 <div key={i} className="flex items-center gap-3">
-                                    <span className={`grid size-5 place-content-center rounded-full text-[10px] text-white ${item.included ? 'bg-indigo-500' : 'bg-gray-200 text-gray-600'}`}>
+                                    <span className={`grid size-5 place-content-center rounded-full text-[10px] text-white ${item.included ? 'bg-orange-500' : 'bg-gray-200 text-gray-600'}`}>
                                         {item.included ? (
                                             <svg stroke="currentColor" fill="none" strokeWidth="3" viewBox="0 0 24 24"
                                                 strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em"
@@ -70,7 +70,7 @@ export default function PricingSection() {
                                 { text: t('pricing.features.c4'), included: false },
                             ].map((item, i) => (
                                 <div key={i} className="flex items-center gap-3">
-                                    <span className={`grid size-5 place-content-center rounded-full text-[10px] text-white ${item.included ? 'bg-indigo-500' : 'bg-gray-200 text-gray-600'}`}>
+                                    <span className={`grid size-5 place-content-center rounded-full text-[10px] text-white ${item.included ? 'bg-orange-500' : 'bg-gray-200 text-gray-600'}`}>
                                         {item.included ? (
                                             <svg stroke="currentColor" fill="none" strokeWidth="3" viewBox="0 0 24 24"
                                                 strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em"
@@ -109,7 +109,7 @@ export default function PricingSection() {
                                 { text: t('pricing.features.c4'), included: true },
                             ].map((item, i) => (
                                 <div key={i} className="flex items-center gap-3">
-                                    <span className={`grid size-5 place-content-center rounded-full text-[10px] text-white ${item.included ? 'bg-indigo-500' : 'bg-gray-200 text-gray-600'}`}>
+                                    <span className={`grid size-5 place-content-center rounded-full text-[10px] text-white ${item.included ? 'bg-orange-500' : 'bg-gray-200 text-gray-600'}`}>
                                         {item.included ? (
                                             <svg stroke="currentColor" fill="none" strokeWidth="3" viewBox="0 0 24 24"
                                                 strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em"

@@ -210,7 +210,7 @@ export default function Hero() {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .hero-marquee {
           animation: heroMarquee 30s linear infinite;
           will-change: transform;
