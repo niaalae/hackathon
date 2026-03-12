@@ -37,7 +37,7 @@ export default function CollaborationSection() {
                     <div className="relative grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
                         {/* Left Column: Text Content */}
                         <div className="flex flex-col gap-6">
-                            <div className="inline-flex w-fit items-center gap-2 rounded-full border border-zinc-200 bg-white/80 px-4 py-2 text-[11px] font-semibold text-zinc-700 shadow-sm backdrop-blur sm:text-xs">
+                            <div className="inline-flex w-fit items-center gap-2 rounded-full border border-zinc-200 bg-white/85 px-4 py-2 text-[11px] font-semibold text-zinc-700 shadow-sm backdrop-blur sm:text-xs">
                                 <Users className="h-3.5 w-3.5 text-orange-500" />
                                 {t('colab.badge')}
                             </div>

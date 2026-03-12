@@ -1,5 +1,4 @@
-'use client'
-
+import { useTranslation } from 'react-i18next'
 import { ArrowRight, Sparkles } from 'lucide-react'
 
 const travelImages = [
@@ -47,18 +46,21 @@ const travelImages = [
 
 const repeatedImages = [...travelImages, ...travelImages]
 
-const features = [
-  'Trusted stays',
-  'Route help',
-  'Safe spots',
-  'Guided plans',
-  'City picks',
-  'Local gems',
-]
-
 export default function TravelHeroSection() {
+  const { t, i18n } = useTranslation()
+  const isRtl = i18n.language === 'ar'
+
+  const features = [
+    t('hero.feature1'),
+    t('hero.feature2'),
+    t('hero.feature3'),
+    t('hero.feature4'),
+    t('hero.feature5'),
+    t('hero.feature6'),
+  ]
+
   return (
-    <section className="relative overflow-hidden bg-[#eaf4fb] pt-3 sm:pt-4 lg:pt-5">
+    <section className="relative overflow-hidden bg-[#eaf4fb] pt-3 sm:pt-4 lg:pt-5" dir={isRtl ? 'rtl' : 'ltr'}>
       <div className="mx-auto px-3 sm:px-4 lg:px-6">
         <div className="relative overflow-hidden rounded-[28px] bg-[#f7f2ea] px-4 pb-5 pt-8 shadow-[0_20px_60px_rgba(15,23,42,0.06)] sm:rounded-[32px] sm:px-7 sm:pb-7 sm:pt-10 lg:rounded-[36px] lg:px-10 lg:pb-8 lg:pt-12">
           {/* background glow */}
@@ -71,12 +73,12 @@ export default function TravelHeroSection() {
           <div className="relative mx-auto flex min-h-[580px] max-w-[1120px] flex-col items-center text-center sm:min-h-[640px] lg:min-h-[700px]">
             <div className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white/85 px-4 py-2 text-[11px] font-semibold text-zinc-700 shadow-sm backdrop-blur sm:text-xs">
               <Sparkles className="h-3.5 w-3.5 text-orange-500" />
-              Explore Morocco smarter
+              {t('hero.badge')}
             </div>
 
             <h1 className="mx-auto mt-6 max-w-[920px] text-[42px] font-semibold leading-[0.94] tracking-[-0.06em] text-zinc-950 sm:mt-7 sm:text-[58px] lg:mt-8 lg:text-[84px]">
               <span className="block">
-                Make Your{' '}
+                {t('hero.title1')}{' '}
                 <span
                   className="inline-block text-orange-500"
                   style={{
@@ -86,22 +88,20 @@ export default function TravelHeroSection() {
                     letterSpacing: '-0.01em',
                   }}
                 >
-                  Morocco Journey
+                  {t('hero.title2')}
                 </span>
               </span>
-              <span className="block">Unforgettable!</span>
+              <span className="block">{t('hero.title3')}</span>
             </h1>
 
             <p className="mx-auto mt-5 max-w-[760px] text-sm leading-7 text-zinc-600 sm:text-base sm:leading-8 lg:mt-6 lg:text-[16px]">
-              Get your dream trip planned with trusted local recommendations, safe
-              navigation, scam alerts, and transport help — all in one premium
-              experience.
+              {t('hero.description')}
             </p>
 
             <div className="mt-7 sm:mt-8">
               <button className="inline-flex items-center gap-2 rounded-full bg-zinc-950 px-6 py-3.5 text-sm font-semibold text-white shadow-[0_16px_30px_rgba(24,24,27,0.14)] transition duration-200 hover:-translate-y-0.5 hover:bg-zinc-800">
-                Start Planning
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10">
+                {t('hero.cta')}
+                <span className={`flex h-6 w-6 items-center justify-center rounded-full bg-white/10 ${isRtl ? 'rotate-180' : ''}`}>
                   <ArrowRight className="h-4 w-4" />
                 </span>
               </button>
@@ -156,7 +156,7 @@ export default function TravelHeroSection() {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .hero-marquee {
           animation: heroMarquee 30s linear infinite;
           will-change: transform;

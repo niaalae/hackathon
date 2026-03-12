@@ -1,9 +1,9 @@
 import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
 import CollaborationSection from "../components/CollaborationSection";
-import FeaturesSection from "../components/FeaturesSection";
-import MVPSection from "../components/MVPSection";
-import CTASection from "../components/CTASection";
+import PricingSection from "../components/PricingSection";
+import FAQSection from "../components/FAQSection";
+import Footer from "../components/Footer";
 
 function Home() {
   return (
@@ -12,9 +12,9 @@ function Home() {
         <Navbar />
         <Hero />
         <CollaborationSection />
-        <FeaturesSection />
-        <MVPSection />
-        <CTASection />
+        <PricingSection />
+        <FAQSection />
+        <Footer />
       </div>
     </div>
   );

@@ -62,11 +62,15 @@ export default function Register() {
         <main className="flex items-center justify-center w-full min-h-screen px-4 bg-white">
             <form className="flex w-full flex-col max-w-96" onSubmit={formRegister}>
 
-                <Link to="/" className="mb-8" title="Go to Home">
-                    <svg className="size-10" width="30" height="33" viewBox="0 0 30 33" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="m8 4.55 6.75 3.884 6.75-3.885M8 27.83v-7.755L1.25 16.19m27 0-6.75 3.885v7.754M1.655 8.658l13.095 7.546 13.095-7.546M14.75 31.25V16.189m13.5 5.976V10.212a2.98 2.98 0 0 0-1.5-2.585L16.25 1.65a3.01 3.01 0 0 0-3 0L2.75 7.627a3 3 0 0 0-1.5 2.585v11.953a2.98 2.98 0 0 0 1.5 2.585l10.5 5.977a3.01 3.01 0 0 0 3 0l10.5-5.977a3 3 0 0 0 1.5-2.585"
-                            stroke="#1d293d" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
+                <Link to="/" className="flex items-center gap-2 mb-8 group" title="Go to Home">
+                    <span className="text-orange-500 transition-transform duration-200 group-hover:scale-110">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <path d="M3 12L21 4L17 12L21 20L3 12Z" />
+                        </svg>
+                    </span>
+                    <span className="text-2xl font-bold text-gray-900 tracking-tight">
+                        Trippple
+                    </span>
                 </Link>
 
                 <h2 className="text-4xl font-medium text-gray-900">Create an account</h2>
@@ -79,7 +83,7 @@ export default function Register() {
                     <label className="font-medium text-gray-900">Name</label>
                     <input
                         placeholder="Please enter your name"
-                        className={`mt-2 rounded-md ring text-gray-900 focus:ring-2 outline-none px-3 py-3 w-full bg-white ${errors.name ? 'ring-red-500 focus:ring-red-600' : 'ring-gray-200 focus:ring-indigo-600'}`}
+                        className={`mt-2 rounded-md ring text-gray-900 focus:ring-2 outline-none px-3 py-3 w-full bg-white ${errors.name ? 'ring-red-500 focus:ring-red-600' : 'ring-gray-200 focus:ring-orange-500'}`}
                         type="text"
                         name="name"
                         value={registerData.name}
@@ -94,7 +98,7 @@ export default function Register() {
                     <label className="font-medium text-gray-900">Email</label>
                     <input
                         placeholder="Please enter your email"
-                        className={`mt-2 rounded-md ring text-gray-900 focus:ring-2 outline-none px-3 py-3 w-full bg-white ${errors.email ? 'ring-red-500 focus:ring-red-600' : 'ring-gray-200 focus:ring-indigo-600'}`}
+                        className={`mt-2 rounded-md ring text-gray-900 focus:ring-2 outline-none px-3 py-3 w-full bg-white ${errors.email ? 'ring-red-500 focus:ring-red-600' : 'ring-gray-200 focus:ring-orange-500'}`}
                         type="email"
                         name="email"
                         value={registerData.email}
@@ -109,7 +113,7 @@ export default function Register() {
                     <label className="font-medium text-gray-900">Password</label>
                     <input
                         placeholder="Please enter your password"
-                        className={`mt-2 rounded-md ring text-gray-900 focus:ring-2 outline-none px-3 py-3 w-full bg-white ${errors.password ? 'ring-red-500 focus:ring-red-600' : 'ring-gray-200 focus:ring-indigo-600'}`}
+                        className={`mt-2 rounded-md ring text-gray-900 focus:ring-2 outline-none px-3 py-3 w-full bg-white ${errors.password ? 'ring-red-500 focus:ring-red-600' : 'ring-gray-200 focus:ring-orange-500'}`}
                         type="password"
                         name="password"
                         value={registerData.password}
@@ -123,13 +127,13 @@ export default function Register() {
                 <button
                     type="submit"
                     disabled={loading}
-                    className="mt-8 py-3 w-full flex justify-center items-center gap-2 cursor-pointer rounded-md bg-indigo-600 text-white transition hover:bg-indigo-700 disabled:opacity-70 disabled:cursor-not-allowed"
+                    className="mt-8 py-3 w-full flex justify-center items-center gap-2 cursor-pointer rounded-md bg-orange-500 text-white font-semibold transition hover:bg-orange-600 disabled:opacity-70 disabled:cursor-not-allowed shadow-md hover:shadow-lg hover:shadow-orange-500/20 active:scale-[0.98]"
                 >
                     {loading ? <Loader2 className="animate-spin size-5" /> : 'Sign up'}
                 </button>
                 <p className='text-center text-gray-600 py-8'>
                     Already have an account?{' '}
-                    <button type="button" onClick={() => navigate('/login')} className="text-indigo-600 font-medium hover:underline">
+                    <button type="button" onClick={() => navigate('/login')} className="text-orange-500 font-medium hover:underline">
                         Sign in
                     </button>
                 </p>
