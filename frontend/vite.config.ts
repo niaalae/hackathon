@@ -9,6 +9,10 @@ export default defineConfig({
   server: {
     host: true,
     proxy: {
+      '/api': {
+        target: 'http://localhost:4001',
+        changeOrigin: true,
+      },
       '/osrm': {
         target: 'https://router.project-osrm.org',
         changeOrigin: true,
