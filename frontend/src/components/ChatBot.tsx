@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { MessageSquare, Send, X, Loader2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import api from '@/lib/api'
@@ -20,6 +20,8 @@ export default function ChatBot() {
     const [input, setInput] = useState('')
     const [loading, setLoading] = useState(false)
     const bottomRef = useRef<HTMLDivElement>(null)
+    const messagesRef = useRef<Message[]>(messages)
+    const loadingRef = useRef(loading)
     const isRtl = i18n.language === 'ar'
 
     useEffect(() => {
@@ -31,35 +33,65 @@ export default function ChatBot() {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
     }, [messages, loading])
 
-    const send = async () => {
-        const text = input.trim()
-        if (!text || loading) return
+    useEffect(() => {
+        messagesRef.current = messages
+    }, [messages])
 
-        const userMsg: Message = { id: String(Date.now()), role: 'user', content: text }
-        setMessages(prev => [...prev, userMsg])
-        setInput('')
-        setLoading(true)
+    useEffect(() => {
+        loadingRef.current = loading
+    }, [loading])
 
-        try {
-            const history = messages.filter(m => m.id !== '0').map(({ role, content }) => ({ role, content }))
-            const { data } = await api.post<{ reply: string }>('/agent/chat', {
-                message: text,
-                history,
-            })
-            setMessages(prev => [...prev, {
-                id: String(Date.now() + 1),
-                role: 'assistant',
-                content: data.reply,
-            }])
-        } catch {
-            setMessages(prev => [...prev, {
-                id: String(Date.now() + 1),
-                role: 'assistant',
-                content: t('chatbot.error'),
-            }])
-        } finally {
-            setLoading(false)
+    const sendMessage = useCallback(
+        async (text: string) => {
+            const trimmed = text.trim()
+            if (!trimmed || loadingRef.current) return
+
+            const userMsg: Message = { id: String(Date.now()), role: 'user', content: trimmed }
+            setMessages(prev => [...prev, userMsg])
+            setInput('')
+            setLoading(true)
+
+            try {
+                const history = messagesRef.current
+                    .filter(m => m.id !== '0')
+                    .map(({ role, content }) => ({ role, content }))
+                const { data } = await api.post<{ reply: string }>('/agent/chat', {
+                    message: trimmed,
+                    history,
+                })
+                setMessages(prev => [...prev, {
+                    id: String(Date.now() + 1),
+                    role: 'assistant',
+                    content: data.reply,
+                }])
+            } catch {
+                setMessages(prev => [...prev, {
+                    id: String(Date.now() + 1),
+                    role: 'assistant',
+                    content: t('chatbot.error'),
+                }])
+            } finally {
+                setLoading(false)
+            }
+        },
+        [t]
+    )
+
+    useEffect(() => {
+        const handler = (event: Event) => {
+            const customEvent = event as CustomEvent<{ message?: string }>
+            const message = customEvent.detail?.message?.trim()
+            if (!message) return
+            setOpen(true)
+            void sendMessage(message)
         }
+
+        window.addEventListener('trippple:chatbot:send', handler)
+        return () => window.removeEventListener('trippple:chatbot:send', handler)
+    }, [sendMessage])
+
+    const send = async () => {
+        void sendMessage(input)
     }
 
     return (

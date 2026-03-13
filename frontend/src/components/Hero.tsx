@@ -220,7 +220,6 @@ function ZellijLineBackground() {
 
 export default function Hero() {
   const [query, setQuery] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
   const { t } = useTranslation()
 
@@ -228,20 +227,15 @@ export default function Hero() {
 
   const handleSubmit = () => {
     const trimmed = query.trim()
-    if (!trimmed || isLoading) return
+    if (!trimmed) return
 
     if (!user) {
-      navigate('/register')
+      navigate('/login')
       return
     }
 
-    setIsLoading(true)
-    sessionStorage.setItem('heroPrompt', trimmed)
-
-    setTimeout(() => {
-      navigate(`/user?prompt=${encodeURIComponent(trimmed)}`)
-      setIsLoading(false)
-    }, 1200)
+    window.dispatchEvent(new CustomEvent('trippple:chatbot:send', { detail: { message: trimmed } }))
+    setQuery('')
   }
 
   return (
@@ -304,10 +298,9 @@ export default function Hero() {
 
                 <button
                   onClick={handleSubmit}
-                  disabled={isLoading}
                   className="flex h-[54px] w-full items-center justify-center gap-2 rounded-2xl bg-zinc-950 text-sm font-semibold text-white transition duration-200 hover:bg-zinc-800 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
                 >
-                  {isLoading ? t('hero.launching', 'Launching...') : t('hero.cta')}
+                  {t('hero.cta')}
                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10">
                     <ArrowRight className="h-4 w-4" />
                   </span>
@@ -334,33 +327,15 @@ export default function Hero() {
 
                 <button
                   onClick={handleSubmit}
-                  disabled={isLoading}
                   className="inline-flex h-[52px] items-center justify-center gap-2 rounded-full bg-zinc-950 px-7 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(24,24,27,0.14)] transition duration-200 hover:-translate-y-0.5 hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-70"
                 >
-                  {isLoading ? t('hero.launching', 'Launching...') : t('hero.cta')}
+                  {t('hero.cta')}
                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10">
                     <ArrowRight className="h-4 w-4" />
                   </span>
                 </button>
               </div>
             </div>
-
-            {isLoading && (
-              <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-[#f8f3ee]/85 backdrop-blur-md">
-                <div className="relative w-[320px] overflow-hidden rounded-[28px] border border-orange-100/70 bg-white px-7 py-8 text-center shadow-[0_30px_80px_rgba(249,115,22,0.18)]">
-                  <div className="absolute -right-8 -top-10 h-28 w-28 rounded-full bg-orange-200/40 blur-2xl" />
-                  <div className="absolute -bottom-10 -left-10 h-24 w-24 rounded-full bg-amber-200/50 blur-2xl" />
-                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#111827] text-white shadow-[0_12px_26px_rgba(15,23,42,0.28)]">
-                    <ArrowRight className="h-5 w-5" />
-                  </div>
-                  <p className="text-sm font-semibold text-zinc-900">{t('hero.preparing', 'Preparing your dashboard')}</p>
-                  <p className="mt-2 text-xs text-zinc-500">{t('hero.liningUp', 'Lining up bookings and collaborators')}</p>
-                  <div className="mt-5 h-2 w-full overflow-hidden rounded-full bg-orange-100">
-                    <div className="hero-loader h-full w-1/2 rounded-full bg-gradient-to-r from-orange-500 via-amber-400 to-orange-300" />
-                  </div>
-                </div>
-              </div>
-            )}
 
             <div className="mt-10 grid w-full max-w-[980px] grid-cols-2 gap-y-4 text-zinc-400 sm:mt-12 sm:grid-cols-3 lg:mt-14 lg:grid-cols-6">
               {featureKeys.map((item) => (
