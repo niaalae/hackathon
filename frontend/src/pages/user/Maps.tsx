@@ -2,30 +2,35 @@ import { useState, useCallback, useEffect, Fragment, useRef } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents, useMap } from 'react-leaflet'
 import { DivIcon } from 'leaflet'
 import type { LatLngExpression } from 'leaflet'
-import { X, ChevronUp, ChevronDown, Play, MapPin, Footprints, Clock, Flame, Search, Loader2 } from 'lucide-react'
+import { X, ChevronUp, ChevronDown, Play, MapPin, Footprints, Clock, Flame, Search, Loader2, Navigation, Coffee, Hotel, Utensils, ShoppingBag, Landmark, Trees } from 'lucide-react'
 import 'leaflet/dist/leaflet.css'
 
-function createIcon(n: number, isDefault: boolean) {
-    const bg = isDefault ? '#FC4C02' : '#1a1a1a'
-    const ring = isDefault ? 'rgba(252,76,2,0.2)' : 'rgba(0,0,0,0.08)'
+function createIcon(n: number) {
     return new DivIcon({
         className: '',
-        iconSize: [36, 36],
-        iconAnchor: [18, 18],
-        popupAnchor: [0, -22],
-        html: `<div style="position:relative;width:36px;height:36px;display:flex;align-items:center;justify-content:center;">
-      <div style="position:absolute;inset:0;border-radius:50%;background:${ring};animation:stravapin 2s ease-in-out infinite;"></div>
-      <div style="width:28px;height:28px;border-radius:50%;background:${bg};border:2.5px solid #fff;box-shadow:0 2px 12px rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff;font-family:system-ui,sans-serif;position:relative;z-index:1;">${n}</div>
+        iconSize: [36, 44],
+        iconAnchor: [18, 44],
+        popupAnchor: [0, -46],
+        html: `<div style="display:flex;flex-direction:column;align-items:center;">
+      <div style="width:34px;height:34px;border-radius:50% 50% 50% 0;background:#1a73e8;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;font-family:'Google Sans',sans-serif;transform:rotate(-45deg);">
+        <span style="transform:rotate(45deg)">${n}</span>
+      </div>
     </div>`,
     })
 }
 
-interface PinData { id: number; lat: number; lng: number; name: string }
+interface PinData { id: number; lat: number; lng: number; name: string; type?: string }
 interface RouteResult { points: LatLngExpression[]; distanceM: number; failed: boolean; legDistances: number[] }
-interface SearchResult { display_name: string; lat: string; lon: string; type?: string; category?: string; extratags?: { name?: string } }
-
-const defaultPins: PinData[] = []
-const defaultIds = new Set<number>()
+interface NominatimResult {
+    display_name: string
+    lat: string
+    lon: string
+    type?: string
+    category?: string
+    class?: string
+    namedetails?: { name?: string }
+    address?: { road?: string; city?: string; country?: string; suburb?: string }
+}
 
 function straightDist(a: PinData, b: PinData) {
     return Math.round(Math.sqrt((b.lat - a.lat) ** 2 + (b.lng - a.lng) ** 2) * 111000)
@@ -42,22 +47,22 @@ async function fetchRoute(pins: PinData[]): Promise<RouteResult> {
     if (pins.length < 2) return fallback
     try {
         const coords = pins.map(p => `${p.lng},${p.lat}`).join(';')
-        const profiles = ['foot', 'walking', 'driving']
-        for (const profile of profiles) {
-            const url = `https://router.project-osrm.org/route/v1/${profile}/${coords}?overview=full&geometries=geojson&steps=false&continue_straight=true`
+        for (const profile of ['foot', 'walking', 'driving']) {
+            const url = `https://router.project-osrm.org/route/v1/${profile}/${coords}?overview=full&geometries=geojson&steps=false`
             const res = await fetch(url, { signal: AbortSignal.timeout(10000) })
             if (!res.ok) continue
             const data = await res.json()
             if (data.code !== 'Ok' || !data.routes?.length) continue
             const route = data.routes[0]
-            const points: LatLngExpression[] = route.geometry.coordinates.map(([lng, lat]: [number, number]) => [lat, lng])
-            const legDistances = (route.legs || []).map((leg: { distance: number }) => Math.round(leg.distance))
-            return { points, distanceM: Math.round(route.distance), failed: false, legDistances }
+            return {
+                points: route.geometry.coordinates.map(([lng, lat]: [number, number]) => [lat, lng]),
+                distanceM: Math.round(route.distance),
+                failed: false,
+                legDistances: (route.legs || []).map((leg: { distance: number }) => Math.round(leg.distance)),
+            }
         }
         return fallback
-    } catch {
-        return fallback
-    }
+    } catch { return fallback }
 }
 
 function useRoute(pins: PinData[]) {
@@ -68,11 +73,10 @@ function useRoute(pins: PinData[]) {
         let cancelled = false
         if (pins.length < 2) { setRoute({ points: [], distanceM: 0, failed: false, legDistances: [] }); return }
         setLoading(true)
-        fetchRoute(pins).then(result => { if (!cancelled) { setRoute(result); setLoading(false) } })
+        fetchRoute(pins).then(r => { if (!cancelled) { setRoute(r); setLoading(false) } })
         return () => { cancelled = true }
     }, [key]) // eslint-disable-line
-    const walkMins = Math.round(route.distanceM / 1000 * 12)
-    return { route, loading, totalDist: route.distanceM, walkMins, legDistances: route.legDistances, failed: route.failed }
+    return { route, loading, totalDist: route.distanceM, walkMins: Math.round(route.distanceM / 1000 * 12), legDistances: route.legDistances, failed: route.failed }
 }
 
 function MapClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number) => void }) {
@@ -84,41 +88,57 @@ function FitBounds({ pins }: { pins: PinData[] }) {
     const map = useMap()
     useEffect(() => {
         if (pins.length < 2) return
-        map.fitBounds(pins.map(p => [p.lat, p.lng] as [number, number]), { padding: [60, 60] })
+        map.fitBounds(pins.map(p => [p.lat, p.lng] as [number, number]), { padding: [80, 80] })
     }, [pins.length]) // eslint-disable-line
     return null
 }
 
 function FlyTo({ target }: { target: [number, number] | null }) {
     const map = useMap()
-    useEffect(() => {
-        if (target) map.flyTo(target, 16, { duration: 1.2 })
-    }, [target]) // eslint-disable-line
+    useEffect(() => { if (target) map.flyTo(target, 17, { duration: 1 }) }, [target]) // eslint-disable-line
     return null
 }
 
-function fmtDist(m: number) { return m < 1000 ? `${m}m` : `${(m / 1000).toFixed(2)}km` }
-function fmtDistBig(m: number) {
-    if (m < 1000) return { val: `${m}`, unit: 'm' }
-    return { val: (m / 1000).toFixed(2), unit: 'km' }
-}
-function shortName(display: string) { return display.split(',').slice(0, 2).join(', ') }
+function fmtDist(m: number) { return m < 1000 ? `${m}m` : `${(m / 1000).toFixed(1)}km` }
 
-// ── SearchBar lifted outside Maps so it never remounts ──────────────────────
-interface SearchBarProps {
-    onSelect: (r: SearchResult) => void
+function getCategoryIcon(type?: string, category?: string) {
+    const t = (type || category || '').toLowerCase()
+    if (['cafe', 'coffee', 'bar', 'pub', 'tea'].some(k => t.includes(k))) return <Coffee className="h-4 w-4" />
+    if (['hotel', 'hostel', 'motel', 'lodging', 'accommodation'].some(k => t.includes(k))) return <Hotel className="h-4 w-4" />
+    if (['restaurant', 'food', 'fast_food', 'pizza', 'burger'].some(k => t.includes(k))) return <Utensils className="h-4 w-4" />
+    if (['shop', 'mall', 'market', 'supermarket', 'store'].some(k => t.includes(k))) return <ShoppingBag className="h-4 w-4" />
+    if (['park', 'garden', 'nature', 'forest', 'beach'].some(k => t.includes(k))) return <Trees className="h-4 w-4" />
+    if (['museum', 'monument', 'historic', 'church', 'mosque', 'temple'].some(k => t.includes(k))) return <Landmark className="h-4 w-4" />
+    return <MapPin className="h-4 w-4" />
 }
+
+function getPlaceName(r: NominatimResult) {
+    return r.namedetails?.name || r.display_name.split(',')[0]
+}
+
+function getSubtitle(r: NominatimResult) {
+    if (r.address) {
+        const parts = [r.address.road, r.address.suburb, r.address.city].filter(Boolean)
+        return parts.slice(0, 2).join(', ')
+    }
+    return r.display_name.split(',').slice(1, 3).join(',').trim()
+}
+
+// ── Google Maps style Search Bar ─────────────────────────────────────────────
+interface SearchBarProps { onSelect: (r: NominatimResult) => void }
+
 function SearchBar({ onSelect }: SearchBarProps) {
     const [query, setQuery] = useState('')
-    const [results, setResults] = useState<SearchResult[]>([])
+    const [results, setResults] = useState<NominatimResult[]>([])
     const [searching, setSearching] = useState(false)
-    const [showResults, setShowResults] = useState(false)
+    const [focused, setFocused] = useState(false)
     const ref = useRef<HTMLDivElement>(null)
+    const inputRef = useRef<HTMLInputElement>(null)
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     useEffect(() => {
         function handle(e: MouseEvent) {
-            if (ref.current && !ref.current.contains(e.target as Node)) setShowResults(false)
+            if (ref.current && !ref.current.contains(e.target as Node)) setFocused(false)
         }
         document.addEventListener('mousedown', handle)
         return () => document.removeEventListener('mousedown', handle)
@@ -126,97 +146,108 @@ function SearchBar({ onSelect }: SearchBarProps) {
 
     useEffect(() => {
         if (debounceRef.current) clearTimeout(debounceRef.current)
-        if (query.trim().length < 2) { setResults([]); setShowResults(false); return }
+        if (query.trim().length < 2) { setResults([]); return }
         debounceRef.current = setTimeout(async () => {
             setSearching(true)
             try {
                 const params = new URLSearchParams({
-                    format: 'json',
-                    q: query,
-                    limit: '6',
-                    addressdetails: '1',
-                    extratags: '1',
-                    namedetails: '1',
+                    format: 'json', q: query, limit: '7',
+                    addressdetails: '1', namedetails: '1', extratags: '1',
+                    featuretype: 'settlement',
                 })
-                const res = await fetch(
-                    `https://nominatim.openstreetmap.org/search?${params}`,
-                    { headers: { 'Accept-Language': 'en', 'User-Agent': 'RoutePlannerApp/1.0' } }
-                )
-                const data: SearchResult[] = await res.json()
+                const res = await fetch(`https://nominatim.openstreetmap.org/search?${params}`, {
+                    headers: { 'Accept-Language': 'en', 'User-Agent': 'RoutePlannerApp/1.0' }
+                })
+                const data: NominatimResult[] = await res.json()
                 setResults(data)
-                setShowResults(true)
-            } catch {
-                setResults([])
-            } finally {
-                setSearching(false)
-            }
-        }, 400)
+            } catch { setResults([]) }
+            finally { setSearching(false) }
+        }, 350)
     }, [query])
 
-    const handleSelect = (r: SearchResult) => {
+    const handleSelect = (r: NominatimResult) => {
         onSelect(r)
         setQuery('')
         setResults([])
-        setShowResults(false)
+        setFocused(false)
     }
 
+    const showDropdown = focused && (results.length > 0 || (searching && query.length >= 2) || (!searching && query.length >= 2 && results.length === 0))
+
     return (
-        <div ref={ref} className="relative px-3 py-2 border-b border-zinc-100 shrink-0">
-            <div className="flex items-center gap-2 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 focus-within:border-[#FC4C02] focus-within:ring-1 focus-within:ring-orange-100 transition">
+        <div ref={ref} className="relative w-full">
+            {/* Input pill */}
+            <div className={`flex items-center gap-3 bg-white rounded-full px-4 py-3 transition-all duration-200 ${focused ? 'shadow-[0_2px_20px_rgba(0,0,0,0.2)] rounded-t-2xl rounded-b-none' : 'shadow-[0_2px_12px_rgba(0,0,0,0.15)] hover:shadow-[0_2px_16px_rgba(0,0,0,0.2)]'}`}
+                style={{ borderRadius: focused && showDropdown ? '16px 16px 0 0' : '9999px' }}>
                 {searching
-                    ? <Loader2 className="h-3.5 w-3.5 text-zinc-400 animate-spin shrink-0" />
-                    : <Search className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+                    ? <Loader2 className="h-5 w-5 text-[#1a73e8] animate-spin shrink-0" />
+                    : <Search className="h-5 w-5 text-[#5f6368] shrink-0" />
                 }
                 <input
+                    ref={inputRef}
                     value={query}
                     onChange={e => setQuery(e.target.value)}
-                    onFocus={() => results.length > 0 && setShowResults(true)}
-                    placeholder="Search for a place…"
-                    className="flex-1 bg-transparent text-[13px] text-zinc-900 placeholder:text-zinc-400 outline-none"
+                    onFocus={() => setFocused(true)}
+                    placeholder="Search Google Maps"
+                    style={{ fontFamily: "'Google Sans', Roboto, sans-serif", fontSize: 16 }}
+                    className="flex-1 bg-transparent text-[#202124] placeholder:text-[#9aa0a6] outline-none"
                 />
                 {query && (
-                    <button onClick={() => { setQuery(''); setResults([]); setShowResults(false) }}>
-                        <X className="h-3.5 w-3.5 text-zinc-400 hover:text-zinc-700" />
+                    <button onClick={() => { setQuery(''); setResults([]); inputRef.current?.focus() }}
+                        className="h-7 w-7 flex items-center justify-center rounded-full hover:bg-[#f1f3f4] transition">
+                        <X className="h-4 w-4 text-[#5f6368]" />
                     </button>
                 )}
             </div>
 
-            {showResults && results.length > 0 && (
-                <div className="absolute left-3 right-3 top-[calc(100%-8px)] z-50 rounded-xl border border-zinc-200 bg-white shadow-lg overflow-hidden">
-                    {results.map((r, i) => {
-                        const badge = r.type ?? r.category ?? null
-                        return (
-                            <button
-                                key={i}
-                                onClick={() => handleSelect(r)}
-                                className="w-full flex items-start gap-2.5 px-3 py-2.5 hover:bg-zinc-50 transition text-left border-b border-zinc-50 last:border-0">
-                                <MapPin className="h-3.5 w-3.5 text-[#FC4C02] shrink-0 mt-0.5" />
-                                <div className="flex-1 min-w-0">
-                                    <span className="text-[12px] text-zinc-800 leading-snug line-clamp-1">{r.display_name.split(',')[0]}</span>
-                                    <span className="block text-[10px] text-zinc-400 line-clamp-1">{r.display_name.split(',').slice(1, 3).join(',')}</span>
-                                    {badge && <span className="inline-block mt-0.5 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-orange-50 text-[#FC4C02]">{badge}</span>}
-                                </div>
-                            </button>
-                        )
-                    })}
-                </div>
-            )}
-
-            {showResults && !searching && results.length === 0 && query.length >= 2 && (
-                <div className="absolute left-3 right-3 top-[calc(100%-8px)] z-50 rounded-xl border border-zinc-200 bg-white shadow-lg px-4 py-3">
-                    <p className="text-[12px] text-zinc-400 text-center">No results found</p>
+            {/* Dropdown */}
+            {showDropdown && (
+                <div className="absolute left-0 right-0 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.15)] rounded-b-2xl overflow-hidden z-50 border-t border-[#e8eaed]">
+                    {searching && results.length === 0 && (
+                        <div className="flex items-center gap-3 px-4 py-3">
+                            <Loader2 className="h-4 w-4 text-[#1a73e8] animate-spin" />
+                            <span style={{ fontFamily: "'Google Sans', Roboto, sans-serif", fontSize: 14 }} className="text-[#5f6368]">Searching…</span>
+                        </div>
+                    )}
+                    {!searching && results.length === 0 && query.length >= 2 && (
+                        <div className="px-4 py-4 text-center">
+                            <p style={{ fontFamily: "'Google Sans', Roboto, sans-serif", fontSize: 14 }} className="text-[#5f6368]">No results for "{query}"</p>
+                        </div>
+                    )}
+                    {results.map((r, i) => (
+                        <button key={i} onClick={() => handleSelect(r)}
+                            className="w-full flex items-center gap-4 px-4 py-3 hover:bg-[#f1f3f4] transition text-left">
+                            {/* Category icon in grey circle */}
+                            <div className="h-9 w-9 shrink-0 rounded-full bg-[#e8eaed] flex items-center justify-center text-[#5f6368]">
+                                {getCategoryIcon(r.type, r.category)}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p style={{ fontFamily: "'Google Sans', Roboto, sans-serif", fontSize: 14, fontWeight: 500 }}
+                                    className="text-[#202124] truncate">{getPlaceName(r)}</p>
+                                <p style={{ fontFamily: "Roboto, sans-serif", fontSize: 12 }}
+                                    className="text-[#70757a] truncate mt-0.5">{getSubtitle(r)}</p>
+                            </div>
+                            {/* Category badge */}
+                            {(r.type || r.category) && (
+                                <span style={{ fontFamily: "Roboto, sans-serif", fontSize: 11 }}
+                                    className="shrink-0 text-[#70757a] capitalize">{r.type || r.category}</span>
+                            )}
+                        </button>
+                    ))}
+                    <div className="px-4 py-2 border-t border-[#e8eaed] flex items-center gap-2">
+                        <img src="https://www.gstatic.com/images/branding/product/1x/maps_24dp.png" alt="" className="h-4 w-4 opacity-40" onError={e => (e.currentTarget.style.display = 'none')} />
+                        <span style={{ fontFamily: "Roboto, sans-serif", fontSize: 11 }} className="text-[#9aa0a6]">Results from OpenStreetMap</span>
+                    </div>
                 </div>
             )}
         </div>
     )
 }
-// ────────────────────────────────────────────────────────────────────────────
 
 export default function Maps() {
-    const [pins, setPins] = useState<PinData[]>(defaultPins)
+    const [pins, setPins] = useState<PinData[]>([])
     const [showRoute, setShowRoute] = useState(true)
     const [nextId, setNextId] = useState(1)
-    const [editingPin, setEditingPin] = useState<number | null>(null)
     const [panelOpen, setPanelOpen] = useState(false)
     const [suppressClick, setSuppressClick] = useState(false)
     const [flyTarget, setFlyTarget] = useState<[number, number] | null>(null)
@@ -224,20 +255,19 @@ export default function Maps() {
     nextIdRef.current = nextId
 
     const { route, loading, totalDist, walkMins, legDistances, failed } = useRoute(pins)
-    const displayPins = pins
 
-    const addPin = useCallback((lat: number, lng: number, name?: string) => {
+    const addPin = useCallback((lat: number, lng: number, name = 'Dropped pin', type?: string) => {
         if (suppressClick) return
         const id = nextIdRef.current
-        setPins(prev => [...prev, { id, lat, lng, name: name ?? `Waypoint ${id}` }])
+        setPins(prev => [...prev, { id, lat, lng, name, type }])
         setNextId(n => n + 1)
     }, [suppressClick])
 
-    const handleSearchSelect = useCallback((r: SearchResult) => {
+    const handleSearchSelect = useCallback((r: NominatimResult) => {
         const lat = parseFloat(r.lat)
         const lng = parseFloat(r.lon)
         const id = nextIdRef.current
-        setPins(prev => [...prev, { id, lat, lng, name: shortName(r.display_name) }])
+        setPins(prev => [...prev, { id, lat, lng, name: getPlaceName(r), type: r.type || r.category }])
         setNextId(n => n + 1)
         setFlyTarget([lat, lng])
     }, [])
@@ -248,236 +278,178 @@ export default function Maps() {
         setTimeout(() => setSuppressClick(false), 300)
     }
 
-    const updateName = (id: number, name: string) =>
-        setPins(prev => prev.map(p => p.id === id ? { ...p, name } : p))
-
-    const distBig = fmtDistBig(totalDist)
-
-    const StatPill = ({ icon, label, value, unit }: { icon: React.ReactNode; label: string; value: string; unit: string }) => (
-        <div className="flex flex-col items-center gap-0.5 px-4 py-3">
-            <div className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest text-zinc-400 mb-0.5">{icon}{label}</div>
-            <div className="flex items-baseline gap-0.5">
-                <span className="text-2xl font-black text-zinc-900 leading-none">{value}</span>
-                <span className="text-[11px] font-bold text-zinc-400 mb-0.5">{unit}</span>
-            </div>
-        </div>
-    )
-
     return (
         <>
             <style>{`
-                @keyframes stravapin {
-                    0%, 100% { transform: scale(1); opacity: 0.5; }
-                    50% { transform: scale(1.7); opacity: 0; }
-                }
+                @import url('https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@300;400;500&display=swap');
                 .leaflet-popup-content-wrapper { background: transparent !important; box-shadow: none !important; padding: 0 !important; }
                 .leaflet-popup-content { margin: 0 !important; }
                 .leaflet-popup-tip-container { display: none; }
+                .leaflet-control-zoom { border: none !important; box-shadow: 0 1px 4px rgba(0,0,0,0.3) !important; border-radius: 8px !important; overflow: hidden; }
+                .leaflet-control-zoom-in, .leaflet-control-zoom-out { background: white !important; color: #5f6368 !important; font-size: 18px !important; width: 40px !important; height: 40px !important; line-height: 40px !important; }
+                .leaflet-control-zoom-in:hover, .leaflet-control-zoom-out:hover { background: #f1f3f4 !important; }
             `}</style>
 
-            <div className="relative h-[calc(100vh-64px)] w-full overflow-hidden">
+            <div className="relative h-[calc(100vh-64px)] w-full overflow-hidden bg-[#e8eaed]">
 
-                {/* ════════ DESKTOP SIDEBAR ════════ */}
-                <aside className="hidden lg:flex absolute inset-y-0 left-0 z-[1000] w-[300px] flex-col bg-white border-r border-zinc-100 shadow-sm">
-                    <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100 shrink-0">
-                        <div className="flex items-center gap-2.5">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#FC4C02]">
-                                <Play className="h-3.5 w-3.5 text-white fill-white" />
-                            </div>
-                            <div>
-                                <h1 className="text-sm font-black text-zinc-900 leading-tight tracking-tight">Route Planner</h1>
-                                <p className="text-[10px] text-zinc-400 leading-tight font-semibold uppercase tracking-wider">Plan Your Walk</p>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                            <button onClick={() => setShowRoute(r => !r)}
-                                className={`text-[10px] font-bold uppercase tracking-widest px-2.5 py-1.5 rounded-full border transition ${showRoute ? 'border-[#FC4C02] text-[#FC4C02] bg-orange-50' : 'border-zinc-200 text-zinc-400'}`}>
-                                Route
-                            </button>
-                            {displayPins.length > 0 && (
-                                <button onClick={() => { setPins([]); setNextId(1) }}
-                                    className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1.5 rounded-full border border-zinc-200 text-zinc-400 hover:border-red-400 hover:text-red-500 transition">
-                                    Clear
-                                </button>
-                            )}
-                        </div>
-                    </div>
-
+                {/* ════ FLOATING SEARCH BAR (top, full width on mobile, fixed on desktop) ════ */}
+                <div className="absolute top-4 left-4 right-4 lg:left-4 lg:right-auto lg:w-[400px] z-[1100]">
                     <SearchBar onSelect={handleSearchSelect} />
+                </div>
 
-                    {displayPins.length >= 2 && !loading && (
-                        <div className="flex items-center justify-center divide-x divide-zinc-100 border-b border-zinc-100 shrink-0">
-                            <StatPill icon={<Footprints className="h-3 w-3" />} label="Distance" value={distBig.val} unit={distBig.unit} />
-                            <StatPill icon={<Clock className="h-3 w-3" />} label="Est. Time" value={walkMins > 0 ? `${walkMins}` : '--'} unit="min" />
-                            <StatPill icon={<Flame className="h-3 w-3" />} label="Stops" value={`${displayPins.length}`} unit="pts" />
-                        </div>
-                    )}
-                    {loading && (
-                        <div className="flex items-center justify-center gap-2 py-4 border-b border-zinc-100 shrink-0">
-                            <div className="h-1.5 w-1.5 rounded-full bg-[#FC4C02] animate-bounce" />
-                            <div className="h-1.5 w-1.5 rounded-full bg-[#FC4C02] animate-bounce [animation-delay:150ms]" />
-                            <div className="h-1.5 w-1.5 rounded-full bg-[#FC4C02] animate-bounce [animation-delay:300ms]" />
-                            <span className="text-[11px] text-zinc-400 font-medium ml-1">Calculating route…</span>
-                        </div>
-                    )}
-
-                    <div className="flex-1 overflow-y-auto px-2 py-2">
-                        {displayPins.length === 0 && (
-                            <div className="py-10 flex flex-col items-center gap-2">
-                                <MapPin className="h-8 w-8 text-zinc-300" />
-                                <p className="text-[13px] text-zinc-400 font-medium">Search or tap map to add waypoints</p>
+                {/* ════ DESKTOP SIDE PANEL ════ */}
+                {pins.length > 0 && (
+                    <div className="hidden lg:flex absolute top-[76px] left-4 z-[1000] w-[400px] flex-col bg-white rounded-2xl shadow-[0_2px_20px_rgba(0,0,0,0.15)] max-h-[calc(100vh-160px)] overflow-hidden">
+                        {/* Route summary */}
+                        {pins.length >= 2 && (
+                            <div className="px-4 py-3 border-b border-[#e8eaed] bg-[#1a73e8] rounded-t-2xl">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <Navigation className="h-5 w-5 text-white" />
+                                        <div>
+                                            <p style={{ fontFamily: "'Google Sans', sans-serif", fontSize: 15, fontWeight: 600 }} className="text-white">
+                                                {loading ? 'Calculating…' : fmtDist(totalDist)}
+                                            </p>
+                                            <p style={{ fontFamily: "Roboto, sans-serif", fontSize: 12 }} className="text-blue-100">
+                                                {loading ? '' : `~${walkMins} min walk · ${pins.length} stops`}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button onClick={() => setShowRoute(r => !r)}
+                                            className={`text-[11px] font-medium px-3 py-1.5 rounded-full transition ${showRoute ? 'bg-white text-[#1a73e8]' : 'bg-blue-600 text-white border border-blue-400'}`}
+                                            style={{ fontFamily: "'Google Sans', sans-serif" }}>
+                                            {showRoute ? 'Hide route' : 'Show route'}
+                                        </button>
+                                        <button onClick={() => { setPins([]); setNextId(1) }}
+                                            className="text-[11px] font-medium px-3 py-1.5 rounded-full bg-blue-600 text-white border border-blue-400 hover:bg-blue-500 transition"
+                                            style={{ fontFamily: "'Google Sans', sans-serif" }}>
+                                            Clear
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         )}
-                        {displayPins.map((pin, i) => (
-                            <div key={pin.id}>
-                                <div className="group flex items-center gap-3 rounded-2xl px-3 py-3 hover:bg-zinc-50 transition-colors">
-                                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[11px] font-black bg-zinc-900 text-white">
-                                        {i + 1}
+
+                        {/* Pins list */}
+                        <div className="overflow-y-auto">
+                            {pins.map((pin, i) => (
+                                <div key={pin.id}>
+                                    <div className="group flex items-center gap-3 px-4 py-3 hover:bg-[#f1f3f4] transition cursor-pointer">
+                                        {/* Number marker */}
+                                        <div className="h-8 w-8 shrink-0 rounded-full bg-[#1a73e8] flex items-center justify-center text-white text-[12px] font-bold"
+                                            style={{ fontFamily: "'Google Sans', sans-serif" }}>
+                                            {i + 1}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p style={{ fontFamily: "'Google Sans', sans-serif", fontSize: 14, fontWeight: 500 }}
+                                                className="text-[#202124] truncate">{pin.name}</p>
+                                            <p style={{ fontFamily: "Roboto, sans-serif", fontSize: 12 }}
+                                                className="text-[#70757a]">{pin.lat.toFixed(5)}, {pin.lng.toFixed(5)}</p>
+                                        </div>
+                                        <button onClick={() => removePin(pin.id)}
+                                            className="shrink-0 h-8 w-8 flex items-center justify-center rounded-full text-[#9aa0a6] hover:text-[#5f6368] hover:bg-[#e8eaed] transition opacity-0 group-hover:opacity-100">
+                                            <X className="h-4 w-4" />
+                                        </button>
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                        {editingPin === pin.id ? (
-                                            <input autoFocus value={pin.name}
-                                                onChange={e => updateName(pin.id, e.target.value)}
-                                                onBlur={() => setEditingPin(null)}
-                                                onKeyDown={e => e.key === 'Enter' && setEditingPin(null)}
-                                                className="w-full rounded-lg border border-zinc-200 bg-white px-2 py-1 text-[13px] text-zinc-900 outline-none focus:border-[#FC4C02]" />
-                                        ) : (
-                                            <>
-                                                <span onClick={() => setEditingPin(pin.id)}
-                                                    className="block truncate text-[13px] font-bold text-zinc-900 leading-tight cursor-pointer">
-                                                    {pin.name}
-                                                </span>
-                                                <span className="text-[10px] text-zinc-400 font-mono">
-                                                    {pin.lat.toFixed(4)}, {pin.lng.toFixed(4)}
-                                                </span>
-                                            </>
-                                        )}
-                                    </div>
-                                    <button onClick={() => removePin(pin.id)}
-                                        className="shrink-0 h-7 w-7 flex items-center justify-center rounded-full text-zinc-300 hover:text-red-500 hover:bg-red-50 transition opacity-0 group-hover:opacity-100">
-                                        <X className="h-3.5 w-3.5" />
-                                    </button>
+                                    {/* Leg distance */}
+                                    {i < pins.length - 1 && (
+                                        <div className="flex items-center gap-3 px-4 py-1">
+                                            <div className="w-8 flex justify-center">
+                                                <div className="w-0.5 h-5 bg-[#dadce0]" />
+                                            </div>
+                                            {loading
+                                                ? <span style={{ fontFamily: "Roboto, sans-serif", fontSize: 12 }} className="text-[#9aa0a6] animate-pulse">routing…</span>
+                                                : legDistances[i]
+                                                    ? <span style={{ fontFamily: "Roboto, sans-serif", fontSize: 12 }} className={failed ? 'text-orange-500' : 'text-[#1a73e8]'}>
+                                                        {failed ? `~${fmtDist(legDistances[i])}` : fmtDist(legDistances[i])}
+                                                    </span>
+                                                    : null
+                                            }
+                                        </div>
+                                    )}
                                 </div>
-                                {i < displayPins.length - 1 && (
-                                    <div className="ml-7 pl-3 flex items-center gap-2 py-0.5 border-l-2 border-dashed border-zinc-200">
-                                        {loading
-                                            ? <span className="text-[10px] text-zinc-400 animate-pulse py-1">routing…</span>
-                                            : legDistances[i]
-                                                ? <span className={`text-[10px] font-bold tracking-wide py-1 ${failed ? 'text-amber-500' : 'text-[#FC4C02]'}`}>
-                                                    {failed ? `~${fmtDist(legDistances[i])} (straight line)` : fmtDist(legDistances[i])}
-                                                </span>
-                                                : null
-                                        }
-                                    </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* ════ MOBILE BOTTOM SHEET ════ */}
+                <div className={`lg:hidden absolute bottom-0 left-0 right-0 z-[1000] bg-white rounded-t-3xl shadow-[0_-4px_20px_rgba(0,0,0,0.15)] transition-transform duration-300 ${panelOpen ? 'translate-y-0' : 'translate-y-[calc(100%-64px)]'}`}
+                    style={{ maxHeight: '60vh' }}>
+                    <div role="button" tabIndex={0} onClick={() => setPanelOpen(o => !o)}
+                        onKeyDown={e => { if (e.key === 'Enter') setPanelOpen(o => !o) }}
+                        className="px-4 pt-3 pb-2 focus:outline-none">
+                        <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-[#dadce0]" />
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p style={{ fontFamily: "'Google Sans', sans-serif", fontSize: 15, fontWeight: 600 }} className="text-[#202124]">
+                                    {pins.length === 0 ? 'No stops yet' : `${pins.length} stop${pins.length > 1 ? 's' : ''}`}
+                                </p>
+                                {pins.length >= 2 && !loading && (
+                                    <p style={{ fontFamily: "Roboto, sans-serif", fontSize: 13 }} className="text-[#70757a]">
+                                        {fmtDist(totalDist)} · ~{walkMins} min
+                                    </p>
                                 )}
                             </div>
-                        ))}
-                    </div>
-
-                    <div className="border-t border-zinc-100 px-5 py-3 shrink-0">
-                        <p className="text-[11px] text-zinc-400 text-center font-medium">Search or tap map to add waypoints</p>
-                    </div>
-                </aside>
-
-                {/* ════════ MOBILE BOTTOM SHEET ════════ */}
-                <div
-                    className={`lg:hidden absolute bottom-0 left-0 right-0 z-[1000] bg-white rounded-t-3xl border-t border-zinc-100 shadow-[0_-8px_32px_rgba(0,0,0,0.08)] transition-transform duration-300 ease-out ${panelOpen ? 'translate-y-0' : 'translate-y-[calc(100%-72px)]'}`}
-                    style={{ maxHeight: '70vh' }}>
-                    <div role="button" tabIndex={0}
-                        onClick={() => setPanelOpen(o => !o)}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setPanelOpen(o => !o) }}
-                        className="w-full pt-3 pb-1 focus:outline-none">
-                        <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-zinc-200" />
-                        <div className="px-4 flex items-center gap-3">
-                            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#FC4C02] shrink-0">
-                                <Play className="h-4 w-4 text-white fill-white" />
-                            </div>
-                            <div className="flex-1 text-left">
-                                <p className="text-[13px] font-black text-zinc-900 leading-tight">Route Planner</p>
-                                {loading
-                                    ? <p className="text-[10px] text-[#FC4C02] animate-pulse font-medium">Calculating route…</p>
-                                    : displayPins.length >= 2
-                                        ? <p className="text-[10px] text-zinc-400 font-semibold">{displayPins.length} stops · {fmtDist(totalDist)} · ~{walkMins} min</p>
-                                        : <p className="text-[10px] text-zinc-400 font-medium">Search or tap map to add stops</p>
-                                }
-                            </div>
-                            <div className="flex items-center gap-1.5 shrink-0">
-                                {displayPins.length > 0 && (
+                            <div className="flex gap-2">
+                                {pins.length > 0 && (
                                     <button onClick={e => { e.stopPropagation(); setPins([]); setNextId(1) }}
-                                        className="text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-full border border-zinc-200 text-zinc-400">
-                                        Clear
+                                        className="text-[12px] px-3 py-1.5 rounded-full border border-[#dadce0] text-[#5f6368]"
+                                        style={{ fontFamily: "'Google Sans', sans-serif" }}>
+                                        Clear all
                                     </button>
                                 )}
-                                <button onClick={e => { e.stopPropagation(); setShowRoute(r => !r) }}
-                                    className={`text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-full border transition ${showRoute ? 'border-[#FC4C02] text-[#FC4C02]' : 'border-zinc-200 text-zinc-400'}`}>
-                                    Route
-                                </button>
-                                {panelOpen ? <ChevronDown className="h-4 w-4 text-zinc-400" /> : <ChevronUp className="h-4 w-4 text-zinc-400" />}
+                                {panelOpen ? <ChevronDown className="h-5 w-5 text-[#5f6368]" /> : <ChevronUp className="h-5 w-5 text-[#5f6368]" />}
                             </div>
                         </div>
                     </div>
 
-                    {panelOpen && <SearchBar onSelect={handleSearchSelect} />}
-
-                    {displayPins.length >= 2 && !loading && (
-                        <div className="mx-4 mt-2 mb-1 rounded-2xl bg-zinc-50 border border-zinc-100 overflow-hidden">
-                            <div className="flex items-center justify-center divide-x divide-zinc-100">
-                                <StatPill icon={<Footprints className="h-3 w-3" />} label="Distance" value={distBig.val} unit={distBig.unit} />
-                                <StatPill icon={<Clock className="h-3 w-3" />} label="Est. Time" value={walkMins > 0 ? `${walkMins}` : '--'} unit="min" />
-                                <StatPill icon={<Flame className="h-3 w-3" />} label="Stops" value={`${displayPins.length}`} unit="pts" />
-                            </div>
-                        </div>
-                    )}
-
-                    <div className="overflow-y-auto pb-8 px-2 mt-1" style={{ maxHeight: 'calc(70vh - 130px)' }}>
-                        {displayPins.map((pin, i) => (
-                            <div key={pin.id}>
-                                <div className="group flex items-center gap-3 rounded-2xl px-3 py-3 hover:bg-zinc-50 transition-colors">
-                                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[11px] font-black bg-zinc-900 text-white">{i + 1}</div>
-                                    <div className="flex-1 min-w-0">
-                                        <span className="block truncate text-[13px] font-bold text-zinc-900 leading-tight">{pin.name}</span>
-                                        <span className="text-[10px] text-zinc-400 font-mono">{pin.lat.toFixed(4)}, {pin.lng.toFixed(4)}</span>
-                                    </div>
-                                    <button onClick={() => removePin(pin.id)}
-                                        className="shrink-0 h-7 w-7 flex items-center justify-center rounded-full text-zinc-300 hover:text-red-500 hover:bg-red-50 transition">
-                                        <X className="h-3.5 w-3.5" />
-                                    </button>
+                    <div className="overflow-y-auto pb-8" style={{ maxHeight: 'calc(60vh - 80px)' }}>
+                        {pins.map((pin, i) => (
+                            <div key={pin.id} className="flex items-center gap-3 px-4 py-3 hover:bg-[#f1f3f4]">
+                                <div className="h-8 w-8 shrink-0 rounded-full bg-[#1a73e8] flex items-center justify-center text-white text-[12px] font-bold">{i + 1}</div>
+                                <div className="flex-1 min-w-0">
+                                    <p style={{ fontFamily: "'Google Sans', sans-serif", fontSize: 14 }} className="text-[#202124] truncate font-medium">{pin.name}</p>
+                                    {i < pins.length - 1 && legDistances[i] && (
+                                        <p style={{ fontFamily: "Roboto, sans-serif", fontSize: 12 }} className="text-[#1a73e8]">{fmtDist(legDistances[i])} to next</p>
+                                    )}
                                 </div>
-                                {i < displayPins.length - 1 && legDistances[i] && (
-                                    <div className="ml-7 pl-3 py-0.5 border-l-2 border-dashed border-zinc-200">
-                                        <span className="text-[10px] font-bold text-[#FC4C02]">{fmtDist(legDistances[i])}</span>
-                                    </div>
-                                )}
+                                <button onClick={() => removePin(pin.id)} className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-[#e8eaed] transition">
+                                    <X className="h-4 w-4 text-[#9aa0a6]" />
+                                </button>
                             </div>
                         ))}
                     </div>
                 </div>
 
-                {/* ════════ MAP ════════ */}
-                <div className="h-full w-full lg:pl-[300px]">
-                    <MapContainer center={[34.0615, -4.981] as LatLngExpression} zoom={16} className="h-full w-full" zoomControl={false}>
+                {/* ════ MAP ════ */}
+                <div className="h-full w-full">
+                    <MapContainer center={[34.0615, -4.981] as LatLngExpression} zoom={15} className="h-full w-full" zoomControl={true}>
                         <TileLayer
-                            attribution='&copy; <a href="https://carto.com/">CARTO</a>'
-                            url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+                            attribution='&copy; <a href="https://www.google.com/maps">Google Maps style</a> | <a href="https://carto.com/">CARTO</a>'
+                            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
                         />
-                        <MapClickHandler onMapClick={(lat, lng) => addPin(lat, lng)} />
-                        <FitBounds pins={displayPins} />
+                        <MapClickHandler onMapClick={(lat, lng) => addPin(lat, lng, 'Dropped pin')} />
+                        <FitBounds pins={pins} />
                         <FlyTo target={flyTarget} />
 
-                        {displayPins.map((pin, i) => (
-                            <Marker key={pin.id} position={[pin.lat, pin.lng]} icon={createIcon(i + 1, defaultIds.has(pin.id))}>
+                        {pins.map((pin, i) => (
+                            <Marker key={pin.id} position={[pin.lat, pin.lng]} icon={createIcon(i + 1)}>
                                 <Popup>
-                                    <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '10px 14px', minWidth: 140, textAlign: 'center', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
-                                        <p style={{ color: '#FC4C02', fontWeight: 900, fontSize: 13, margin: '0 0 2px' }}>{i + 1}. {pin.name}</p>
-                                        <p style={{ color: '#9ca3af', fontSize: 10, margin: '0 0 8px', fontFamily: 'monospace' }}>{pin.lat.toFixed(4)}, {pin.lng.toFixed(4)}</p>
-                                        {i < displayPins.length - 1 && legDistances[i] && (
-                                            <p style={{ color: '#FC4C02', fontSize: 10, margin: '0 0 8px', fontWeight: 700 }}>
-                                                🚶 {fmtDist(legDistances[i])} to next{failed && ' (approx)'}
-                                            </p>
+                                    <div style={{ fontFamily: "'Google Sans', Roboto, sans-serif", background: '#fff', borderRadius: 12, padding: '12px 16px', minWidth: 180, boxShadow: '0 4px 20px rgba(0,0,0,0.15)' }}>
+                                        <div className="flex items-start justify-between gap-2 mb-1">
+                                            <p style={{ fontSize: 14, fontWeight: 600, color: '#202124' }}>{pin.name}</p>
+                                            <div className="h-5 w-5 shrink-0 rounded-full bg-[#1a73e8] flex items-center justify-center text-white text-[10px] font-bold">{i + 1}</div>
+                                        </div>
+                                        {pin.type && <p style={{ fontSize: 12, color: '#70757a' }} className="capitalize mb-2">{pin.type}</p>}
+                                        <p style={{ fontSize: 11, color: '#9aa0a6', fontFamily: 'monospace' }} className="mb-3">{pin.lat.toFixed(5)}, {pin.lng.toFixed(5)}</p>
+                                        {i < pins.length - 1 && legDistances[i] && (
+                                            <p style={{ fontSize: 12, color: '#1a73e8', fontWeight: 500 }} className="mb-2">↓ {fmtDist(legDistances[i])} to next stop</p>
                                         )}
-                                        <button onClick={(e) => { e.stopPropagation(); removePin(pin.id) }}
-                                            style={{ color: '#ef4444', fontSize: 11, fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, margin: '0 auto' }}>
-                                            ✕ Remove
+                                        <button onClick={e => { e.stopPropagation(); removePin(pin.id) }}
+                                            style={{ fontSize: 12, color: '#d93025', fontWeight: 500, background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', display: 'flex', alignItems: 'center', gap: 4 }}>
+                                            <X style={{ width: 14, height: 14 }} /> Remove stop
                                         </button>
                                     </div>
                                 </Popup>
@@ -486,12 +458,9 @@ export default function Maps() {
 
                         {showRoute && route.points.length > 1 && (
                             <Fragment>
-                                <Polyline positions={route.points} pathOptions={{ color: '#FC4C02', weight: 14, opacity: 0.08 }} />
-                                <Polyline positions={route.points} pathOptions={{ color: '#FC4C02', weight: 8, opacity: 0.2 }} />
-                                <Polyline positions={route.points} pathOptions={failed
-                                    ? { color: '#f59e0b', weight: 3, opacity: 0.7, dashArray: '6 8' }
-                                    : { color: '#FC4C02', weight: 4, opacity: 1, lineCap: 'round', lineJoin: 'round' }
-                                } />
+                                <Polyline positions={route.points} pathOptions={{ color: '#1a73e8', weight: 12, opacity: 0.15 }} />
+                                <Polyline positions={route.points} pathOptions={{ color: '#1a73e8', weight: 5, opacity: 0.9, lineCap: 'round', lineJoin: 'round' }} />
+                                {failed && <Polyline positions={route.points} pathOptions={{ color: '#fbbc04', weight: 3, opacity: 0.8, dashArray: '8 6' }} />}
                             </Fragment>
                         )}
                     </MapContainer>
