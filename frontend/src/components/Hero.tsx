@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { ArrowRight } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 
 const travelImages = [
   { id: 1, src: '/assets/places/m3.jpeg', alt: 'Morocco place 1' },
@@ -17,13 +18,13 @@ const travelImages = [
 
 const repeatedImages = [...travelImages, ...travelImages]
 
-const features = [
-  'Trusted stays',
-  'Route help',
-  'Safe spots',
-  'Guided plans',
-  'City picks',
-  'Local gems',
+const featureKeys = [
+  'hero.feature1',
+  'hero.feature2',
+  'hero.feature3',
+  'hero.feature4',
+  'hero.feature5',
+  'hero.feature6',
 ]
 
 const placeholders = [
@@ -220,6 +221,7 @@ export default function Hero() {
   const [query, setQuery] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   const handleSubmit = () => {
     const trimmed = query.trim()
@@ -246,7 +248,7 @@ export default function Hero() {
           <div className="relative mx-auto flex min-h-[760px] max-w-[1120px] flex-col items-center text-center sm:min-h-[780px] lg:min-h-[820px] xl:min-h-[860px]">
             <h1 className="mx-auto mt-2 max-w-[920px] text-[36px] font-semibold leading-[0.96] tracking-[-0.05em] text-zinc-950 sm:mt-4 sm:text-[52px] lg:mt-6 lg:text-[72px] xl:text-[80px]">
               <span className="block">
-                Make Your{' '}
+                {t('hero.title1')}{' '}
                 <span
                   className="inline-block text-orange-500"
                   style={{
@@ -255,10 +257,10 @@ export default function Hero() {
                     letterSpacing: '-0.01em',
                   }}
                 >
-                  Morocco Journey
+                  {t('hero.title2')}
                 </span>
               </span>
-              <span className="block">Unforgettable!</span>
+              <span className="block">{t('hero.title3')}</span>
             </h1>
 
             <p
@@ -270,8 +272,7 @@ export default function Hero() {
                 letterSpacing: '-0.01em',
               }}
             >
-              Get your dream trip planned with trusted local recommendations, safe
-              navigation, scam alerts, and transport help — all in one premium experience.
+              {t('hero.description')}
             </p>
 
             <div className="mt-8 w-full max-w-[640px] px-1 sm:px-0">
@@ -298,7 +299,7 @@ export default function Hero() {
                   disabled={isLoading}
                   className="flex h-[54px] w-full items-center justify-center gap-2 rounded-2xl bg-zinc-950 text-sm font-semibold text-white transition duration-200 hover:bg-zinc-800 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
                 >
-                  {isLoading ? 'Launching...' : 'Start Planning'}
+                  {isLoading ? t('hero.launching', 'Launching...') : t('hero.cta')}
                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10">
                     <ArrowRight className="h-4 w-4" />
                   </span>
@@ -328,7 +329,7 @@ export default function Hero() {
                   disabled={isLoading}
                   className="inline-flex h-[52px] items-center justify-center gap-2 rounded-full bg-zinc-950 px-7 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(24,24,27,0.14)] transition duration-200 hover:-translate-y-0.5 hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-70"
                 >
-                  {isLoading ? 'Launching...' : 'Start Planning'}
+                  {isLoading ? t('hero.launching', 'Launching...') : t('hero.cta')}
                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10">
                     <ArrowRight className="h-4 w-4" />
                   </span>
@@ -344,8 +345,8 @@ export default function Hero() {
                   <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#111827] text-white shadow-[0_12px_26px_rgba(15,23,42,0.28)]">
                     <ArrowRight className="h-5 w-5" />
                   </div>
-                  <p className="text-sm font-semibold text-zinc-900">Preparing your dashboard</p>
-                  <p className="mt-2 text-xs text-zinc-500">Lining up bookings and collaborators</p>
+                  <p className="text-sm font-semibold text-zinc-900">{t('hero.preparing', 'Preparing your dashboard')}</p>
+                  <p className="mt-2 text-xs text-zinc-500">{t('hero.liningUp', 'Lining up bookings and collaborators')}</p>
                   <div className="mt-5 h-2 w-full overflow-hidden rounded-full bg-orange-100">
                     <div className="hero-loader h-full w-1/2 rounded-full bg-gradient-to-r from-orange-500 via-amber-400 to-orange-300" />
                   </div>
@@ -354,12 +355,12 @@ export default function Hero() {
             )}
 
             <div className="mt-10 grid w-full max-w-[980px] grid-cols-2 gap-y-4 text-zinc-400 sm:mt-12 sm:grid-cols-3 lg:mt-14 lg:grid-cols-6">
-              {features.map((item) => (
+              {featureKeys.map((item) => (
                 <div
                   key={item}
                   className="text-center text-xs font-semibold tracking-tight sm:text-sm"
                 >
-                  {item}
+                  {t(item)}
                 </div>
               ))}
             </div>
