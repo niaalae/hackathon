@@ -1,9 +1,10 @@
-import axios from "axios";
+import axios from 'axios'
 
-if(!import.meta.env.VITE_PUBLIC_API_URL)throw new Error("VITE_PUBLIC_API_URL isn't defined")
+const baseURL = import.meta.env.VITE_PUBLIC_API_URL || '/api'
 
 const api = axios.create({
-    baseURL:import.meta.env.VITE_PUBLIC_API_URL,
+  baseURL,
+  withCredentials: true
 })
 
 export default api

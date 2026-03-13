@@ -1,289 +1,456 @@
-import { useMemo, useState } from 'react'
-import {
-  Car,
-  ChevronUp,
-  Clock,
-  DollarSign,
-  Footprints,
-  MapPin,
-  Navigation,
-  Plus,
-  Route,
-  Search,
-  TrainFront,
-  X,
-} from 'lucide-react'
-import { MapContainer, Marker, Popup, Polyline, TileLayer } from 'react-leaflet'
-import L from 'leaflet'
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
-import markerIcon from 'leaflet/dist/images/marker-icon.png'
-import markerShadow from 'leaflet/dist/images/marker-shadow.png'
+import { useState, useCallback, useEffect, Fragment } from 'react'
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents, useMap } from 'react-leaflet'
+import { DivIcon } from 'leaflet'
+import type { LatLngExpression } from 'leaflet'
+import { X, ChevronUp, ChevronDown, Play, MapPin, Footprints, Clock, Flame } from 'lucide-react'
+import 'leaflet/dist/leaflet.css'
 
-interface Pin {
-  id: string
-  name: string
-  type: 'riad' | 'restaurant' | 'attraction' | 'market' | 'custom'
-  lat: number
-  lng: number
-  description?: string
+function createIcon(n: number, isDefault: boolean) {
+    const bg = isDefault ? '#FC4C02' : '#1a1a1a'
+    const ring = isDefault ? 'rgba(252,76,2,0.2)' : 'rgba(0,0,0,0.08)'
+    return new DivIcon({
+        className: '',
+        iconSize: [36, 36],
+        iconAnchor: [18, 18],
+        popupAnchor: [0, -22],
+        html: `<div style="position:relative;width:36px;height:36px;display:flex;align-items:center;justify-content:center;">
+      <div style="position:absolute;inset:0;border-radius:50%;background:${ring};animation:stravapin 2s ease-in-out infinite;"></div>
+      <div style="width:28px;height:28px;border-radius:50%;background:${bg};border:2.5px solid #fff;box-shadow:0 2px 12px rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff;font-family:system-ui,sans-serif;position:relative;z-index:1;">${n}</div>
+    </div>`,
+    })
 }
 
-interface RouteData {
-  id: string
-  from: string
-  to: string
-  mode: 'walking' | 'driving' | 'transit'
-  duration: string
-  distance: string
-  cost?: string
-}
+interface PinData { id: number; lat: number; lng: number; name: string }
+interface RouteResult { points: LatLngExpression[]; distanceM: number; failed: boolean; legDistances: number[] }
 
-const pins: Pin[] = [
-  { id: '1', name: 'Bab Boujloud', type: 'attraction', lat: 34.0618, lng: -4.9821, description: 'Famous Blue Gate entrance to Medina' },
-  { id: '2', name: 'Riad Fes Maya', type: 'riad', lat: 34.0611, lng: -4.9846, description: 'Traditional accommodation' },
-  { id: '3', name: 'Al-Qarawiyyin Mosque', type: 'attraction', lat: 34.0646, lng: -4.9767, description: 'Oldest university in the world' },
-  { id: '4', name: 'Chouara Tannery', type: 'attraction', lat: 34.0651, lng: -4.9732, description: 'Historic leather tannery' },
-  { id: '5', name: 'Cafe Clock', type: 'restaurant', lat: 34.0602, lng: -4.9815, description: 'Famous camel burger spot' },
-  { id: '6', name: 'Souk El Attarine', type: 'market', lat: 34.0658, lng: -4.9761, description: 'Spice and perfume market' },
-  { id: '7', name: 'Bab Mansour', type: 'attraction', lat: 33.8949, lng: -5.5616, description: 'Grand gate of Meknes' },
-  { id: '8', name: 'Volubilis Ruins', type: 'attraction', lat: 34.0724, lng: -5.5547, description: 'Roman archaeological site' },
+const defaultPins: PinData[] = [
+    { id: 1, lat: 34.0622, lng: -4.9815, name: 'The Ruined Garden' },
+    { id: 2, lat: 34.0628, lng: -4.9832, name: 'Café Clock' },
+    { id: 3, lat: 34.0645, lng: -4.9798, name: 'Dar Roumana' },
+    { id: 4, lat: 34.0612, lng: -4.9775, name: 'Restaurant Nur' },
+    { id: 5, lat: 34.0595, lng: -4.9805, name: 'Palais La Medina' },
 ]
+const defaultIds = new Set(defaultPins.map(p => p.id))
 
-const routes: RouteData[] = [
-  { id: '1', from: 'Riad Fes Maya', to: 'Chouara Tannery', mode: 'walking', duration: '15 min', distance: '1.2 km' },
-  { id: '2', from: 'Fes Medina', to: 'Meknes', mode: 'driving', duration: '45 min', distance: '60 km', cost: '50 MAD' },
-  { id: '3', from: 'Meknes', to: 'Volubilis', mode: 'driving', duration: '30 min', distance: '30 km', cost: '80 MAD' },
-]
-
-const pinColors: Record<Pin['type'], string> = {
-  riad: 'bg-orange-500',
-  restaurant: 'bg-amber-500',
-  attraction: 'bg-orange-500',
-  market: 'bg-amber-500',
-  custom: 'bg-zinc-400',
+function straightDist(a: PinData, b: PinData) {
+    return Math.round(Math.sqrt((b.lat - a.lat) ** 2 + (b.lng - a.lng) ** 2) * 111000)
 }
 
-const modeIcons = {
-  walking: Footprints,
-  driving: Car,
-  transit: TrainFront,
+async function fetchRoute(pins: PinData[]): Promise<RouteResult> {
+    const fallbackDistances = pins.length > 1 ? pins.slice(0, -1).map((p, i) => straightDist(p, pins[i + 1])) : []
+    const fallback: RouteResult = {
+        points: pins.map(p => [p.lat, p.lng]),
+        distanceM: fallbackDistances.reduce((s, d) => s + d, 0),
+        failed: true,
+        legDistances: fallbackDistances,
+    }
+
+    if (pins.length < 2) return fallback
+
+    try {
+        const coords = pins.map(p => `${p.lng},${p.lat}`).join(';')
+        const profiles = ['foot', 'walking', 'driving']
+
+        for (const profile of profiles) {
+            const url = `https://router.project-osrm.org/route/v1/${profile}/${coords}?overview=full&geometries=geojson&steps=false&continue_straight=true`
+            const res = await fetch(url, { signal: AbortSignal.timeout(10000) })
+            if (!res.ok) continue
+
+            const data = await res.json()
+            if (data.code !== 'Ok' || !data.routes?.length) continue
+
+            const route = data.routes[0]
+            const points: LatLngExpression[] = route.geometry.coordinates.map(
+                ([lng, lat]: [number, number]) => [lat, lng]
+            )
+            const legDistances = (route.legs || []).map((leg: { distance: number }) => Math.round(leg.distance))
+
+            return {
+                points,
+                distanceM: Math.round(route.distance),
+                failed: false,
+                legDistances,
+            }
+        }
+        return fallback
+    } catch {
+        return fallback
+    }
 }
 
-const routeLines: Array<Array<[number, number]>> = [
-  [
-    [34.0611, -4.9846],
-    [34.0651, -4.9732],
-  ],
-  [
-    [34.0331, -5.0003],
-    [33.8949, -5.5616],
-  ],
-  [
-    [33.8949, -5.5616],
-    [34.0724, -5.5547],
-  ],
-]
+function useRoute(pins: PinData[]) {
+    const [route, setRoute] = useState<RouteResult>({ points: [], distanceM: 0, failed: false, legDistances: [] })
+    const [loading, setLoading] = useState(false)
 
-// Fix Leaflet default marker paths with Vite.
-// @ts-expect-error Leaflet internal override
-delete L.Icon.Default.prototype._getIconUrl
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: markerIcon2x,
-  iconUrl: markerIcon,
-  shadowUrl: markerShadow,
-})
+    const key = pins.map(p => `${p.lat.toFixed(5)},${p.lng.toFixed(5)}`).join('|')
 
-export default function UserMaps() {
-  const [selectedPin, setSelectedPin] = useState<Pin | null>(null)
-  const [showRoutes, setShowRoutes] = useState(true)
-  const [activeTab, setActiveTab] = useState<'pins' | 'routes'>('pins')
-  const [transportMode, setTransportMode] = useState<'walking' | 'driving' | 'transit'>('walking')
-  const [showPanel, setShowPanel] = useState(false)
-  const mapCenter = useMemo<[number, number]>(() => [34.0331, -5.0003], [])
+    useEffect(() => {
+        let cancelled = false
+        if (pins.length < 2) {
+            setRoute({ points: [], distanceM: 0, failed: false, legDistances: [] })
+            return
+        }
 
-  return (
-    <div className='space-y-4'>
-      <div>
-        <h2 className='text-xl font-semibold text-zinc-900 sm:text-2xl'>Interactive Maps</h2>
-        <p className='text-sm text-zinc-500'>Explore Fes-Meknes region with custom routes and pins</p>
-      </div>
+        setLoading(true)
+        fetchRoute(pins).then(result => {
+            if (!cancelled) {
+                setRoute(result)
+                setLoading(false)
+            }
+        })
 
-      {/* Mobile panel toggle */}
-      <div className='lg:hidden'>
-        <button
-          onClick={() => setShowPanel(p => !p)}
-          className='flex w-full items-center justify-between rounded-[18px] border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 shadow-sm'
-        >
-          <span>{activeTab === 'pins' ? `${pins.length} Pins` : `${routes.length} Routes`}</span>
-          <ChevronUp className={`h-4 w-4 text-zinc-400 transition ${showPanel ? 'rotate-180' : ''}`} />
-        </button>
-      </div>
+        return () => { cancelled = true }
+    }, [key]) // eslint-disable-line
 
-      <div className='flex flex-col overflow-hidden rounded-[24px] border border-zinc-200 bg-white shadow-sm lg:h-[600px] lg:flex-row'>
-        {/* Sidebar — hidden on mobile unless toggled */}
-        <div className={`flex w-full flex-col border-b border-zinc-200 bg-zinc-50 lg:w-72 lg:border-b-0 lg:border-r ${showPanel ? 'block' : 'hidden lg:flex'}`}>
-          <div className='p-4'>
-            <div className='relative'>
-              <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400' />
-              <input
-                placeholder='Search locations...'
-                className='h-10 w-full rounded-full border border-zinc-200 bg-white pl-9 pr-3 text-sm text-zinc-700'
-              />
+    const walkMins = Math.round(route.distanceM / 1000 * 12)
+    return { route, loading, totalDist: route.distanceM, walkMins, legDistances: route.legDistances, failed: route.failed }
+}
+
+function MapClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number) => void }) {
+    useMapEvents({ click(e) { onMapClick(e.latlng.lat, e.latlng.lng) } })
+    return null
+}
+
+function FitBounds({ pins }: { pins: PinData[] }) {
+    const map = useMap()
+    useEffect(() => {
+        if (pins.length < 2) return
+        map.fitBounds(pins.map(p => [p.lat, p.lng] as [number, number]), { padding: [60, 60] })
+    }, [pins.length]) // eslint-disable-line
+    return null
+}
+
+function fmtDist(m: number) { return m < 1000 ? `${m}m` : `${(m / 1000).toFixed(2)}km` }
+function fmtDistBig(m: number) {
+    if (m < 1000) return { val: `${m}`, unit: 'm' }
+    return { val: (m / 1000).toFixed(2), unit: 'km' }
+}
+
+export default function Maps() {
+    const [pins, setPins] = useState<PinData[]>(defaultPins)
+    const [showRoute, setShowRoute] = useState(true)
+    const [nextId, setNextId] = useState(defaultPins.length + 1)
+    const [editingPin, setEditingPin] = useState<number | null>(null)
+    const [panelOpen, setPanelOpen] = useState(false)
+    const { route, loading, totalDist, walkMins, legDistances, failed } = useRoute(pins)
+
+    const displayPins = pins
+
+    const addPin = useCallback((lat: number, lng: number) => {
+        setPins(prev => [...prev, { id: nextId, lat, lng, name: `Waypoint ${nextId}` }])
+        setNextId(n => n + 1)
+    }, [nextId])
+
+    const removePin = (id: number) => setPins(prev => prev.filter(p => p.id !== id))
+    const updateName = (id: number, name: string) =>
+        setPins(prev => prev.map(p => p.id === id ? { ...p, name } : p))
+
+    const distBig = fmtDistBig(totalDist)
+
+    const StatPill = ({ icon, label, value, unit }: {
+        icon: React.ReactNode; label: string; value: string; unit: string
+    }) => (
+        <div className="flex flex-col items-center gap-0.5 px-4 py-3">
+            <div className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest text-zinc-400 mb-0.5">
+                {icon}{label}
             </div>
-            <div className='mt-4 flex gap-2'>
-              <button
-                className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold ${activeTab === 'pins' ? 'bg-orange-500 text-white' : 'bg-white text-zinc-600'}`}
-                onClick={() => setActiveTab('pins')}
-              >
-                Pins
-              </button>
-              <button
-                className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold ${activeTab === 'routes' ? 'bg-orange-500 text-white' : 'bg-white text-zinc-600'}`}
-                onClick={() => setActiveTab('routes')}
-              >
-                Routes
-              </button>
+            <div className="flex items-baseline gap-0.5">
+                <span className="text-2xl font-black text-zinc-900 leading-none">{value}</span>
+                <span className="text-[11px] font-bold text-zinc-400 mb-0.5">{unit}</span>
             </div>
-          </div>
-
-          <div className='max-h-[250px] flex-1 overflow-y-auto p-4 lg:max-h-none'>
-            {activeTab === 'pins' && (
-              <div className='space-y-3'>
-                <button className='flex w-full items-center justify-center gap-2 rounded-full border border-dashed border-zinc-300 bg-white py-2 text-xs font-semibold text-zinc-600'>
-                  <Plus className='h-4 w-4' />
-                  Add New Pin
-                </button>
-                {pins.map((pin) => (
-                  <button
-                    key={pin.id}
-                    className={`w-full rounded-2xl border p-3 text-left transition ${selectedPin?.id === pin.id ? 'border-orange-500 bg-orange-500/5' : 'border-zinc-200 bg-white'}`}
-                    onClick={() => setSelectedPin(pin)}
-                  >
-                    <div className='flex items-start gap-3'>
-                      <div className={`rounded-lg p-2 ${pinColors[pin.type]} text-white`}>
-                        <MapPin className='h-4 w-4' />
-                      </div>
-                      <div>
-                        <div className='text-sm font-semibold text-zinc-900'>{pin.name}</div>
-                        <div className='text-xs text-zinc-500'>{pin.type}</div>
-                        {pin.description && <div className='text-xs text-zinc-400'>{pin.description}</div>}
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {activeTab === 'routes' && (
-              <div className='space-y-3'>
-                <div className='flex gap-2'>
-                  {(['walking', 'driving', 'transit'] as const).map((mode) => {
-                    const Icon = modeIcons[mode]
-                    return (
-                      <button
-                        key={mode}
-                        className={`flex-1 rounded-full px-2 py-2 text-xs font-semibold ${transportMode === mode ? 'bg-orange-500 text-white' : 'bg-white text-zinc-600'}`}
-                        onClick={() => setTransportMode(mode)}
-                      >
-                        <span className='flex items-center justify-center gap-1'>
-                          <Icon className='h-4 w-4' />
-                          {mode}
-                        </span>
-                      </button>
-                    )
-                  })}
-                </div>
-                <button className='flex w-full items-center justify-center gap-2 rounded-full border border-dashed border-zinc-300 bg-white py-2 text-xs font-semibold text-zinc-600'>
-                  <Plus className='h-4 w-4' />
-                  Create Route
-                </button>
-                {routes.map((route) => {
-                  const ModeIcon = modeIcons[route.mode]
-                  return (
-                    <div key={route.id} className='rounded-2xl border border-zinc-200 bg-white p-3'>
-                      <div className='flex items-center gap-2 text-sm font-semibold text-zinc-900'>
-                        <ModeIcon className='h-4 w-4 text-orange-500' />
-                        {route.mode}
-                      </div>
-                      <div className='mt-2 flex items-center gap-2 text-sm text-zinc-600'>
-                        <span>{route.from}</span>
-                        <Navigation className='h-3 w-3 text-zinc-400' />
-                        <span>{route.to}</span>
-                      </div>
-                      <div className='mt-2 flex items-center gap-3 text-xs text-zinc-500'>
-                        <span className='flex items-center gap-1'>
-                          <Clock className='h-3 w-3' />
-                          {route.duration}
-                        </span>
-                        <span>{route.distance}</span>
-                        {route.cost && (
-                          <span className='flex items-center gap-1'>
-                            <DollarSign className='h-3 w-3' />
-                            {route.cost}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-          </div>
         </div>
+    )
 
-        <div className='relative h-[350px] flex-none bg-zinc-50 sm:h-[450px] lg:h-auto lg:flex-1'>
-          <div className='absolute right-4 top-4 z-10'>
-            <button
-              className={`rounded-full border border-zinc-200 p-2 shadow-sm ${showRoutes ? 'bg-orange-500 text-white' : 'bg-white text-zinc-600'}`}
-              onClick={() => setShowRoutes(!showRoutes)}
-            >
-              <Route className='h-4 w-4' />
-            </button>
-          </div>
+    const PinsList = () => (
+        <div className="space-y-px">
+            {displayPins.length === 0 && (
+                <div className="py-12 flex flex-col items-center gap-2">
+                    <MapPin className="h-8 w-8 text-zinc-300" />
+                    <p className="text-[13px] text-zinc-400 font-medium">Tap the map to add waypoints</p>
+                </div>
+            )}
+            {displayPins.map((pin, i) => (
+                <div key={pin.id}>
+                    <div className="group flex items-center gap-3 rounded-2xl px-3 py-3 hover:bg-zinc-50 transition-colors cursor-pointer">
+                        <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[11px] font-black ${defaultIds.has(pin.id) ? 'bg-[#FC4C02] text-white' : 'bg-zinc-900 text-white'}`}>
+                            {i + 1}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            {editingPin === pin.id ? (
+                                <input
+                                    autoFocus
+                                    value={pin.name}
+                                    onChange={e => updateName(pin.id, e.target.value)}
+                                    onBlur={() => setEditingPin(null)}
+                                    onKeyDown={e => e.key === 'Enter' && setEditingPin(null)}
+                                    className="w-full rounded-lg border border-zinc-200 bg-white px-2 py-1 text-[13px] text-zinc-900 outline-none focus:border-[#FC4C02] focus:ring-1 focus:ring-orange-100"
+                                />
+                            ) : (
+                                <>
+                                    <span
+                                        onClick={() => setEditingPin(pin.id)}
+                                        className="block truncate text-[13px] font-bold text-zinc-900 leading-tight">
+                                        {pin.name}
+                                    </span>
+                                    <span className="text-[10px] text-zinc-400 font-mono">
+                                        {pin.lat.toFixed(4)}, {pin.lng.toFixed(4)}
+                                    </span>
+                                </>
+                            )}
+                        </div>
+                        <button
+                            onClick={() => removePin(pin.id)}
+                            className="shrink-0 h-7 w-7 flex items-center justify-center rounded-full text-zinc-300 hover:text-red-500 hover:bg-red-50 transition opacity-100 lg:opacity-0 lg:group-hover:opacity-100">
+                            <X className="h-3.5 w-3.5" />
+                        </button>
+                    </div>
 
-          <MapContainer center={mapCenter} zoom={10} className='h-full w-full'>
-            <TileLayer
-              attribution='&copy; OpenStreetMap contributors'
-              url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-            />
-            {showRoutes &&
-              routeLines.map((line, index) => (
-                <Polyline key={index} positions={line} pathOptions={{ color: index === 0 ? '#f97316' : '#f59e0b', weight: 3, dashArray: '6 6' }} />
-              ))}
-            {pins.map((pin) => (
-              <Marker
-                key={pin.id}
-                position={[pin.lat, pin.lng]}
-                eventHandlers={{ click: () => setSelectedPin(pin) }}
-              >
-                <Popup>
-                  <div className='text-sm font-semibold text-zinc-900'>{pin.name}</div>
-                  <div className='text-xs text-zinc-500 capitalize'>{pin.type}</div>
-                </Popup>
-              </Marker>
+                    {i < displayPins.length - 1 && (
+                        <div className="ml-7 pl-3 flex items-center gap-2 py-0.5 border-l-2 border-dashed border-zinc-200">
+                            {loading
+                                ? <span className="text-[10px] text-zinc-400 animate-pulse py-1">routing…</span>
+                                : legDistances[i]
+                                    ? <span className={`text-[10px] font-bold tracking-wide py-1 ${failed ? 'text-amber-500' : 'text-[#FC4C02]'}`}>
+                                        {failed
+                                            ? `~${fmtDist(legDistances[i])} (straight line)`
+                                            : fmtDist(legDistances[i])
+                                        }
+                                    </span>
+                                    : null
+                            }
+                        </div>
+                    )}
+                </div>
             ))}
-          </MapContainer>
-
-          {selectedPin && (
-            <div className='absolute bottom-4 left-4 right-4 rounded-2xl border border-zinc-200 bg-white p-4 shadow-lg sm:left-auto sm:w-80'>
-              <div className='flex items-start justify-between'>
-                <div>
-                  <div className='text-sm font-semibold text-zinc-900'>{selectedPin.name}</div>
-                  <div className='mt-1 text-xs text-zinc-500'>{selectedPin.type}</div>
-                </div>
-                <button onClick={() => setSelectedPin(null)} className='text-zinc-400 hover:text-zinc-600'>
-                  <X className='h-4 w-4' />
-                </button>
-              </div>
-              {selectedPin.description && <p className='mt-3 text-sm text-zinc-500'>{selectedPin.description}</p>}
-              <div className='mt-4 flex gap-2'>
-                <button className='flex-1 rounded-full bg-orange-500 px-3 py-2 text-xs font-semibold text-white'>Get Directions</button>
-                <button className='rounded-full border border-zinc-200 px-3 py-2 text-xs text-zinc-600'>Edit</button>
-              </div>
-            </div>
-          )}
         </div>
-      </div>
-    </div>
-  )
+    )
+
+    const StatsBar = () => (
+        <div className="flex items-center justify-center divide-x divide-zinc-100 border-b border-zinc-100 shrink-0">
+            <StatPill icon={<Footprints className="h-3 w-3" />} label="Distance" value={distBig.val} unit={distBig.unit} />
+            <StatPill icon={<Clock className="h-3 w-3" />} label="Est. Time" value={walkMins > 0 ? `${walkMins}` : '--'} unit="min" />
+            <StatPill icon={<Flame className="h-3 w-3" />} label="Stops" value={`${displayPins.length}`} unit="pts" />
+        </div>
+    )
+
+    return (
+        <>
+            <style>{`
+                @keyframes stravapin {
+                    0%, 100% { transform: scale(1); opacity: 0.5; }
+                    50% { transform: scale(1.7); opacity: 0; }
+                }
+                .leaflet-popup-content-wrapper {
+                    background: transparent !important;
+                    box-shadow: none !important;
+                    padding: 0 !important;
+                }
+                .leaflet-popup-content { margin: 0 !important; }
+                .leaflet-popup-tip-container { display: none; }
+            `}</style>
+
+            <div className="relative h-[calc(100vh-64px)] w-full overflow-hidden">
+
+                {/* ════════ DESKTOP SIDEBAR ════════ */}
+                <aside className="hidden lg:flex absolute inset-y-0 left-0 z-[1000] w-[300px] flex-col bg-white border-r border-zinc-100 shadow-sm">
+
+                    {/* Header */}
+                    <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100 shrink-0">
+                        <div className="flex items-center gap-2.5">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#FC4C02]">
+                                <Play className="h-3.5 w-3.5 text-white fill-white" />
+                            </div>
+                            <div>
+                                <h1 className="text-sm font-black text-zinc-900 leading-tight tracking-tight">Route Planner</h1>
+                                <p className="text-[10px] text-zinc-400 leading-tight font-semibold uppercase tracking-wider">Fez Medina Walk</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                            <button
+                                onClick={() => setShowRoute(r => !r)}
+                                className={`text-[10px] font-bold uppercase tracking-widest px-2.5 py-1.5 rounded-full border transition ${showRoute ? 'border-[#FC4C02] text-[#FC4C02] bg-orange-50' : 'border-zinc-200 text-zinc-400'}`}>
+                                Route
+                            </button>
+                            {displayPins.length > 0 && (
+                                <button
+                                    onClick={() => { setPins([]); setNextId(1) }}
+                                    className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1.5 rounded-full border border-zinc-200 text-zinc-400 hover:border-red-400 hover:text-red-500 transition">
+                                    Clear
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Stats */}
+                    {displayPins.length >= 2 && !loading && <StatsBar />}
+                    {loading && (
+                        <div className="flex items-center justify-center gap-2 py-4 border-b border-zinc-100 shrink-0">
+                            <div className="h-1.5 w-1.5 rounded-full bg-[#FC4C02] animate-bounce [animation-delay:0ms]" />
+                            <div className="h-1.5 w-1.5 rounded-full bg-[#FC4C02] animate-bounce [animation-delay:150ms]" />
+                            <div className="h-1.5 w-1.5 rounded-full bg-[#FC4C02] animate-bounce [animation-delay:300ms]" />
+                            <span className="text-[11px] text-zinc-400 font-medium ml-1">Calculating route…</span>
+                        </div>
+                    )}
+
+                    <div className="flex-1 overflow-y-auto px-2 py-2">
+                        <PinsList />
+                    </div>
+
+                    <div className="border-t border-zinc-100 px-5 py-3 shrink-0">
+                        <p className="text-[11px] text-zinc-400 text-center font-medium">Tap map to add waypoints · click name to rename</p>
+                    </div>
+                </aside>
+
+                {/* ════════ MOBILE BOTTOM SHEET ════════ */}
+                <div
+                    className={`lg:hidden absolute bottom-0 left-0 right-0 z-[1000] bg-white rounded-t-3xl border-t border-zinc-100 shadow-[0_-8px_32px_rgba(0,0,0,0.08)] transition-transform duration-300 ease-out ${panelOpen ? 'translate-y-0' : 'translate-y-[calc(100%-72px)]'}`}
+                    style={{ maxHeight: '70vh' }}
+                >
+                    <div
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => setPanelOpen(o => !o)}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setPanelOpen(o => !o) }}
+                        className="w-full pt-3 pb-1 focus:outline-none"
+                    >
+                        <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-zinc-200" />
+                        <div className="px-4 flex items-center gap-3">
+                            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#FC4C02] shrink-0">
+                                <Play className="h-4 w-4 text-white fill-white" />
+                            </div>
+                            <div className="flex-1 text-left">
+                                <p className="text-[13px] font-black text-zinc-900 leading-tight">Fez Medina Walk</p>
+                                {loading
+                                    ? <p className="text-[10px] text-[#FC4C02] animate-pulse font-medium">Calculating route…</p>
+                                    : displayPins.length >= 2
+                                        ? <p className="text-[10px] text-zinc-400 font-semibold">{displayPins.length} stops · {fmtDist(totalDist)} · ~{walkMins} min</p>
+                                        : <p className="text-[10px] text-zinc-400 font-medium">Tap map to add stops</p>
+                                }
+                            </div>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                                {displayPins.length > 0 && (
+                                    <button
+                                        onClick={e => { e.stopPropagation(); setPins([]); setNextId(1) }}
+                                        className="text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-full border border-zinc-200 text-zinc-400">
+                                        Clear
+                                    </button>
+                                )}
+                                <button
+                                    onClick={e => { e.stopPropagation(); setShowRoute(r => !r) }}
+                                    className={`text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-full border transition ${showRoute ? 'border-[#FC4C02] text-[#FC4C02]' : 'border-zinc-200 text-zinc-400'}`}>
+                                    Route
+                                </button>
+                                {panelOpen
+                                    ? <ChevronDown className="h-4 w-4 text-zinc-400" />
+                                    : <ChevronUp className="h-4 w-4 text-zinc-400" />
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    {displayPins.length >= 2 && !loading && (
+                        <div className="mx-4 mt-2 mb-1 rounded-2xl bg-zinc-50 border border-zinc-100 overflow-hidden">
+                            <div className="flex items-center justify-center divide-x divide-zinc-100">
+                                <StatPill icon={<Footprints className="h-3 w-3" />} label="Distance" value={distBig.val} unit={distBig.unit} />
+                                <StatPill icon={<Clock className="h-3 w-3" />} label="Est. Time" value={walkMins > 0 ? `${walkMins}` : '--'} unit="min" />
+                                <StatPill icon={<Flame className="h-3 w-3" />} label="Stops" value={`${displayPins.length}`} unit="pts" />
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="overflow-y-auto pb-8 px-2 mt-1" style={{ maxHeight: 'calc(70vh - 130px)' }}>
+                        <PinsList />
+                    </div>
+                </div>
+
+                {/* ════════ MAP ════════ */}
+                <div className="h-full w-full lg:pl-[300px]">
+                    <MapContainer
+                        center={[34.0615, -4.981] as LatLngExpression}
+                        zoom={16}
+                        className="h-full w-full"
+                        zoomControl={false}
+                    >
+                        <TileLayer
+                            attribution='&copy; <a href="https://carto.com/">CARTO</a>'
+                            url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+                        />
+                        <MapClickHandler onMapClick={addPin} />
+                        <FitBounds pins={displayPins} />
+
+                        {displayPins.map((pin, i) => (
+                            <Marker
+                                key={pin.id}
+                                position={[pin.lat, pin.lng]}
+                                icon={createIcon(i + 1, defaultIds.has(pin.id))}>
+                                <Popup>
+                                    <div style={{
+                                        background: '#fff',
+                                        border: '1px solid #e5e7eb',
+                                        borderRadius: 12,
+                                        padding: '10px 14px',
+                                        minWidth: 140,
+                                        textAlign: 'center',
+                                        boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                                    }}>
+                                        <p style={{ color: '#FC4C02', fontWeight: 900, fontSize: 13, margin: '0 0 2px' }}>
+                                            {i + 1}. {pin.name}
+                                        </p>
+                                        <p style={{ color: '#9ca3af', fontSize: 10, margin: '0 0 8px', fontFamily: 'monospace' }}>
+                                            {pin.lat.toFixed(4)}, {pin.lng.toFixed(4)}
+                                        </p>
+                                        {i < displayPins.length - 1 && legDistances[i] && (
+                                            <p style={{ color: '#FC4C02', fontSize: 10, margin: '0 0 8px', fontWeight: 700 }}>
+                                                🚶 {fmtDist(legDistances[i])} to next
+                                                {failed && ' (approx)'}
+                                            </p>
+                                        )}
+                                        <button
+                                            onClick={() => removePin(pin.id)}
+                                            style={{
+                                                color: '#ef4444',
+                                                fontSize: 11,
+                                                fontWeight: 700,
+                                                background: 'none',
+                                                border: 'none',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: 4,
+                                                margin: '0 auto',
+                                            }}>
+                                            ✕ Remove
+                                        </button>
+                                    </div>
+                                </Popup>
+                            </Marker>
+                        ))}
+
+                        {showRoute && route.points.length > 1 && (
+                            <Fragment>
+                                {/* Outer glow */}
+                                <Polyline
+                                    positions={route.points}
+                                    pathOptions={{ color: '#FC4C02', weight: 14, opacity: 0.08 }}
+                                />
+                                {/* Mid glow */}
+                                <Polyline
+                                    positions={route.points}
+                                    pathOptions={{ color: '#FC4C02', weight: 8, opacity: 0.2 }}
+                                />
+                                {/* Core line — dashed amber if OSRM failed, solid orange if road-snapped */}
+                                <Polyline
+                                    positions={route.points}
+                                    pathOptions={failed
+                                        ? { color: '#f59e0b', weight: 3, opacity: 0.7, dashArray: '6 8' }
+                                        : { color: '#FC4C02', weight: 4, opacity: 1, lineCap: 'round', lineJoin: 'round' }
+                                    }
+                                />
+                            </Fragment>
+                        )}
+                    </MapContainer>
+                </div>
+            </div>
+        </>
+    )
 }

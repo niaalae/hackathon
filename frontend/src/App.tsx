@@ -1,12 +1,11 @@
 import { AdminLayout, UserLayout } from '@/components/layouts'
-import { AuthWrapper, RefreshWrapper, UnauthWrapper } from '@/components/wrappers'
+import { AuthWrapper, RefreshWrapper, UnauthWrapper, AdminWrapper, UserWrapper } from '@/components/wrappers'
 import { Login, Register } from '@/pages/auth/'
 import { AdminAnalytics, AdminDashboard, AdminSettings, AdminTrips, AdminUsers } from '@/pages/admin'
 import Home from '@/pages/Home'
 import Pricing from '@/pages/Pricing'
 import FAQs from '@/pages/FAQs'
 import Maps from '@/pages/Maps'
-import Dashboard from '@/pages/Dashboard'
 import { useGSAP } from '@gsap/react'
 import { Flip } from 'gsap/all'
 import gsap from 'gsap'
@@ -17,6 +16,8 @@ import UserTrips from './pages/user/Trips'
 import UserGroups from './pages/user/Groups'
 import UserAI from './pages/user/AI'
 import UserMatch from './pages/user/Match'
+import NotFound from '@/pages/NotFound'
+import { useLocation } from 'react-router-dom'
 
 // Planning
 import TripPlanner from '@/pages/planning/TripPlanner'
@@ -33,14 +34,16 @@ import RooftopParties from '@/pages/summer-parties/RooftopParties'
 
 gsap.registerPlugin(useGSAP, Flip)
 
-function App() {
+function AppContent() {
+  const { pathname } = useLocation()
+  const isDashboard = pathname.startsWith('/user') || pathname.startsWith('/admin')
+
   return (
-    <BrowserRouter>
+    <>
       <Routes>
         <Route index element={<Home />} />
         <Route path='pricing' element={<Pricing />} />
         <Route path='faqs' element={<FAQs />} />
-        <Route path='dashboard' element={<Dashboard />} />
         <Route path='maps' element={<Maps />} />
 
         {/* Planning */}
@@ -53,31 +56,31 @@ function App() {
         <Route path='summer-parties/festival-guide' element={<FestivalGuide />} />
         <Route path='summer-parties/rooftop-parties' element={<RooftopParties />} />
 
-        <Route path='*' element={<>404</>} />
+        <Route path='*' element={<NotFound />} />
 
         <Route element={<RefreshWrapper />}>
           <Route element={<AuthWrapper />}>
-            {/* <Route element={<AdminWrapper />}> */}
-            <Route path='admin' element={<AdminLayout />}>
-              <Route index element={<AdminDashboard />} />
-              <Route path='dashboard' element={<AdminDashboard />} />
-              <Route path='users' element={<AdminUsers />} />
-              <Route path='trips' element={<AdminTrips />} />
-              <Route path='analytics' element={<AdminAnalytics />} />
-              <Route path='settings' element={<AdminSettings />} />
+            <Route element={<AdminWrapper />}>
+              <Route path='admin' element={<AdminLayout />}>
+                <Route index element={<AdminDashboard />} />
+                <Route path='dashboard' element={<AdminDashboard />} />
+                <Route path='users' element={<AdminUsers />} />
+                <Route path='trips' element={<AdminTrips />} />
+                <Route path='analytics' element={<AdminAnalytics />} />
+                <Route path='settings' element={<AdminSettings />} />
+              </Route>
             </Route>
-            {/* </Route> */}
-            {/* <Route element={<UserWrapper />}> */}
-            <Route path='user' element={<UserLayout />}>
-              <Route index element={<UserDashboard />} />
-              <Route path='dashboard' element={<UserDashboard />} />
-              <Route path='maps' element={<UserMaps />} />
-              <Route path='match' element={<UserMatch />} />
-              <Route path='trips' element={<UserTrips />} />
-              <Route path='groups' element={<UserGroups />} />
-              <Route path='ai' element={<UserAI />} />
+            <Route element={<UserWrapper />}>
+              <Route path='user' element={<UserLayout />}>
+                <Route index element={<UserDashboard />} />
+                <Route path='dashboard' element={<UserDashboard />} />
+                <Route path='maps' element={<UserMaps />} />
+                <Route path='match' element={<UserMatch />} />
+                <Route path='trips' element={<UserTrips />} />
+                <Route path='groups' element={<UserGroups />} />
+                <Route path='ai' element={<UserAI />} />
+              </Route>
             </Route>
-            {/* </Route> */}
           </Route>
 
           <Route element={<UnauthWrapper />}>
@@ -86,7 +89,15 @@ function App() {
           </Route>
         </Route>
       </Routes>
-      <ChatBot />
+      {!isDashboard && <ChatBot />}
+    </>
+  )
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
     </BrowserRouter>
   )
 }

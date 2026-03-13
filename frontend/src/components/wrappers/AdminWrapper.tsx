@@ -8,9 +8,11 @@ export default function AdminWrapper() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    !user?.admin && navigate('/')
+    if (!user || user.role !== 'ADMIN') {
+      navigate('/')
+    }
     setReady(true)
-  }, [])
+  }, [user, navigate])
 
   return ready && <Outlet />
 }

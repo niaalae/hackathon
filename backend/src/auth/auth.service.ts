@@ -13,7 +13,7 @@ export class AuthService {
   constructor(
     private prismaService: PrismaService,
     private readonly jwtService: JwtService
-  ) {}
+  ) { }
 
   async register(data: RegisterDto) {
     try {
@@ -50,7 +50,7 @@ export class AuthService {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      path: '/refresh',
+      path: '/api/refresh',
       maxAge: 30 * 24 * 60 * 60 * 1000
     })
 
@@ -96,7 +96,7 @@ export class AuthService {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      path: '/refresh'
+      path: '/api/refresh'
     })
   }
 }
