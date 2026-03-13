@@ -2,6 +2,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { Loader2 } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import axios from 'axios'
 import Navbar from '@/components/Navbar'
 
 interface LoginData {
@@ -40,8 +41,20 @@ export default function Login() {
       setLoading(true)
       await login(loginData)
       navigate('/admin/users')
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login failed:', error)
+      if (axios.isAxiosError(error) && error.response?.data) {
+        const msg = error.response.data.message || error.response.data
+        if (msg?.email) {
+          setErrors(prev => ({ ...prev, email: msg.email === 'email_not_found' ? 'Email not found.' : msg.email }))
+        } else if (msg?.password) {
+          setErrors(prev => ({ ...prev, password: msg.password === 'wrong_password' ? 'Incorrect password.' : msg.password }))
+        } else {
+          setErrors(prev => ({ ...prev, email: 'An error occurred during login. Please try again.' }))
+        }
+      } else {
+        setErrors(prev => ({ ...prev, email: 'Network error. Please try again.' }))
+      }
     } finally {
       setLoading(false)
     }
@@ -73,7 +86,7 @@ export default function Login() {
             <label className="font-medium text-gray-900">Email</label>
             <input
               placeholder="Please enter your email"
-              className={`mt-2 rounded-md ring text-gray-900 focus:ring-2 outline-none px-3 py-3 w-full bg-white ${errors.email ? 'ring-red-500 focus:ring-red-600' : 'ring-gray-200 focus:ring-orange-500'}`}
+              className={`mt-2 rounded-md ring text-base text-gray-900 focus:ring-2 outline-none px-3 py-3 w-full bg-white ${errors.email ? 'ring-red-500 focus:ring-red-600' : 'ring-gray-200 focus:ring-orange-500'}`}
               type="email"
               name="email"
               value={loginData.email}
@@ -88,7 +101,7 @@ export default function Login() {
             <label className="font-medium text-gray-900">Password</label>
             <input
               placeholder="Please enter your password"
-              className={`mt-2 rounded-md ring text-gray-900 focus:ring-2 outline-none px-3 py-3 w-full bg-white ${errors.password ? 'ring-red-500 focus:ring-red-600' : 'ring-gray-200 focus:ring-orange-500'}`}
+              className={`mt-2 rounded-md ring text-base text-gray-900 focus:ring-2 outline-none px-3 py-3 w-full bg-white ${errors.password ? 'ring-red-500 focus:ring-red-600' : 'ring-gray-200 focus:ring-orange-500'}`}
               type="password"
               name="password"
               value={loginData.password}
