@@ -6,11 +6,11 @@ import { TopBar, Sidebar, BottomNav, MobileDrawer } from './user'
 
 export default function UserLayout() {
   const { i18n } = useTranslation()
-  const { isMobile, isTablet, isDesktop } = useWindowSize()
+  const { isMobile, isDesktop } = useWindowSize()
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const location = useLocation()
-  
+
   const isRtl = i18n.language === 'ar'
 
   return (
@@ -30,13 +30,12 @@ export default function UserLayout() {
 
       {/* Main Layout Area */}
       <div
-        className={`flex flex-col transition-all duration-300 ease-in-out ${
-          isDesktop
+        className={`flex flex-col transition-all duration-300 ease-in-out ${isDesktop
             ? isCollapsed
               ? 'pl-[72px]'
               : 'pl-[240px]'
             : ''
-        } ${isMobile ? 'pb-[72px]' : ''}`}
+          } ${isMobile ? 'pb-[72px]' : ''}`}
       >
         <TopBar onMenuClick={() => setIsDrawerOpen(true)} />
 

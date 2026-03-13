@@ -11,6 +11,7 @@ export default function AdminWrapper() {
     if (!user || user.role !== 'ADMIN') {
       navigate('/')
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setReady(true)
   }, [user, navigate])
 

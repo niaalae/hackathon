@@ -27,8 +27,8 @@ function Navbar({ openSidebar }: { openSidebar: () => void }) {
 	const ulRef = useRef<HTMLUListElement>(null)
 
 	useGSAP(() => {
-		navRef.current && gsap.from(navRef.current?.children, { y: -50, opacity: 0, ease: 'power1.out', stagger: 0.2, duration: 0.5, delay: 0.2 })
-		ulRef.current && gsap.from(ulRef.current?.children, { y: -50, opacity: 0, ease: 'power1.out', stagger: 0.07, duration: 0.5, delay: 0.2 })
+		if (navRef.current) gsap.from(navRef.current.children, { y: -50, opacity: 0, ease: 'power1.out', stagger: 0.2, duration: 0.5, delay: 0.2 })
+		if (ulRef.current) gsap.from(ulRef.current.children, { y: -50, opacity: 0, ease: 'power1.out', stagger: 0.07, duration: 0.5, delay: 0.2 })
 	})
 
 	return (
