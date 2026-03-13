@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import type { LucideIcon } from 'lucide-react'
 import {
   ArrowRight,
   CalendarDays,
@@ -16,6 +17,7 @@ import {
   Wallet,
   Camera,
   RefreshCcw,
+  X,
 } from 'lucide-react'
 
 type TripStopType = 'hotel' | 'cafe' | 'activity' | 'restaurant'
@@ -57,6 +59,13 @@ type HeroPromptContext = {
   city?: string
   durationDays?: number | null
   budgetDh?: number | null
+}
+
+type PartialSelection = {
+  hotel: boolean
+  cafe: boolean
+  activity: boolean
+  restaurant: boolean
 }
 
 const FEZ_IMAGES = {
@@ -469,9 +478,10 @@ function createFezPlan(days: number, budgetDh: number | null, variant: 'main' | 
         : 'Alternative softer route with simpler pacing and backup options.',
     coverImage: variant === 'main' ? FEZ_IMAGES.cover : FEZ_IMAGES.medina,
     totalEstimate: estimate,
-    tags: variant === 'main'
-      ? ['Medina', 'Culture', 'Food', 'Premium']
-      : ['Backup', 'Relaxed', 'Flexible', 'Calm'],
+    tags:
+      variant === 'main'
+        ? ['Medina', 'Culture', 'Food', 'Premium']
+        : ['Backup', 'Relaxed', 'Flexible', 'Calm'],
     days: selectedDays,
   }
 }
@@ -772,9 +782,10 @@ function createMeknesPlan(days: number, budgetDh: number | null, variant: 'main'
         : 'Alternative relaxed route with simpler pacing.',
     coverImage: variant === 'main' ? MEKNES_IMAGES.cover : MEKNES_IMAGES.medina,
     totalEstimate: estimate,
-    tags: variant === 'main'
-      ? ['Imperial', 'Food', 'Walkable', 'Premium']
-      : ['Backup', 'Relaxed', 'Simple', 'Flexible'],
+    tags:
+      variant === 'main'
+        ? ['Imperial', 'Food', 'Walkable', 'Premium']
+        : ['Backup', 'Relaxed', 'Simple', 'Flexible'],
     days: selectedDays,
   }
 }
@@ -803,19 +814,19 @@ function StatCard({
   title: string
   value: string | number
   change: string
-  icon: any
+  icon: LucideIcon
 }) {
   return (
-    <div className='rounded-[26px] border border-zinc-200/80 bg-white p-5 shadow-[0_10px_30px_rgba(24,24,27,0.04)]'>
+    <div className='rounded-[24px] border border-zinc-200/80 bg-white p-4 shadow-[0_10px_30px_rgba(24,24,27,0.04)] sm:p-5'>
       <div className='flex items-start justify-between gap-4'>
         <div className='min-w-0'>
           <p className='text-sm text-zinc-500'>{title}</p>
-          <p className='mt-3 text-[34px] font-semibold leading-none tracking-[-0.04em] text-zinc-950'>
+          <p className='mt-3 break-words text-[28px] font-semibold leading-none tracking-[-0.04em] text-zinc-950 sm:text-[34px]'>
             {value}
           </p>
           <p className='mt-3 text-sm text-zinc-500'>{change}</p>
         </div>
-        <div className='rounded-2xl bg-orange-500/10 p-3 text-orange-500'>
+        <div className='shrink-0 rounded-2xl bg-orange-500/10 p-3 text-orange-500'>
           <Icon className='h-5 w-5' />
         </div>
       </div>
@@ -835,20 +846,19 @@ function DayChip({
   return (
     <button
       onClick={onClick}
-      className={`min-w-[250px] rounded-[24px] border p-4 text-left transition ${
-        active
-          ? 'border-orange-200 bg-orange-50'
-          : 'border-zinc-200 bg-white hover:border-zinc-300 hover:bg-zinc-50'
-      }`}
+      className={`min-w-[220px] rounded-[22px] border p-4 text-left transition sm:min-w-[250px] ${active
+        ? 'border-orange-200 bg-orange-50'
+        : 'border-zinc-200 bg-white hover:border-zinc-300 hover:bg-zinc-50'
+        }`}
     >
       <div className='flex items-center justify-between gap-3'>
-        <div>
+        <div className='min-w-0'>
           <p className='text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-400'>
             Day {day.day}
           </p>
-          <p className='mt-1 text-sm font-semibold text-zinc-900'>{day.title}</p>
+          <p className='mt-1 truncate text-sm font-semibold text-zinc-900'>{day.title}</p>
         </div>
-        <ChevronRight className='h-4 w-4 text-zinc-400' />
+        <ChevronRight className='h-4 w-4 shrink-0 text-zinc-400' />
       </div>
       <p className='mt-3 line-clamp-2 text-xs leading-6 text-zinc-500'>{day.summary}</p>
     </button>
@@ -858,7 +868,7 @@ function DayChip({
 function StopMiniCard({ stop }: { stop: TripStop }) {
   return (
     <div className='overflow-hidden rounded-[24px] border border-zinc-200 bg-white shadow-[0_8px_24px_rgba(24,24,27,0.04)]'>
-      <div className='relative h-48 overflow-hidden bg-zinc-100'>
+      <div className='relative h-44 overflow-hidden bg-zinc-100 sm:h-48'>
         <img src={stop.image} alt={stop.name} className='h-full w-full object-cover' />
         <div className='absolute left-3 top-3 inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold text-zinc-800 backdrop-blur'>
           {getStopIcon(stop.type)}
@@ -868,14 +878,14 @@ function StopMiniCard({ stop }: { stop: TripStop }) {
 
       <div className='p-4'>
         <div className='flex items-start justify-between gap-3'>
-          <div>
+          <div className='min-w-0'>
             <p className='text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-400'>
               {stop.time}
             </p>
             <h4 className='mt-1 text-base font-semibold text-zinc-950'>{stop.name}</h4>
           </div>
           {stop.price && (
-            <span className='rounded-full bg-zinc-100 px-2.5 py-1 text-[11px] font-medium text-zinc-600'>
+            <span className='shrink-0 rounded-full bg-zinc-100 px-2.5 py-1 text-[11px] font-medium text-zinc-600'>
               {stop.price}
             </span>
           )}
@@ -909,13 +919,65 @@ function StopMiniCard({ stop }: { stop: TripStop }) {
   )
 }
 
+function ModalShell({
+  open,
+  title,
+  subtitle,
+  onClose,
+  children,
+}: {
+  open: boolean
+  title: string
+  subtitle: string
+  onClose: () => void
+  children: React.ReactNode
+}) {
+  if (!open) return null
+
+  return (
+    <div className='fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4 backdrop-blur-[2px]'>
+      <div className='max-h-[90vh] w-full max-w-2xl overflow-hidden rounded-[30px] bg-white shadow-[0_30px_100px_rgba(0,0,0,0.22)]'>
+        <div className='flex items-start justify-between gap-4 border-b border-zinc-100 px-5 py-5 sm:px-6'>
+          <div className='min-w-0'>
+            <h3 className='text-xl font-semibold tracking-[-0.03em] text-zinc-950 sm:text-2xl'>
+              {title}
+            </h3>
+            <p className='mt-2 text-sm leading-6 text-zinc-500'>{subtitle}</p>
+          </div>
+
+          <button
+            onClick={onClose}
+            className='inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-zinc-200 bg-white text-zinc-600 transition hover:bg-zinc-50'
+            aria-label='Close'
+          >
+            <X className='h-4 w-4' />
+          </button>
+        </div>
+
+        <div className='max-h-[calc(90vh-92px)] overflow-y-auto px-5 py-5 sm:px-6'>{children}</div>
+      </div>
+    </div>
+  )
+}
+
 export default function UserDashboard() {
   const navigate = useNavigate()
-  const { t, i18n } = useTranslation()
+  const { i18n } = useTranslation()
 
   const [context, setContext] = useState<HeroPromptContext | null>(null)
   const [roadVariant, setRoadVariant] = useState<'main' | 'backup'>('main')
   const [activeDay, setActiveDay] = useState(1)
+
+  const [isFullModalOpen, setIsFullModalOpen] = useState(false)
+  const [isPartialModalOpen, setIsPartialModalOpen] = useState(false)
+
+  const [partialDay, setPartialDay] = useState(1)
+  const [partialSelection, setPartialSelection] = useState<PartialSelection>({
+    hotel: true,
+    cafe: true,
+    activity: true,
+    restaurant: true,
+  })
 
   const isFrench = i18n.language?.startsWith('fr')
 
@@ -931,15 +993,30 @@ export default function UserDashboard() {
   }, [])
 
   const prompt = context?.prompt || 'Trip to Fez 3 days budget 3500dh'
-
   const plan = useMemo(() => generatePlan(prompt, context, roadVariant), [prompt, context, roadVariant])
 
   useEffect(() => {
-    if (plan.days.length > 0) setActiveDay(plan.days[0].day)
-  }, [plan.title])
+    if (plan.days.length > 0) {
+      setActiveDay(plan.days[0].day)
+      setPartialDay(plan.days[0].day)
+    }
+  }, [plan.title, plan.days])
 
   const selectedDay = plan.days.find((day) => day.day === activeDay) ?? plan.days[0]
+  const partialSelectedDay = plan.days.find((day) => day.day === partialDay) ?? plan.days[0]
+
   const totalStops = plan.days.reduce((acc, day) => acc + day.stops.length + 1, 0)
+
+  const chosenTypes = (Object.entries(partialSelection) as [TripStopType, boolean][])
+    .filter(([, checked]) => checked)
+    .map(([type]) => type)
+
+  const partialStops = partialSelectedDay
+    ? [
+      ...(partialSelection.hotel ? [partialSelectedDay.hotel] : []),
+      ...partialSelectedDay.stops.filter((stop) => chosenTypes.includes(stop.type)),
+    ]
+    : []
 
   const copy = {
     dashboard: isFrench ? 'Tableau de bord' : 'Dashboard',
@@ -959,256 +1036,455 @@ export default function UserDashboard() {
     viewDayMap: isFrench ? 'Voir la journée sur map' : 'View day in map',
     roadFlow: isFrench ? 'Flow du voyage' : 'Trip Flow',
     discoverRoad: isFrench ? 'Découvrir le road' : 'Discover the road',
-    daysSuffix: isFrench ? 'jours' : 'days',
-    stopsSuffix: isFrench ? 'stops total' : 'total stops',
     region: 'Fes-Meknes region',
+    confirmFull: isFrench ? 'Confirmer la réservation complète' : 'Confirm Full Booking',
+    confirmPartial: isFrench ? 'Confirmer la réservation partielle' : 'Confirm Partial Booking',
+    chooseDay: isFrench ? 'Choisir le jour' : 'Choose Day',
+    chooseType: isFrench ? 'Choisir les catégories' : 'Choose categories',
+    includedItems: isFrench ? 'Éléments inclus' : 'Included items',
+    noItems: isFrench ? 'Aucun élément sélectionné.' : 'No items selected.',
+    close: isFrench ? 'Fermer' : 'Close',
+  }
+
+  function handleOpenFullModal() {
+    setIsFullModalOpen(true)
+  }
+
+  function handleOpenPartialModal() {
+    setPartialDay(selectedDay?.day ?? 1)
+    setIsPartialModalOpen(true)
+  }
+
+  function handleConfirmFullTrip() {
+    setIsFullModalOpen(false)
+    navigate('/user/booking', {
+      state: {
+        mode: 'full-trip',
+        tripPlan: plan,
+        roadVariant,
+      },
+    })
+  }
+
+  function handleConfirmPartialTrip() {
+    setIsPartialModalOpen(false)
+    navigate('/user/booking', {
+      state: {
+        mode: 'partial-trip',
+        tripPlan: plan,
+        day: partialSelectedDay.day,
+        roadVariant,
+        selectedTypes: chosenTypes,
+        selectedStops: partialStops,
+      },
+    })
+  }
+
+  function togglePartialType(type: keyof PartialSelection) {
+    setPartialSelection((prev) => ({
+      ...prev,
+      [type]: !prev[type],
+    }))
   }
 
   return (
-    <div className='space-y-6'>
-      <div className='flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between'>
-        <div>
-          <h2 className='text-3xl font-semibold tracking-[-0.04em] text-zinc-950 sm:text-4xl'>
-            {copy.dashboard}
-          </h2>
-          <p className='mt-2 max-w-2xl text-sm leading-7 text-zinc-500'>{copy.subtitle}</p>
+    <>
+      <div className='space-y-5 sm:space-y-6'>
+        <div className='flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between'>
+          <div className='min-w-0'>
+            <h2 className='text-3xl font-semibold tracking-[-0.04em] text-zinc-950 sm:text-4xl'>
+              {copy.dashboard}
+            </h2>
+            <p className='mt-2 max-w-2xl text-sm leading-7 text-zinc-500'>{copy.subtitle}</p>
+          </div>
+
+          <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+            <button
+              onClick={handleOpenFullModal}
+              className='inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-zinc-950 px-5 text-sm font-semibold text-white transition hover:bg-zinc-800'
+            >
+              {copy.bookFull}
+              <CheckCircle2 className='h-4 w-4' />
+            </button>
+
+            <button
+              onClick={handleOpenPartialModal}
+              className='inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-zinc-200 bg-white px-5 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50'
+            >
+              {copy.bookPartial}
+              <ArrowRight className='h-4 w-4' />
+            </button>
+          </div>
         </div>
 
-        <div className='flex flex-col gap-3 sm:flex-row'>
-          <button
-            onClick={() =>
-              navigate('/user/booking', {
-                state: { mode: 'full-trip', tripPlan: plan, roadVariant },
-              })
-            }
-            className='inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-zinc-950 px-5 text-sm font-semibold text-white transition hover:bg-zinc-800'
-          >
-            {copy.bookFull}
-            <CheckCircle2 className='h-4 w-4' />
-          </button>
-
-          <button
-            onClick={() =>
-              navigate('/user/booking', {
-                state: { mode: 'partial-trip', tripPlan: plan, day: selectedDay.day, roadVariant },
-              })
-            }
-            className='inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-zinc-200 bg-white px-5 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50'
-          >
-            {copy.bookPartial}
-            <ArrowRight className='h-4 w-4' />
-          </button>
+        <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4'>
+          <StatCard
+            title={copy.tripDays}
+            value={plan.durationDays}
+            change={`${plan.city} ${isFrench ? 'itinéraire' : 'itinerary'}`}
+            icon={CalendarDays}
+          />
+          <StatCard
+            title={copy.totalStopsLabel}
+            value={totalStops}
+            change={isFrench ? 'Hôtels, cafés, activités' : 'Hotels, cafés, activities'}
+            icon={Route}
+          />
+          <StatCard title={copy.tripStyle} value={plan.city} change={copy.region} icon={Compass} />
+          <StatCard
+            title={copy.estimatedBudget}
+            value={plan.totalEstimate}
+            change={isFrench ? 'Basé sur ce plan' : 'Based on this plan'}
+            icon={Wallet}
+          />
         </div>
-      </div>
 
-      <div className='grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4'>
-        <StatCard
-          title={copy.tripDays}
-          value={plan.durationDays}
-          change={`${plan.city} ${isFrench ? 'itinéraire' : 'itinerary'}`}
-          icon={CalendarDays}
-        />
-        <StatCard
-          title={copy.totalStopsLabel}
-          value={totalStops}
-          change={isFrench ? 'Hôtels, cafés, activités' : 'Hotels, cafés, activities'}
-          icon={Route}
-        />
-        <StatCard
-          title={copy.tripStyle}
-          value={plan.city}
-          change={copy.region}
-          icon={Compass}
-        />
-        <StatCard
-          title={copy.estimatedBudget}
-          value={plan.totalEstimate}
-          change={isFrench ? 'Basé sur ce plan' : 'Based on this plan'}
-          icon={Wallet}
-        />
-      </div>
+        <div className='grid grid-cols-1 gap-6 2xl:grid-cols-[380px_minmax(0,1fr)]'>
+          <div className='space-y-6'>
+            <div className='overflow-hidden rounded-[28px] border border-zinc-200 bg-white shadow-[0_14px_40px_rgba(24,24,27,0.05)]'>
+              <div className='relative h-[240px] overflow-hidden sm:h-[280px]'>
+                <img src={plan.coverImage} alt={plan.title} className='h-full w-full object-cover' />
+                <div className='absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent' />
 
-      <div className='grid grid-cols-1 gap-6 xl:grid-cols-[420px_minmax(0,1fr)]'>
-        <div className='space-y-6'>
-          <div className='overflow-hidden rounded-[30px] border border-zinc-200 bg-white shadow-[0_14px_40px_rgba(24,24,27,0.05)]'>
-            <div className='relative h-[280px] overflow-hidden'>
-              <img src={plan.coverImage} alt={plan.title} className='h-full w-full object-cover' />
-              <div className='absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent' />
-              <div className='absolute left-5 right-5 top-5 flex items-center justify-between'>
-                <div className='inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-900 backdrop-blur'>
-                  <Sparkles className='h-3.5 w-3.5 text-orange-500' />
-                  {roadVariant === 'main' ? copy.mainRoad : copy.backupRoad}
+                <div className='absolute left-4 right-4 top-4 flex items-center justify-between sm:left-5 sm:right-5 sm:top-5'>
+                  <div className='inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-900 backdrop-blur'>
+                    <Sparkles className='h-3.5 w-3.5 text-orange-500' />
+                    {roadVariant === 'main' ? copy.mainRoad : copy.backupRoad}
+                  </div>
+                </div>
+
+                <div className='absolute bottom-4 left-4 right-4 sm:bottom-5 sm:left-5 sm:right-5'>
+                  <p className='text-[11px] font-semibold uppercase tracking-[0.22em] text-white/80'>
+                    {copy.discoverRoad}
+                  </p>
+                  <h3 className='mt-2 max-w-md text-2xl font-semibold leading-tight tracking-[-0.04em] text-white sm:text-3xl'>
+                    {plan.title}
+                  </h3>
                 </div>
               </div>
-              <div className='absolute bottom-5 left-5 right-5'>
-                <p className='text-[11px] font-semibold uppercase tracking-[0.22em] text-white/80'>
-                  {copy.discoverRoad}
-                </p>
-                <h3 className='mt-2 max-w-md text-3xl font-semibold leading-tight tracking-[-0.04em] text-white'>
-                  {plan.title}
-                </h3>
+
+              <div className='space-y-5 p-4 sm:p-5'>
+                <p className='text-sm leading-7 text-zinc-600'>{plan.subtitle}</p>
+
+                <div className='flex flex-wrap gap-2'>
+                  {plan.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className='rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs font-medium text-zinc-600'
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+
+                <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+                  <button
+                    onClick={() => setRoadVariant('main')}
+                    className={`inline-flex h-12 items-center justify-center gap-2 rounded-2xl border text-sm font-semibold transition ${roadVariant === 'main'
+                      ? 'border-orange-200 bg-orange-50 text-orange-600'
+                      : 'border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50'
+                      }`}
+                  >
+                    <Route className='h-4 w-4' />
+                    {copy.mainRoad}
+                  </button>
+
+                  <button
+                    onClick={() => setRoadVariant('backup')}
+                    className={`inline-flex h-12 items-center justify-center gap-2 rounded-2xl border text-sm font-semibold transition ${roadVariant === 'backup'
+                      ? 'border-orange-200 bg-orange-50 text-orange-600'
+                      : 'border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50'
+                      }`}
+                  >
+                    <RefreshCcw className='h-4 w-4' />
+                    {copy.backupRoad}
+                  </button>
+                </div>
               </div>
             </div>
 
-            <div className='space-y-5 p-5'>
-              <p className='text-sm leading-7 text-zinc-600'>{plan.subtitle}</p>
+            <div className='rounded-[28px] border border-zinc-200 bg-white p-4 shadow-[0_14px_40px_rgba(24,24,27,0.05)] sm:p-5'>
+              <div className='mb-4 flex items-center justify-between gap-3'>
+                <h3 className='text-lg font-semibold text-zinc-950'>{copy.roadFlow}</h3>
+                <Link to='/user/trips' className='text-sm font-medium text-orange-600 hover:underline'>
+                  {isFrench ? 'Voir tout' : 'View all'}
+                </Link>
+              </div>
 
-              <div className='flex flex-wrap gap-2'>
-                {plan.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className='rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs font-medium text-zinc-600'
-                  >
-                    {tag}
-                  </span>
+              <div className='flex gap-3 overflow-x-auto pb-2'>
+                {plan.days.map((day) => (
+                  <DayChip
+                    key={day.day}
+                    day={day}
+                    active={selectedDay.day === day.day}
+                    onClick={() => setActiveDay(day.day)}
+                  />
                 ))}
               </div>
-
-              <div className='grid grid-cols-2 gap-3'>
-                <button
-                  onClick={() => setRoadVariant('main')}
-                  className={`inline-flex h-12 items-center justify-center gap-2 rounded-2xl border text-sm font-semibold transition ${
-                    roadVariant === 'main'
-                      ? 'border-orange-200 bg-orange-50 text-orange-600'
-                      : 'border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50'
-                  }`}
-                >
-                  <Route className='h-4 w-4' />
-                  {copy.mainRoad}
-                </button>
-
-                <button
-                  onClick={() => setRoadVariant('backup')}
-                  className={`inline-flex h-12 items-center justify-center gap-2 rounded-2xl border text-sm font-semibold transition ${
-                    roadVariant === 'backup'
-                      ? 'border-orange-200 bg-orange-50 text-orange-600'
-                      : 'border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50'
-                  }`}
-                >
-                  <RefreshCcw className='h-4 w-4' />
-                  {copy.backupRoad}
-                </button>
-              </div>
             </div>
           </div>
 
-          <div className='rounded-[30px] border border-zinc-200 bg-white p-5 shadow-[0_14px_40px_rgba(24,24,27,0.05)]'>
-            <div className='mb-4 flex items-center justify-between'>
-              <h3 className='text-lg font-semibold text-zinc-950'>{copy.roadFlow}</h3>
-              <Link to='/user/trips' className='text-sm font-medium text-orange-600 hover:underline'>
-                {isFrench ? 'Voir tout' : 'View all'}
-              </Link>
-            </div>
-
-            <div className='scrollbar-thin flex gap-3 overflow-x-auto pb-2'>
-              {plan.days.map((day) => (
-                <DayChip
-                  key={day.day}
-                  day={day}
-                  active={selectedDay.day === day.day}
-                  onClick={() => setActiveDay(day.day)}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className='space-y-6'>
-          <div className='rounded-[30px] border border-zinc-200 bg-white p-6 shadow-[0_14px_40px_rgba(24,24,27,0.05)]'>
-            <div className='flex flex-col gap-4 border-b border-zinc-100 pb-6 lg:flex-row lg:items-end lg:justify-between'>
-              <div>
-                <p className='text-[11px] font-semibold uppercase tracking-[0.22em] text-orange-500'>
-                  Day {selectedDay.day}
-                </p>
-                <h3 className='mt-2 text-3xl font-semibold tracking-[-0.04em] text-zinc-950'>
-                  {selectedDay.title}
-                </h3>
-                <p className='mt-3 max-w-2xl text-sm leading-7 text-zinc-600'>
-                  {selectedDay.summary}
-                </p>
-              </div>
-
-              <a
-                href={selectedDay.hotel.mapUrl}
-                target='_blank'
-                rel='noreferrer'
-                className='inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-zinc-200 bg-white px-5 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50'
-              >
-                {copy.viewDayMap}
-                <MapPin className='h-4 w-4' />
-              </a>
-            </div>
-
-            <div className='mt-6 rounded-[28px] border border-zinc-200 bg-zinc-50/80 p-4 sm:p-5'>
-              <div className='mb-4 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-400'>
-                <Hotel className='h-4 w-4 text-orange-500' />
-                {copy.stayAnchor}
-              </div>
-
-              <div className='grid gap-5 lg:grid-cols-[240px_minmax(0,1fr)]'>
-                <div className='overflow-hidden rounded-[24px] bg-zinc-100'>
-                  <img
-                    src={selectedDay.hotel.image}
-                    alt={selectedDay.hotel.name}
-                    className='h-full min-h-[220px] w-full object-cover'
-                  />
+          <div className='space-y-6'>
+            <div className='rounded-[28px] border border-zinc-200 bg-white p-4 shadow-[0_14px_40px_rgba(24,24,27,0.05)] sm:p-6'>
+              <div className='flex flex-col gap-4 border-b border-zinc-100 pb-6 lg:flex-row lg:items-end lg:justify-between'>
+                <div className='min-w-0'>
+                  <p className='text-[11px] font-semibold uppercase tracking-[0.22em] text-orange-500'>
+                    Day {selectedDay.day}
+                  </p>
+                  <h3 className='mt-2 text-2xl font-semibold tracking-[-0.04em] text-zinc-950 sm:text-3xl'>
+                    {selectedDay.title}
+                  </h3>
+                  <p className='mt-3 max-w-2xl text-sm leading-7 text-zinc-600'>
+                    {selectedDay.summary}
+                  </p>
                 </div>
 
-                <div className='flex flex-col justify-between'>
-                  <div>
-                    <h4 className='text-2xl font-semibold tracking-[-0.03em] text-zinc-950'>
-                      {selectedDay.hotel.name}
-                    </h4>
-                    <p className='mt-3 text-sm leading-7 text-zinc-600'>
-                      {selectedDay.hotel.description}
-                    </p>
-                    {selectedDay.hotel.price && (
-                      <p className='mt-4 text-sm font-semibold text-orange-600'>
-                        {selectedDay.hotel.price}
+                <a
+                  href={selectedDay.hotel.mapUrl}
+                  target='_blank'
+                  rel='noreferrer'
+                  className='inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-zinc-200 bg-white px-5 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50'
+                >
+                  {copy.viewDayMap}
+                  <MapPin className='h-4 w-4' />
+                </a>
+              </div>
+
+              <div className='mt-6 rounded-[24px] border border-zinc-200 bg-zinc-50/80 p-4 sm:p-5'>
+                <div className='mb-4 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-400'>
+                  <Hotel className='h-4 w-4 text-orange-500' />
+                  {copy.stayAnchor}
+                </div>
+
+                <div className='grid gap-5 xl:grid-cols-[220px_minmax(0,1fr)]'>
+                  <div className='overflow-hidden rounded-[24px] bg-zinc-100'>
+                    <img
+                      src={selectedDay.hotel.image}
+                      alt={selectedDay.hotel.name}
+                      className='h-full min-h-[220px] w-full object-cover'
+                    />
+                  </div>
+
+                  <div className='flex flex-col justify-between'>
+                    <div>
+                      <h4 className='text-xl font-semibold tracking-[-0.03em] text-zinc-950 sm:text-2xl'>
+                        {selectedDay.hotel.name}
+                      </h4>
+                      <p className='mt-3 text-sm leading-7 text-zinc-600'>
+                        {selectedDay.hotel.description}
                       </p>
-                    )}
-                  </div>
+                      {selectedDay.hotel.price && (
+                        <p className='mt-4 text-sm font-semibold text-orange-600'>
+                          {selectedDay.hotel.price}
+                        </p>
+                      )}
+                    </div>
 
-                  <div className='mt-5 flex flex-col gap-2 sm:flex-row'>
-                    <a
-                      href={selectedDay.hotel.image}
-                      target='_blank'
-                      rel='noreferrer'
-                      className='inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100'
-                    >
-                      {isFrench ? 'Voir le stop' : 'See the stop'}
-                      <ArrowRight className='h-4 w-4' />
-                    </a>
+                    <div className='mt-5 flex flex-col gap-2 sm:flex-row'>
+                      <a
+                        href={selectedDay.hotel.image}
+                        target='_blank'
+                        rel='noreferrer'
+                        className='inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100'
+                      >
+                        {isFrench ? 'Voir le stop' : 'See the stop'}
+                        <ArrowRight className='h-4 w-4' />
+                      </a>
 
-                    <a
-                      href={selectedDay.hotel.mapUrl}
-                      target='_blank'
-                      rel='noreferrer'
-                      className='inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-zinc-950 px-4 text-sm font-semibold text-white transition hover:bg-zinc-800'
-                    >
-                      {isFrench ? 'Voir sur map' : 'View in map'}
-                      <MapPin className='h-4 w-4' />
-                    </a>
+                      <a
+                        href={selectedDay.hotel.mapUrl}
+                        target='_blank'
+                        rel='noreferrer'
+                        className='inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-zinc-950 px-4 text-sm font-semibold text-white transition hover:bg-zinc-800'
+                      >
+                        {isFrench ? 'Voir sur map' : 'View in map'}
+                        <MapPin className='h-4 w-4' />
+                      </a>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <div className='rounded-[30px] border border-zinc-200 bg-white p-6 shadow-[0_14px_40px_rgba(24,24,27,0.05)]'>
-            <div className='mb-5 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-400'>
-              <CalendarDays className='h-4 w-4 text-orange-500' />
-              {copy.routeOfDay}
-            </div>
+            <div className='rounded-[28px] border border-zinc-200 bg-white p-4 shadow-[0_14px_40px_rgba(24,24,27,0.05)] sm:p-6'>
+              <div className='mb-5 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-400'>
+                <CalendarDays className='h-4 w-4 text-orange-500' />
+                {copy.routeOfDay}
+              </div>
 
-            <div className='grid grid-cols-1 gap-5 xl:grid-cols-2'>
-              {selectedDay.stops.map((stop) => (
-                <StopMiniCard key={stop.id} stop={stop} />
-              ))}
+              <div className='grid grid-cols-1 gap-5 xl:grid-cols-2'>
+                {selectedDay.stops.map((stop) => (
+                  <StopMiniCard key={stop.id} stop={stop} />
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+
+      <ModalShell
+        open={isFullModalOpen}
+        onClose={() => setIsFullModalOpen(false)}
+        title={copy.bookFull}
+        subtitle={
+          isFrench
+            ? 'Ce popup blanc confirme la réservation de tout le voyage.'
+            : 'This white popup confirms booking the whole trip.'
+        }
+      >
+        <div className='space-y-5'>
+          <div className='rounded-[24px] border border-zinc-200 bg-zinc-50 p-4 sm:p-5'>
+            <p className='text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-400'>
+              {plan.city}
+            </p>
+            <h4 className='mt-2 text-xl font-semibold text-zinc-950'>{plan.title}</h4>
+            <p className='mt-2 text-sm leading-6 text-zinc-600'>{plan.subtitle}</p>
+
+            <div className='mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3'>
+              <div className='rounded-2xl border border-zinc-200 bg-white p-4'>
+                <p className='text-xs text-zinc-500'>{copy.tripDays}</p>
+                <p className='mt-2 text-lg font-semibold text-zinc-950'>{plan.durationDays}</p>
+              </div>
+              <div className='rounded-2xl border border-zinc-200 bg-white p-4'>
+                <p className='text-xs text-zinc-500'>{copy.totalStopsLabel}</p>
+                <p className='mt-2 text-lg font-semibold text-zinc-950'>{totalStops}</p>
+              </div>
+              <div className='rounded-2xl border border-zinc-200 bg-white p-4'>
+                <p className='text-xs text-zinc-500'>{copy.estimatedBudget}</p>
+                <p className='mt-2 text-lg font-semibold text-zinc-950'>{plan.totalEstimate}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className='flex flex-col-reverse gap-3 sm:flex-row sm:justify-end'>
+            <button
+              onClick={() => setIsFullModalOpen(false)}
+              className='inline-flex h-12 items-center justify-center rounded-2xl border border-zinc-200 bg-white px-5 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50'
+            >
+              {copy.close}
+            </button>
+            <button
+              onClick={handleConfirmFullTrip}
+              className='inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-zinc-950 px-5 text-sm font-semibold text-white transition hover:bg-zinc-800'
+            >
+              {copy.confirmFull}
+              <CheckCircle2 className='h-4 w-4' />
+            </button>
+          </div>
+        </div>
+      </ModalShell>
+
+      <ModalShell
+        open={isPartialModalOpen}
+        onClose={() => setIsPartialModalOpen(false)}
+        title={copy.bookPartial}
+        subtitle={
+          isFrench
+            ? 'Choisissez un jour et les éléments à réserver.'
+            : 'Choose a day and the trip items you want to book.'
+        }
+      >
+        <div className='space-y-6'>
+          <div>
+            <p className='mb-3 text-sm font-semibold text-zinc-900'>{copy.chooseDay}</p>
+            <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+              {plan.days.map((day) => (
+                <button
+                  key={day.day}
+                  onClick={() => setPartialDay(day.day)}
+                  className={`rounded-[20px] border p-4 text-left transition ${partialDay === day.day
+                    ? 'border-orange-200 bg-orange-50'
+                    : 'border-zinc-200 bg-white hover:bg-zinc-50'
+                    }`}
+                >
+                  <p className='text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-400'>
+                    Day {day.day}
+                  </p>
+                  <p className='mt-2 text-sm font-semibold text-zinc-950'>{day.title}</p>
+                  <p className='mt-2 text-xs leading-6 text-zinc-500'>{day.summary}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className='mb-3 text-sm font-semibold text-zinc-900'>{copy.chooseType}</p>
+            <div className='grid grid-cols-2 gap-3 sm:grid-cols-4'>
+              {[
+                { key: 'hotel', label: 'Hotel', icon: Hotel },
+                { key: 'cafe', label: 'Cafe', icon: Coffee },
+                { key: 'activity', label: 'Activity', icon: Camera },
+                { key: 'restaurant', label: 'Restaurant', icon: Utensils },
+              ].map((item) => {
+                const Icon = item.icon
+                const active = partialSelection[item.key as keyof PartialSelection]
+
+                return (
+                  <button
+                    key={item.key}
+                    onClick={() => togglePartialType(item.key as keyof PartialSelection)}
+                    className={`flex h-20 flex-col items-center justify-center gap-2 rounded-[22px] border text-sm font-semibold transition ${active
+                      ? 'border-orange-200 bg-orange-50 text-orange-600'
+                      : 'border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50'
+                      }`}
+                  >
+                    <Icon className='h-5 w-5' />
+                    {item.label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          <div className='rounded-[24px] border border-zinc-200 bg-zinc-50 p-4 sm:p-5'>
+            <p className='mb-3 text-sm font-semibold text-zinc-900'>{copy.includedItems}</p>
+
+            {partialStops.length === 0 ? (
+              <p className='text-sm text-zinc-500'>{copy.noItems}</p>
+            ) : (
+              <div className='space-y-3'>
+                {partialStops.map((item) => (
+                  <div
+                    key={item.id}
+                    className='flex items-start justify-between gap-3 rounded-2xl border border-zinc-200 bg-white p-3'
+                  >
+                    <div className='min-w-0'>
+                      <div className='flex items-center gap-2 text-zinc-900'>
+                        {getStopIcon(item.type)}
+                        <span className='font-semibold'>{item.name}</span>
+                      </div>
+                      <p className='mt-1 text-sm text-zinc-500'>
+                        Day {partialSelectedDay.day} • {item.time}
+                      </p>
+                    </div>
+
+                    <span className='shrink-0 rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium capitalize text-zinc-600'>
+                      {item.type}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className='flex flex-col-reverse gap-3 sm:flex-row sm:justify-end'>
+            <button
+              onClick={() => setIsPartialModalOpen(false)}
+              className='inline-flex h-12 items-center justify-center rounded-2xl border border-zinc-200 bg-white px-5 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50'
+            >
+              {copy.close}
+            </button>
+            <button
+              onClick={handleConfirmPartialTrip}
+              disabled={partialStops.length === 0}
+              className='inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-zinc-950 px-5 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50'
+            >
+              {copy.confirmPartial}
+              <ArrowRight className='h-4 w-4' />
+            </button>
+          </div>
+        </div>
+      </ModalShell>
+    </>
   )
 }
