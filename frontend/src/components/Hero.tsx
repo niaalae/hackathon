@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { ArrowRight } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useAuthStore } from '@/stores/authStore'
 
 const travelImages = [
   { id: 1, src: '/assets/places/m3.jpeg', alt: 'Morocco place 1' },
@@ -223,9 +224,16 @@ export default function Hero() {
   const navigate = useNavigate()
   const { t } = useTranslation()
 
+  const { user } = useAuthStore()
+
   const handleSubmit = () => {
     const trimmed = query.trim()
     if (!trimmed || isLoading) return
+
+    if (!user) {
+      navigate('/register')
+      return
+    }
 
     setIsLoading(true)
     sessionStorage.setItem('heroPrompt', trimmed)
@@ -285,7 +293,7 @@ export default function Hero() {
                     onKeyDown={(event) => {
                       if (event.key === 'Enter') handleSubmit()
                     }}
-                    className="h-[54px] w-full rounded-2xl border border-zinc-200 bg-white px-5 text-[15px] text-zinc-800 shadow-sm outline-none transition-all duration-200 focus:border-orange-300 focus:shadow-[0_0_0_3px_rgba(249,115,22,0.08)]"
+                    className="h-[54px] w-full rounded-2xl border border-zinc-200 bg-white px-5 text-base text-zinc-800 shadow-sm outline-none transition-all duration-200 focus:border-orange-300 focus:shadow-[0_0_0_3px_rgba(249,115,22,0.08)]"
                   />
                   {!query && (
                     <div className="pointer-events-none absolute inset-0 flex items-center px-5">
@@ -315,7 +323,7 @@ export default function Hero() {
                     onKeyDown={(event) => {
                       if (event.key === 'Enter') handleSubmit()
                     }}
-                    className="h-[52px] w-full bg-transparent pl-5 text-[15px] text-zinc-800 outline-none"
+                    className="h-[52px] w-full bg-transparent pl-5 text-base sm:text-[15px] text-zinc-800 outline-none"
                   />
                   {!query && (
                     <div className="pointer-events-none absolute inset-0 flex items-center pl-5">

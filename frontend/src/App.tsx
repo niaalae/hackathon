@@ -16,6 +16,7 @@ import UserTrips from './pages/user/Trips'
 import UserGroups from './pages/user/Groups'
 import UserAI from './pages/user/AI'
 import UserMatch from './pages/user/Match'
+import { useLocation } from 'react-router-dom'
 
 // Planning
 import TripPlanner from '@/pages/planning/TripPlanner'
@@ -32,9 +33,12 @@ import RooftopParties from '@/pages/summer-parties/RooftopParties'
 
 gsap.registerPlugin(useGSAP, Flip)
 
-function App() {
+function AppContent() {
+  const { pathname } = useLocation()
+  const isDashboard = pathname.startsWith('/user') || pathname.startsWith('/admin')
+
   return (
-    <BrowserRouter>
+    <>
       <Routes>
         <Route index element={<Home />} />
         <Route path='pricing' element={<Pricing />} />
@@ -84,7 +88,15 @@ function App() {
           </Route>
         </Route>
       </Routes>
-      <ChatBot />
+      {!isDashboard && <ChatBot />}
+    </>
+  )
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
     </BrowserRouter>
   )
 }

@@ -1,0 +1,9 @@
+{
+  "name": "hackathon",
+  "private": true,
+  "workspaces": ["frontend", "backend"],
+  "scripts": {
+    "build": "npm --prefix frontend run build && npm --prefix backend run build",
+    "start": "npm --prefix backend run start:prod"
+  }
+}

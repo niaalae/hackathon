@@ -91,7 +91,7 @@ export default function Footer() {
                             <input
                                 type="email"
                                 placeholder={t('footer.newsletterPlaceholder')}
-                                className="w-full pl-4 pr-12 py-3 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:bg-white focus:border-orange-500 transition-all"
+                                className="w-full pl-4 pr-12 py-3 bg-gray-50 border border-gray-100 rounded-2xl text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:bg-white focus:border-orange-500 transition-all"
                             />
                             <button
                                 type="submit"

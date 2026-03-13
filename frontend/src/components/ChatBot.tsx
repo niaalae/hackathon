@@ -77,24 +77,24 @@ export default function ChatBot() {
             {open && (
                 <div
                     dir={isRtl ? 'rtl' : 'ltr'}
-                    className="fixed bottom-20 right-5 z-[9999] flex h-[min(460px,calc(100vh-120px))] w-[min(360px,calc(100vw-40px))] flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-[0_16px_48px_rgba(0,0,0,0.12)]"
+                    className="fixed bottom-0 right-0 sm:bottom-20 sm:right-5 z-[9999] flex h-[100dvh] sm:h-[min(460px,calc(100vh-120px))] w-full sm:w-[360px] flex-col overflow-hidden sm:rounded-2xl border-t sm:border border-zinc-200 bg-white shadow-[0_16px_48px_rgba(0,0,0,0.12)]"
                 >
 
                     {/* Header */}
-                    <div className="flex items-center gap-3 border-b border-zinc-100 px-4 py-3">
+                    <div className="flex shrink-0 items-center gap-3 border-b border-zinc-100 px-4 py-3">
                         <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-orange-500">
                             <MessageSquare className="h-4 w-4 text-white" />
                         </div>
                         <div className="flex-1">
                             <p className="text-sm font-bold text-zinc-900">{t('chatbot.title')}</p>
                         </div>
-                        <button onClick={() => setOpen(false)} className="text-zinc-400 hover:text-zinc-600">
-                            <X className="h-4 w-4" />
+                        <button onClick={() => setOpen(false)} className="p-2 -mr-2 text-zinc-400 hover:text-zinc-600">
+                            <X className="h-5 w-5" />
                         </button>
                     </div>
 
                     {/* Messages */}
-                    <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
+                    <div className="flex-1 min-h-0 space-y-3 overflow-y-auto px-4 py-4">
                         {messages.map(msg => (
                             <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                                 <div
@@ -119,14 +119,14 @@ export default function ChatBot() {
                     </div>
 
                     {/* Input */}
-                    <div className="border-t border-zinc-100 px-3 py-3">
+                    <div className="shrink-0 border-t border-zinc-100 px-3 py-3 bg-white">
                         <div className="flex gap-2">
                             <input
                                 value={input}
                                 onChange={e => setInput(e.target.value)}
                                 onKeyDown={e => { if (e.key === 'Enter') send() }}
                                 placeholder={t('chatbot.placeholder')}
-                                className="h-9 flex-1 rounded-xl border border-zinc-200 bg-zinc-50 px-3 text-sm text-zinc-900 outline-none placeholder:text-zinc-400 focus:border-orange-400 focus:bg-white"
+                                className="h-9 flex-1 rounded-xl border border-zinc-200 bg-zinc-50 px-3 text-base sm:text-sm text-zinc-900 outline-none placeholder:text-zinc-400 focus:border-orange-400 focus:bg-white"
                             />
                             <button
                                 onClick={send}
