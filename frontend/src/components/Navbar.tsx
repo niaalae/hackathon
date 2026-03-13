@@ -141,7 +141,7 @@ export default function Navbar() {
                         <button
                           type="button"
                           className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-[13.5px] font-medium transition-all duration-150 border ${(openDropdown === link.label || isLinkActive(link))
-                            ? 'text-gray-900 bg-gray-50 border-gray-200'
+                            ? 'text-orange-500 border-transparent'
                             : 'text-gray-600 border-transparent hover:text-gray-900 hover:bg-gray-50 hover:border-gray-200'
                             }`}
                         >
@@ -177,7 +177,7 @@ export default function Navbar() {
                       <Link
                         to={link.href}
                         className={`flex items-center px-4 py-2 rounded-full text-[13.5px] font-medium transition-all duration-150 border ${isLinkActive(link)
-                          ? 'text-gray-900 border-gray-200 bg-white shadow-sm'
+                          ? 'text-orange-500 border-transparent'
                           : 'text-gray-600 border-transparent hover:text-gray-900 hover:bg-gray-50 hover:border-gray-200'
                           }`}
                       >
@@ -312,7 +312,7 @@ export default function Navbar() {
                               type="button"
                               onClick={() => toggleDropdown(link.label)}
                               className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-[14px] font-medium transition-colors duration-100 ${isLinkActive(link)
-                                ? 'bg-gray-50 text-gray-900'
+                                ? 'text-orange-500'
                                 : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                                 }`}
                             >
@@ -353,7 +353,7 @@ export default function Navbar() {
                           <Link
                             to={link.href}
                             className={`flex items-center px-4 py-2.5 rounded-xl text-[14px] font-medium transition-colors duration-100 ${isLinkActive(link)
-                              ? 'bg-gray-50 text-gray-900'
+                              ? 'text-orange-500'
                               : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                               }`}
                             onClick={() => setMobileOpen(false)}
