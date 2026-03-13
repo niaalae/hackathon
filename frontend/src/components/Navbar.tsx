@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { ChevronDown, Globe } from 'lucide-react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/stores/authStore'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -19,6 +19,15 @@ export default function Navbar() {
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const { user, logout } = useAuthStore()
+  const location = useLocation()
+  const currentPath = location.pathname
+
+  const isLinkActive = (link: NavLink) => {
+    if (link.dropdown) {
+      return link.items?.some(item => dropdownRoutes[item] === currentPath)
+    }
+    return currentPath === link.href
+  }
 
   const [mobileOpen, setMobileOpen] = useState(false)
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
@@ -57,7 +66,7 @@ export default function Navbar() {
   }
 
   const navLinks: NavLink[] = [
-    { label: t('nav.home'), href: '/', active: true, dropdown: false },
+    { label: t('nav.home'), href: '/', dropdown: false },
     {
       label: t('nav.planning'),
       href: '/planning/trip-planner',
@@ -131,7 +140,7 @@ export default function Navbar() {
                       >
                         <button
                           type="button"
-                          className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-[13.5px] font-medium transition-all duration-150 border ${openDropdown === link.label
+                          className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-[13.5px] font-medium transition-all duration-150 border ${(openDropdown === link.label || isLinkActive(link))
                             ? 'text-gray-900 bg-gray-50 border-gray-200'
                             : 'text-gray-600 border-transparent hover:text-gray-900 hover:bg-gray-50 hover:border-gray-200'
                             }`}
@@ -167,7 +176,7 @@ export default function Navbar() {
                     ) : (
                       <Link
                         to={link.href}
-                        className={`flex items-center px-4 py-2 rounded-full text-[13.5px] font-medium transition-all duration-150 border ${link.active
+                        className={`flex items-center px-4 py-2 rounded-full text-[13.5px] font-medium transition-all duration-150 border ${isLinkActive(link)
                           ? 'text-gray-900 border-gray-200 bg-white shadow-sm'
                           : 'text-gray-600 border-transparent hover:text-gray-900 hover:bg-gray-50 hover:border-gray-200'
                           }`}
@@ -302,7 +311,10 @@ export default function Navbar() {
                             <button
                               type="button"
                               onClick={() => toggleDropdown(link.label)}
-                              className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-[14px] font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-100"
+                              className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-[14px] font-medium transition-colors duration-100 ${isLinkActive(link)
+                                ? 'bg-gray-50 text-gray-900'
+                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                                }`}
                             >
                               {link.label}
                               <ChevronDown
@@ -340,7 +352,7 @@ export default function Navbar() {
                         ) : (
                           <Link
                             to={link.href}
-                            className={`flex items-center px-4 py-2.5 rounded-xl text-[14px] font-medium transition-colors duration-100 ${link.active
+                            className={`flex items-center px-4 py-2.5 rounded-xl text-[14px] font-medium transition-colors duration-100 ${isLinkActive(link)
                               ? 'bg-gray-50 text-gray-900'
                               : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                               }`}
