@@ -12,6 +12,7 @@
     "target": "ES2023",
     "sourceMap": true,
     "outDir": "./dist",
+    "rootDir": "./src", // <-- add this
     "paths": {
       "@/*": [
         "./src/*"
@@ -24,5 +25,8 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false
-  }
+  },
+  "include": [
+    "src/**/*"
+  ] // <-- add this
 }

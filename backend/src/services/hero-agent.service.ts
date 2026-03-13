@@ -7,11 +7,68 @@ type BookingSuggestion = {
   notes?: string;
 };
 
+type FlightOption = {
+  airline: string;
+  from: string;
+  to: string;
+  departure: string;
+  arrival: string;
+  duration: string;
+  stops: number;
+  price: number;
+  isBestValue: boolean;
+};
+
+type HotelOption = {
+  name: string;
+  stars: number;
+  pricePerNight: number;
+  totalPrice: number;
+  location: string;
+  rating: number;
+  amenities: string[];
+  isRecommended: boolean;
+};
+
+type DayPlan = {
+  day: number;
+  theme: string;
+  morning: string[];
+  afternoon: string[];
+  evening: string[];
+  estimatedDailyCost: number;
+};
+
+type BudgetBreakdown = {
+  flights: number;
+  hotels: number;
+  food: number;
+  activities: number;
+  transport: number;
+  misc: number;
+};
+
+type TravelPlan = {
+  from: { city: string; country: string };
+  to: { city: string; country: string };
+  duration: number;
+  totalBudget: number;
+  totalEstimatedCost: number;
+  budgetMatch: number;
+  flights: FlightOption[];
+  hotels: HotelOption[];
+  itinerary: DayPlan[];
+  budgetBreakdown: BudgetBreakdown;
+  tips: string[];
+  packingList: string[];
+};
+
 type HeroAgentResponse = {
   answer: string;
   intent?: 'booking' | 'information' | 'collaboration' | 'guide' | 'new_trip';
   followUpQuestion?: string;
   bookings: BookingSuggestion[];
+  travelPlan?: TravelPlan;
 };
 
 @Injectable()
@@ -74,14 +131,46 @@ export class HeroAgentService {
     }
 
     const systemInstruction = [
-      'You are a travel booking assistant.',
-      'Return only valid JSON with keys: answer (string), intent (string), followUpQuestion (string, optional), bookings (array).',
-      'Intent must be one of: booking, information, collaboration, guide, new_trip.',
-      'If the user wants collaboration but there is no existing trip, set intent to new_trip and ask to create one.',
-      'If the user asks for a guide and none are found, suggest nearby options in followUpQuestion.',
-      'Each booking has: title, type, priceRange (optional), notes (optional).',
-      'Keep answer under 70 words and bookings 3 to 5 items.',
-      'No markdown, no extra keys.',
+      'You are a Morocco travel specialist AI. ONLY plan trips to Moroccan cities',
+      '(Fes, Marrakech, Casablanca, Chefchaouen, Essaouira, Agadir, Rabat, Tangier,',
+      'Merzouga, Ouarzazate, Imlil, Dakhla).',
+      'If the user asks for any destination outside Morocco respond with:',
+      'answer: We currently only support trips to Morocco. Choose a Moroccan city',
+      'and I will build you the perfect plan, intent: information, bookings: [], travelPlan: null.',
+      'For valid Morocco trips extract: origin city+country, destination Moroccan city,',
+      'budget in USD, duration in days.',
+      'Return ONLY valid JSON with exactly these keys:',
+      'answer (2 sentence friendly summary),',
+      'intent (one of: booking/information/collaboration/guide/new_trip),',
+      'followUpQuestion (optional string),',
+      'bookings (3-5 items each with title/type/priceRange/notes),',
+      'travelPlan (full object with all fields below).',
+      'travelPlan must include:',
+      '- from: origin city and country from user prompt',
+      '- to: the Moroccan destination city and country Morocco',
+      '- duration: number of days as integer',
+      '- totalBudget: user budget in USD as integer',
+      '- totalEstimatedCost: realistic total cost in USD as integer',
+      '- budgetMatch: 0-100 score how well plan fits budget',
+      '- flights: array of 2-3 realistic options, airlines must be real',
+      '  (Royal Air Maroc, Ryanair, Air Arabia, Transavia, easyJet),',
+      '  prices realistic in USD, isBestValue true on cheapest',
+      '- hotels: array of 2-3 real riad or hotel options in the destination city,',
+      '  stars 2-5, realistic pricePerNight in USD,',
+      '  totalPrice = pricePerNight * duration,',
+      '  amenities array of 3-5 strings,',
+      '  isRecommended true on best value',
+      '- itinerary: one DayPlan per day, realistic Moroccan activities,',
+      '  morning/afternoon/evening each array of 2-3 activity strings with emoji prefix,',
+      '  estimatedDailyCost in USD realistic',
+      '- budgetBreakdown: flights/hotels/food/activities/transport/misc all in USD,',
+      '  must sum close to totalEstimatedCost',
+      '- tips: exactly 6 Morocco-specific travel tips',
+      '  (culture, safety, currency MAD, dress code, bargaining, transport)',
+      '- packingList: exactly 12 items Morocco-appropriate',
+      '  (weather, modest clothing, medications, etc)',
+      'No markdown. No extra keys. Valid JSON only.',
+      'maxOutputTokens must handle full itinerary.',
     ].join(' ');
 
     try {
@@ -104,7 +193,7 @@ export class HeroAgentService {
           generationConfig: {
             temperature: 0.3,
             topP: 0.9,
-            maxOutputTokens: 640,
+            maxOutputTokens: 2500,
           },
         }),
       });
@@ -144,6 +233,7 @@ export class HeroAgentService {
         intent: parsed.intent,
         followUpQuestion: parsed.followUpQuestion,
         bookings,
+        travelPlan: parsed.travelPlan,
       };
     } catch (error) {
       this.logger.warn(`Gemini API failed: ${String(error)}`);
