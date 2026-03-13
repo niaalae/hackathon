@@ -156,7 +156,7 @@ export default function Hero() {
     sessionStorage.setItem('heroPrompt', trimmed)
 
     setTimeout(() => {
-      navigate(`/dashboard?prompt=${encodeURIComponent(trimmed)}`)
+      navigate(`/user?prompt=${encodeURIComponent(trimmed)}`)
       setIsLoading(false)
     }, 1200)
   }

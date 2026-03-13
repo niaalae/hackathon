@@ -87,20 +87,6 @@ const activityStyle: Record<string, string> = {
   ai: 'bg-orange-500/10 text-orange-600',
 }
 
-const pins = [
-  { id: 1, name: 'Fes Medina', x: 55, y: 35, status: 'upcoming' },
-  { id: 2, name: 'Meknes', x: 35, y: 50, status: 'planning' },
-  { id: 3, name: 'Volubilis', x: 25, y: 30, status: 'planning' },
-  { id: 4, name: 'Ifrane', x: 70, y: 60, status: 'completed' },
-  { id: 5, name: 'Azrou', x: 65, y: 70, status: 'completed' },
-]
-
-const pinStyles: Record<string, string> = {
-  upcoming: 'bg-orange-500',
-  ongoing: 'bg-orange-500',
-  completed: 'bg-zinc-400',
-  planning: 'bg-amber-500',
-}
 
 export default function UserDashboard() {
   return (

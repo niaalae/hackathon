@@ -102,8 +102,9 @@ export class HeroAgentService {
             },
           ],
           generationConfig: {
-            temperature: 0.4,
-            maxOutputTokens: 512,
+            temperature: 0.3,
+            topP: 0.9,
+            maxOutputTokens: 640,
           },
         }),
       });

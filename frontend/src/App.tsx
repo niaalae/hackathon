@@ -6,7 +6,6 @@ import Home from '@/pages/Home'
 import Pricing from '@/pages/Pricing'
 import FAQs from '@/pages/FAQs'
 import Maps from '@/pages/Maps'
-import Dashboard from '@/pages/Dashboard'
 import { useGSAP } from '@gsap/react'
 import { Flip } from 'gsap/all'
 import gsap from 'gsap'
@@ -40,7 +39,6 @@ function App() {
         <Route index element={<Home />} />
         <Route path='pricing' element={<Pricing />} />
         <Route path='faqs' element={<FAQs />} />
-        <Route path='dashboard' element={<Dashboard />} />
         <Route path='maps' element={<Maps />} />
 
         {/* Planning */}
