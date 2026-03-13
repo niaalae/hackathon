@@ -77,8 +77,7 @@ export default function ChatBot() {
                             <MessageSquare className="h-4 w-4 text-white" />
                         </div>
                         <div className="flex-1">
-                            <p className="text-sm font-bold text-zinc-900">Trippple AI</p>
-                            <p className="text-[10px] text-zinc-400">Travel assistant</p>
+                            <p className="text-sm font-bold text-zinc-900">Trippple Assistant</p>
                         </div>
                         <button onClick={() => setOpen(false)} className="text-zinc-400 hover:text-zinc-600">
                             <X className="h-4 w-4" />

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { ChevronDown, Globe } from 'lucide-react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useAuthStore } from '@/stores/authStore'
 import { motion, AnimatePresence } from 'framer-motion'
 
 interface NavLink {
@@ -17,6 +18,7 @@ interface NavLink {
 export default function Navbar() {
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
+  const { user, logout } = useAuthStore()
 
   const [mobileOpen, setMobileOpen] = useState(false)
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
@@ -91,20 +93,18 @@ export default function Navbar() {
 
   return (
     <header
-      className={`fixed z-50 w-full transition-all duration-300 ${
-        scrolled ? 'top-4 px-4 md:px-6' : 'top-0 px-0'
-      }`}
+      className={`fixed z-50 w-full transition-all duration-300 ${scrolled ? 'top-4 px-4 md:px-6' : 'top-0 px-0'
+        }`}
       dir={isRtl ? 'rtl' : 'ltr'}
     >
       <div className={`${scrolled ? 'mx-auto max-w-6xl' : 'w-full'}`}>
         <motion.div
           layout
           transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-          className={`transition-all duration-300 ${
-            scrolled
-              ? 'rounded-2xl border border-gray-200/80 bg-white/90 backdrop-blur-xl shadow-[0_10px_35px_rgba(0,0,0,0.08)]'
-              : 'rounded-none border-b border-gray-100 bg-white'
-          }`}
+          className={`transition-all duration-300 ${scrolled
+            ? 'rounded-2xl border border-gray-200/80 bg-white/90 backdrop-blur-xl shadow-[0_10px_35px_rgba(0,0,0,0.08)]'
+            : 'rounded-none border-b border-gray-100 bg-white'
+            }`}
         >
           <div className={`${scrolled ? 'px-4 md:px-6' : 'max-w-7xl mx-auto px-6'}`}>
             <div className="flex items-center justify-between h-16 gap-8">
@@ -131,29 +131,25 @@ export default function Navbar() {
                       >
                         <button
                           type="button"
-                          className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-[13.5px] font-medium transition-all duration-150 border ${
-                            openDropdown === link.label
-                              ? 'text-gray-900 bg-gray-50 border-gray-200'
-                              : 'text-gray-600 border-transparent hover:text-gray-900 hover:bg-gray-50 hover:border-gray-200'
-                          }`}
+                          className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-[13.5px] font-medium transition-all duration-150 border ${openDropdown === link.label
+                            ? 'text-gray-900 bg-gray-50 border-gray-200'
+                            : 'text-gray-600 border-transparent hover:text-gray-900 hover:bg-gray-50 hover:border-gray-200'
+                            }`}
                         >
                           {link.label}
                           <ChevronDown
                             size={13}
-                            className={`text-gray-400 transition-transform duration-200 ${
-                              openDropdown === link.label ? 'rotate-180' : ''
-                            }`}
+                            className={`text-gray-400 transition-transform duration-200 ${openDropdown === link.label ? 'rotate-180' : ''
+                              }`}
                           />
                         </button>
 
                         <div
-                          className={`absolute top-full ${
-                            isRtl ? 'right-1/2 translate-x-1/2' : 'left-1/2 -translate-x-1/2'
-                          } pt-2 transition-all duration-150 ${
-                            openDropdown === link.label
+                          className={`absolute top-full ${isRtl ? 'right-1/2 translate-x-1/2' : 'left-1/2 -translate-x-1/2'
+                            } pt-2 transition-all duration-150 ${openDropdown === link.label
                               ? 'opacity-100 translate-y-0 pointer-events-auto'
                               : 'opacity-0 -translate-y-1 pointer-events-none'
-                          }`}
+                            }`}
                         >
                           <div className="bg-white border border-gray-100 rounded-2xl shadow-xl shadow-gray-100/80 p-1.5 min-w-[168px]">
                             {link.items?.map((item) => (
@@ -171,11 +167,10 @@ export default function Navbar() {
                     ) : (
                       <Link
                         to={link.href}
-                        className={`flex items-center px-4 py-2 rounded-full text-[13.5px] font-medium transition-all duration-150 border ${
-                          link.active
-                            ? 'text-gray-900 border-gray-200 bg-white shadow-sm'
-                            : 'text-gray-600 border-transparent hover:text-gray-900 hover:bg-gray-50 hover:border-gray-200'
-                        }`}
+                        className={`flex items-center px-4 py-2 rounded-full text-[13.5px] font-medium transition-all duration-150 border ${link.active
+                          ? 'text-gray-900 border-gray-200 bg-white shadow-sm'
+                          : 'text-gray-600 border-transparent hover:text-gray-900 hover:bg-gray-50 hover:border-gray-200'
+                          }`}
                       >
                         {link.label}
                       </Link>
@@ -200,22 +195,20 @@ export default function Navbar() {
                   </button>
 
                   <div
-                    className={`absolute top-full ${isRtl ? 'left-0' : 'right-0'} pt-2 transition-all duration-150 ${
-                      langDropdownOpen
-                        ? 'opacity-100 translate-y-0 pointer-events-auto'
-                        : 'opacity-0 -translate-y-1 pointer-events-none'
-                    }`}
+                    className={`absolute top-full ${isRtl ? 'left-0' : 'right-0'} pt-2 transition-all duration-150 ${langDropdownOpen
+                      ? 'opacity-100 translate-y-0 pointer-events-auto'
+                      : 'opacity-0 -translate-y-1 pointer-events-none'
+                      }`}
                   >
                     <div className="bg-white border border-gray-100 rounded-2xl shadow-xl shadow-gray-100/80 p-1.5 min-w-[100px]">
                       {languages.map((lang) => (
                         <button
                           key={lang.code}
                           onClick={() => changeLanguage(lang.code)}
-                          className={`w-full flex items-center px-3.5 py-2 text-[13px] font-medium rounded-xl transition-colors duration-100 ${
-                            i18n.language === lang.code
-                              ? 'bg-gray-50 text-gray-900'
-                              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                          }`}
+                          className={`w-full flex items-center px-3.5 py-2 text-[13px] font-medium rounded-xl transition-colors duration-100 ${i18n.language === lang.code
+                            ? 'bg-gray-50 text-gray-900'
+                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                            }`}
                         >
                           {lang.label}
                         </button>
@@ -224,20 +217,43 @@ export default function Navbar() {
                   </div>
                 </div>
 
-                <Link
-                  to="/login"
-                  className="text-[13.5px] font-medium text-gray-600 hover:text-gray-900 transition-colors"
-                >
-                  {t('nav.login')}
-                </Link>
+                {user ? (
+                  <>
+                    <Link
+                      to="/admin"
+                      className="text-[13.5px] font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                    >
+                      Dashboard
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        logout()
+                        navigate('/')
+                      }}
+                      className="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-900 text-[13.5px] font-semibold rounded-full transition-all duration-150"
+                    >
+                      Logout
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      to="/login"
+                      className="text-[13.5px] font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                    >
+                      {t('nav.login')}
+                    </Link>
 
-                <button
-                  type="button"
-                  onClick={() => navigate('/register')}
-                  className="px-5 py-2.5 bg-gray-900 hover:bg-gray-800 text-white text-[13.5px] font-semibold rounded-full transition-all duration-150 hover:-translate-y-px hover:shadow-lg hover:shadow-gray-900/10 active:translate-y-0"
-                >
-                  {t('nav.register')}
-                </button>
+                    <button
+                      type="button"
+                      onClick={() => navigate('/register')}
+                      className="px-5 py-2.5 bg-gray-900 hover:bg-gray-800 text-white text-[13.5px] font-semibold rounded-full transition-all duration-150 hover:-translate-y-px hover:shadow-lg hover:shadow-gray-900/10 active:translate-y-0"
+                    >
+                      {t('nav.register')}
+                    </button>
+                  </>
+                )}
               </div>
 
               {/* Mobile Toggle */}
@@ -291,9 +307,8 @@ export default function Navbar() {
                               {link.label}
                               <ChevronDown
                                 size={14}
-                                className={`text-gray-400 transition-transform duration-200 ${
-                                  openDropdown === link.label ? 'rotate-180' : ''
-                                }`}
+                                className={`text-gray-400 transition-transform duration-200 ${openDropdown === link.label ? 'rotate-180' : ''
+                                  }`}
                               />
                             </button>
 
@@ -325,11 +340,10 @@ export default function Navbar() {
                         ) : (
                           <Link
                             to={link.href}
-                            className={`flex items-center px-4 py-2.5 rounded-xl text-[14px] font-medium transition-colors duration-100 ${
-                              link.active
-                                ? 'bg-gray-50 text-gray-900'
-                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                            }`}
+                            className={`flex items-center px-4 py-2.5 rounded-xl text-[14px] font-medium transition-colors duration-100 ${link.active
+                              ? 'bg-gray-50 text-gray-900'
+                              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                              }`}
                             onClick={() => setMobileOpen(false)}
                           >
                             {link.label}
@@ -349,11 +363,10 @@ export default function Navbar() {
                             <button
                               key={lang.code}
                               onClick={() => changeLanguage(lang.code)}
-                              className={`px-3 py-1.5 text-[12px] font-semibold rounded-lg transition-colors duration-100 ${
-                                i18n.language === lang.code
-                                  ? 'bg-gray-900 text-white'
-                                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                              }`}
+                              className={`px-3 py-1.5 text-[12px] font-semibold rounded-lg transition-colors duration-100 ${i18n.language === lang.code
+                                ? 'bg-gray-900 text-white'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                }`}
                             >
                               {lang.label}
                             </button>
@@ -362,24 +375,49 @@ export default function Navbar() {
                       </div>
 
                       <div className="px-2 pb-1 pt-1 flex flex-col gap-2">
-                        <Link
-                          to="/login"
-                          className="w-full py-3 text-center border border-gray-200 text-gray-900 text-[14px] font-semibold rounded-xl hover:bg-gray-50 transition-colors"
-                          onClick={() => setMobileOpen(false)}
-                        >
-                          {t('nav.login')}
-                        </Link>
+                        {user ? (
+                          <>
+                            <Link
+                              to="/admin"
+                              className="w-full py-3 text-center border border-gray-200 text-gray-900 text-[14px] font-semibold rounded-xl hover:bg-gray-50 transition-colors"
+                              onClick={() => setMobileOpen(false)}
+                            >
+                              Dashboard
+                            </Link>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                logout()
+                                setMobileOpen(false)
+                                navigate('/')
+                              }}
+                              className="w-full py-3 bg-gray-100 text-gray-900 text-[14px] font-semibold rounded-xl hover:bg-gray-200 transition-colors duration-150"
+                            >
+                              Logout
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <Link
+                              to="/login"
+                              className="w-full py-3 text-center border border-gray-200 text-gray-900 text-[14px] font-semibold rounded-xl hover:bg-gray-50 transition-colors"
+                              onClick={() => setMobileOpen(false)}
+                            >
+                              {t('nav.login')}
+                            </Link>
 
-                        <button
-                          type="button"
-                          onClick={() => {
-                            navigate('/register')
-                            setMobileOpen(false)
-                          }}
-                          className="w-full py-3 bg-gray-900 text-white text-[14px] font-semibold rounded-xl hover:bg-gray-800 transition-colors duration-150"
-                        >
-                          {t('nav.register')}
-                        </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                navigate('/register')
+                                setMobileOpen(false)
+                              }}
+                              className="w-full py-3 bg-gray-900 text-white text-[14px] font-semibold rounded-xl hover:bg-gray-800 transition-colors duration-150"
+                            >
+                              {t('nav.register')}
+                            </button>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>

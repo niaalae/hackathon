@@ -5,46 +5,14 @@ import { ArrowRight } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 const travelImages = [
-  {
-    id: 1,
-    src: '/assets/places/m3.jpeg',
-    alt: 'Morocco place 1',
-  },
-  {
-    id: 2,
-    src: '/assets/places/m4.jpeg',
-    alt: 'Morocco place 2',
-  },
-  {
-    id: 3,
-    src: '/assets/places/m5.jpeg',
-    alt: 'Morocco place 3',
-  },
-  {
-    id: 4,
-    src: '/assets/places/m6.jpeg',
-    alt: 'Morocco place 4',
-  },
-  {
-    id: 5,
-    src: '/assets/places/m7.jpeg',
-    alt: 'Morocco place 5',
-  },
-  {
-    id: 6,
-    src: '/assets/places/m3.jpeg',
-    alt: 'Morocco place 6',
-  },
-  {
-    id: 7,
-    src: '/assets/places/m4.jpeg',
-    alt: 'Morocco place 7',
-  },
-  {
-    id: 8,
-    src: '/assets/places/m5.jpeg',
-    alt: 'Morocco place 8',
-  },
+  { id: 1, src: '/assets/places/m3.jpeg', alt: 'Morocco place 1' },
+  { id: 2, src: '/assets/places/m4.jpeg', alt: 'Morocco place 2' },
+  { id: 3, src: '/assets/places/m5.jpeg', alt: 'Morocco place 3' },
+  { id: 4, src: '/assets/places/m6.jpeg', alt: 'Morocco place 4' },
+  { id: 5, src: '/assets/places/m7.jpeg', alt: 'Morocco place 5' },
+  { id: 6, src: '/assets/places/m3.jpeg', alt: 'Morocco place 6' },
+  { id: 7, src: '/assets/places/m4.jpeg', alt: 'Morocco place 7' },
+  { id: 8, src: '/assets/places/m5.jpeg', alt: 'Morocco place 8' },
 ]
 
 const repeatedImages = [...travelImages, ...travelImages]
@@ -143,6 +111,111 @@ function TypePlaceholder() {
   )
 }
 
+
+
+function ZellijLineBackground() {
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      <svg
+        className="absolute inset-0 h-full w-full opacity-[0.25]"
+        viewBox="0 0 1600 1000"
+        fill="none"
+        preserveAspectRatio="xMidYMid slice"
+        aria-hidden="true"
+      >
+        <defs>
+          <pattern id="zellijRealPattern" width="220" height="220" patternUnits="userSpaceOnUse">
+            <g stroke="rgba(37,99,235,0.26)" strokeWidth="1.1" fill="none" strokeLinecap="round" strokeLinejoin="round">
+              {/* Central 8-point star petals */}
+              <polygon points="110,22 124,60 110,72 96,60" />
+              <polygon points="178,42 162,74 150,68 154,34" />
+              <polygon points="198,110 160,124 148,110 160,96" />
+              <polygon points="178,178 150,152 154,140 166,146" />
+              <polygon points="110,198 96,160 110,148 124,160" />
+              <polygon points="42,178 70,152 66,140 54,146" />
+              <polygon points="22,110 60,96 72,110 60,124" />
+              <polygon points="42,42 70,68 66,80 54,74" />
+              {/* Inner octagon */}
+              <polygon points="110,72 138,80 148,110 138,140 110,148 82,140 72,110 82,80" />
+              {/* Fill diamonds between petals */}
+              <polygon points="124,60 150,68 154,34 138,46" />
+              <polygon points="162,74 160,96 190,88 188,70" />
+              <polygon points="160,124 150,152 166,146 172,128" />
+              <polygon points="96,160 70,152 66,140 82,140" />
+              <polygon points="60,124 60,96 30,100 28,120" />
+              <polygon points="60,96 66,80 46,60 42,84" />
+              <polygon points="96,60 82,80 70,68 84,46" />
+              {/* Corner quarter-stars */}
+              <polygon points="0,0 22,12 28,22 12,28 0,0" />
+              <polygon points="0,0 38,0 28,22 22,12" />
+              <polygon points="0,0 0,38 22,28 12,22" />
+              <polygon points="220,0 198,12 192,22 208,28 220,0" />
+              <polygon points="220,0 182,0 192,22 198,12" />
+              <polygon points="220,0 220,38 198,28 208,22" />
+              <polygon points="0,220 22,208 28,198 12,192 0,220" />
+              <polygon points="0,220 38,220 28,198 22,208" />
+              <polygon points="0,220 0,182 22,192 12,198" />
+              <polygon points="220,220 198,208 192,198 208,192 220,220" />
+              <polygon points="220,220 182,220 192,198 198,208" />
+              <polygon points="220,220 220,182 198,192 208,198" />
+              {/* Mid-edge half-stars */}
+              <polygon points="110,0 124,14 110,22 96,14" />
+              <polygon points="84,0 96,14 82,30 68,10" />
+              <polygon points="136,0 124,14 138,30 152,10" />
+              <polygon points="110,220 124,206 110,198 96,206" />
+              <polygon points="84,220 96,206 82,190 68,210" />
+              <polygon points="136,220 124,206 138,190 152,210" />
+              <polygon points="0,110 14,96 22,110 14,124" />
+              <polygon points="0,84 14,96 30,82 10,68" />
+              <polygon points="0,136 14,124 30,138 10,152" />
+              <polygon points="220,110 206,96 198,110 206,124" />
+              <polygon points="220,84 206,96 190,82 210,68" />
+              <polygon points="220,136 206,124 190,138 210,152" />
+              {/* Connecting lattice lines */}
+              <line x1="28" y1="22" x2="42" y2="42" />
+              <line x1="192" y1="22" x2="178" y2="42" />
+              <line x1="28" y1="198" x2="42" y2="178" />
+              <line x1="192" y1="198" x2="178" y2="178" />
+              <line x1="68" y1="10" x2="54" y2="34" />
+              <line x1="152" y1="10" x2="166" y2="34" />
+              <line x1="68" y1="210" x2="54" y2="186" />
+              <line x1="152" y1="210" x2="166" y2="186" />
+              <line x1="10" y1="68" x2="34" y2="54" />
+              <line x1="10" y1="152" x2="34" y2="166" />
+              <line x1="210" y1="68" x2="186" y2="54" />
+              <line x1="210" y1="152" x2="186" y2="166" />
+            </g>
+          </pattern>
+
+          <radialGradient id="leftGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse"
+            gradientTransform="translate(300 260) rotate(90) scale(360 420)">
+            <stop stopColor="rgba(59,130,246,0.10)" />
+            <stop offset="1" stopColor="rgba(59,130,246,0)" />
+          </radialGradient>
+          <radialGradient id="rightGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse"
+            gradientTransform="translate(1280 240) rotate(90) scale(340 420)">
+            <stop stopColor="rgba(249,115,22,0.08)" />
+            <stop offset="1" stopColor="rgba(249,115,22,0)" />
+          </radialGradient>
+          <linearGradient id="heroFade" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="rgba(255,255,255,0.0)" />
+            <stop offset="58%" stopColor="rgba(255,255,255,0.55)" />
+            <stop offset="100%" stopColor="rgba(255,255,255,0.97)" />
+          </linearGradient>
+        </defs>
+
+        <rect width="1600" height="1000" fill="url(#zellijRealPattern)" />
+        <rect width="1600" height="1000" fill="url(#leftGlow)" />
+        <rect width="1600" height="1000" fill="url(#rightGlow)" />
+        <rect width="1600" height="1000" fill="url(#heroFade)" />
+      </svg>
+    </div>
+  )
+}
+
+
+
+
 export default function Hero() {
   const [query, setQuery] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -163,8 +236,13 @@ export default function Hero() {
 
   return (
     <section className="relative overflow-hidden bg-white pt-[92px] sm:pt-[96px] lg:pt-[104px]">
-      <div className="mx-auto max-w-[1400px] px-3 sm:px-4 lg:px-6">
-        <div className="relative overflow-visible bg-white px-4 pb-16 pt-10 sm:px-6 sm:pb-20 sm:pt-12 lg:px-10 lg:pb-24 lg:pt-14">
+      <ZellijLineBackground />
+
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.28),_transparent_42%)]" />
+      <div className="absolute left-1/2 top-0 h-[540px] w-[540px] -translate-x-1/2 rounded-full bg-orange-50/30 blur-3xl" />
+
+      <div className="relative z-10 mx-auto max-w-[1400px] px-3 sm:px-4 lg:px-6">
+        <div className="relative overflow-visible bg-transparent px-4 pb-16 pt-10 sm:px-6 sm:pb-20 sm:pt-12 lg:px-10 lg:pb-24 lg:pt-14">
           <div className="relative mx-auto flex min-h-[760px] max-w-[1120px] flex-col items-center text-center sm:min-h-[780px] lg:min-h-[820px] xl:min-h-[860px]">
             <h1 className="mx-auto mt-2 max-w-[920px] text-[36px] font-semibold leading-[0.96] tracking-[-0.05em] text-zinc-950 sm:mt-4 sm:text-[52px] lg:mt-6 lg:text-[72px] xl:text-[80px]">
               <span className="block">

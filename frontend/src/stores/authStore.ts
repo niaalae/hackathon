@@ -15,9 +15,8 @@ interface RegisterData {
 interface User {
   id: string
   name: string
-  admin: boolean
   email: string
-  roleId: string
+  role: 'ADMIN' | 'TRAVELER' | 'GUIDE'
   preferences?: string | null
 }
 
