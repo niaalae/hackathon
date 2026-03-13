@@ -1,5 +1,5 @@
 import { useAuthStore } from '@/stores/authStore'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Eye, EyeOff } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import axios from 'axios'
@@ -17,6 +17,7 @@ export default function Login() {
   const [loginData, setLoginData] = useState<LoginData>({ email: '', password: '' })
   const [errors, setErrors] = useState({ email: '', password: '' })
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   async function formLogin(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -39,8 +40,12 @@ export default function Login() {
 
     try {
       setLoading(true)
-      await login(loginData)
-      navigate('/admin/users')
+      const res = await login(loginData) as any
+      if (res?.user?.role === 'ADMIN') {
+        navigate('/admin')
+      } else {
+        navigate('/user')
+      }
     } catch (error: any) {
       console.error('Login failed:', error)
       if (axios.isAxiosError(error) && error.response?.data) {
@@ -99,14 +104,23 @@ export default function Login() {
 
           <div className="mt-6">
             <label className="font-medium text-gray-900">Password</label>
-            <input
-              placeholder="Please enter your password"
-              className={`mt-2 rounded-md ring text-base text-gray-900 focus:ring-2 outline-none px-3 py-3 w-full bg-white ${errors.password ? 'ring-red-500 focus:ring-red-600' : 'ring-gray-200 focus:ring-orange-500'}`}
-              type="password"
-              name="password"
-              value={loginData.password}
-              onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
-            />
+            <div className="relative">
+              <input
+                placeholder="Please enter your password"
+                className={`mt-2 rounded-md ring text-base text-gray-900 focus:ring-2 outline-none px-3 py-3 w-full bg-white ${errors.password ? 'ring-red-500 focus:ring-red-600' : 'ring-gray-200 focus:ring-orange-500'}`}
+                type={showPassword ? 'text' : 'password'}
+                name="password"
+                value={loginData.password}
+                onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-[60%] -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
             {errors.password && (
               <p className="mt-1 text-xs font-medium text-red-500">{errors.password}</p>
             )}

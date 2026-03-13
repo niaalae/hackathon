@@ -26,8 +26,8 @@ interface AuthStoreInterface {
   setUser: (user: User) => void
   setToken: (token: string) => void
   register: (data: RegisterData) => Promise<void>
-  login: (data: LoginData) => Promise<void>
-  refresh: () => Promise<void>
+  login: (data: LoginData) => Promise<{ user: User; token: string }>
+  refresh: () => Promise<{ user: User; token: string } | undefined>
   logout: () => Promise<void>
 }
 
@@ -46,11 +46,13 @@ export const useAuthStore = create<AuthStoreInterface>((set) => ({
   login: async (data) => {
     const res = await api.post<{ user: User; token: string }>('/login', data)
     set({ token: res.data.token, user: res.data.user })
+    return res.data
   },
   refresh: async () => {
     try {
       const res = await api.post<{ user: User; token: string }>('/refresh', {})
       set({ token: res.data.token, user: res.data.user })
+      return res.data
     } catch (e) {
       console.log(e)
     }

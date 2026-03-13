@@ -88,6 +88,7 @@ export default function Navbar() {
     { code: 'en', label: 'EN' },
     { code: 'fr', label: 'FR' },
     { code: 'ar', label: 'AR' },
+    { code: 'es', label: 'ES' },
   ]
 
   const isRtl = i18n.language === 'ar'
@@ -229,7 +230,7 @@ export default function Navbar() {
                 {user ? (
                   <>
                     <Link
-                      to="/admin"
+                      to={user.role === 'ADMIN' ? '/admin' : '/user'}
                       className="text-[13.5px] font-medium text-gray-600 hover:text-gray-900 transition-colors"
                     >
                       {t('nav.dashboard')}
@@ -390,7 +391,7 @@ export default function Navbar() {
                         {user ? (
                           <>
                             <Link
-                              to="/admin"
+                              to={user.role === 'ADMIN' ? '/admin' : '/user'}
                               className="w-full py-3 text-center border border-gray-200 text-gray-900 text-[14px] font-semibold rounded-xl hover:bg-gray-50 transition-colors"
                               onClick={() => setMobileOpen(false)}
                             >
