@@ -64,12 +64,20 @@ const placeholders = [
   'Find transport from Fez to Chefchaouen...',
 ]
 
-function ImageCard({ src, alt, className }: { src: string; alt: string; className: string }) {
+function ImageCard({
+  src,
+  alt,
+  className,
+}: {
+  src: string
+  alt: string
+  className: string
+}) {
   const [hasError, setHasError] = useState(false)
 
   return (
     <div
-      className={`relative shrink-0 overflow-hidden rounded-[18px] sm:rounded-[22px] shadow-[0_8px_28px_rgba(24,24,27,0.10)] ${className}`}
+      className={`relative shrink-0 overflow-hidden rounded-[18px] bg-white shadow-[0_8px_28px_rgba(24,24,27,0.10)] sm:rounded-[22px] ${className}`}
     >
       {!hasError ? (
         <img
@@ -98,8 +106,10 @@ function TypePlaceholder() {
   useEffect(() => {
     let typingTimeout: number | undefined
     let fadeTimeout: number | undefined
+    let resetTimeout: number | undefined
 
     const fullText = placeholders[index]
+
     if (text.length < fullText.length) {
       typingTimeout = window.setTimeout(() => {
         setText(fullText.slice(0, text.length + 1))
@@ -107,7 +117,7 @@ function TypePlaceholder() {
     } else {
       fadeTimeout = window.setTimeout(() => {
         setIsFading(true)
-        window.setTimeout(() => {
+        resetTimeout = window.setTimeout(() => {
           setIsFading(false)
           setText('')
           setIndex((prev) => (prev + 1) % placeholders.length)
@@ -118,6 +128,7 @@ function TypePlaceholder() {
     return () => {
       if (typingTimeout) window.clearTimeout(typingTimeout)
       if (fadeTimeout) window.clearTimeout(fadeTimeout)
+      if (resetTimeout) window.clearTimeout(resetTimeout)
     }
   }, [index, text])
 
@@ -140,8 +151,10 @@ export default function Hero() {
   const handleSubmit = () => {
     const trimmed = query.trim()
     if (!trimmed || isLoading) return
+
     setIsLoading(true)
     sessionStorage.setItem('heroPrompt', trimmed)
+
     setTimeout(() => {
       navigate(`/dashboard?prompt=${encodeURIComponent(trimmed)}`)
       setIsLoading(false)
@@ -149,10 +162,10 @@ export default function Hero() {
   }
 
   return (
-    <section className="relative overflow-hidden bg-white pt-3 sm:pt-4 lg:pt-5">
-      <div className="mx-auto px-3 sm:px-4 lg:px-6">
-        <div className="relative overflow-hidden rounded-[28px] bg-white px-4 pb-14 pt-8 shadow-[0_20px_60px_rgba(15,23,42,0.06)] sm:rounded-[32px] sm:px-7 sm:pb-16 sm:pt-10 lg:rounded-[36px] lg:px-10 lg:pb-20 lg:pt-12">
-          <div className="relative mx-auto flex min-h-[720px] max-w-[1120px] flex-col items-center text-center sm:min-h-[800px] lg:min-h-[900px]">
+    <section className="relative overflow-hidden bg-white pt-[92px] sm:pt-[96px] lg:pt-[104px]">
+      <div className="mx-auto max-w-[1400px] px-3 sm:px-4 lg:px-6">
+        <div className="relative overflow-visible bg-white px-4 pb-16 pt-10 sm:px-6 sm:pb-20 sm:pt-12 lg:px-10 lg:pb-24 lg:pt-14">
+          <div className="relative mx-auto flex min-h-[760px] max-w-[1120px] flex-col items-center text-center sm:min-h-[780px] lg:min-h-[820px] xl:min-h-[860px]">
             <h1 className="mx-auto mt-2 max-w-[920px] text-[36px] font-semibold leading-[0.96] tracking-[-0.05em] text-zinc-950 sm:mt-4 sm:text-[52px] lg:mt-6 lg:text-[72px] xl:text-[80px]">
               <span className="block">
                 Make Your{' '}
@@ -170,7 +183,15 @@ export default function Hero() {
               <span className="block">Unforgettable!</span>
             </h1>
 
-            <p className="mx-auto mt-5 max-w-[760px] px-2 text-sm leading-7 text-zinc-600 sm:text-base sm:leading-8 lg:mt-6 lg:text-[16px]">
+            <p
+              className="mx-auto mt-5 max-w-[760px] px-2 text-sm leading-7 text-zinc-600 sm:text-base sm:leading-8 lg:mt-6 lg:text-[16px]"
+              style={{
+                fontFamily:
+                  'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+                fontWeight: 400,
+                letterSpacing: '-0.01em',
+              }}
+            >
               Get your dream trip planned with trusted local recommendations, safe
               navigation, scam alerts, and transport help — all in one premium experience.
             </p>
@@ -193,6 +214,7 @@ export default function Hero() {
                     </div>
                   )}
                 </div>
+
                 <button
                   onClick={handleSubmit}
                   disabled={isLoading}
@@ -222,6 +244,7 @@ export default function Hero() {
                     </div>
                   )}
                 </div>
+
                 <button
                   onClick={handleSubmit}
                   disabled={isLoading}
@@ -263,9 +286,10 @@ export default function Hero() {
               ))}
             </div>
 
-            <div className="relative mt-10 w-full overflow-x-hidden overflow-y-visible pb-6 sm:mt-12 lg:mt-14">
+            <div className="relative mt-10 w-full overflow-x-hidden overflow-y-visible pb-8 sm:mt-12 sm:pb-10 lg:mt-14 lg:pb-12">
               <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-12 bg-gradient-to-r from-white to-transparent sm:w-20" />
               <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-12 bg-gradient-to-l from-white to-transparent sm:w-20" />
+
               <div className="hero-marquee flex w-max items-center gap-4 px-3 sm:gap-5 sm:px-4">
                 {repeatedImages.map((image, index) => (
                   <ImageCard
@@ -274,12 +298,12 @@ export default function Hero() {
                     alt={image.alt}
                     className={
                       index % 4 === 0
-                        ? 'h-[140px] w-[110px] sm:h-[170px] sm:w-[130px] lg:h-[200px] lg:w-[150px]'
+                        ? 'h-[126px] w-[110px] sm:h-[170px] sm:w-[130px] lg:h-[200px] lg:w-[150px]'
                         : index % 4 === 1
-                          ? 'h-[140px] w-[160px] sm:h-[170px] sm:w-[190px] lg:h-[200px] lg:w-[220px]'
+                          ? 'h-[126px] w-[160px] sm:h-[170px] sm:w-[190px] lg:h-[200px] lg:w-[220px]'
                           : index % 4 === 2
-                            ? 'h-[140px] w-[140px] sm:h-[170px] sm:w-[170px] lg:h-[200px] lg:w-[200px]'
-                            : 'h-[140px] w-[120px] sm:h-[170px] sm:w-[145px] lg:h-[200px] lg:w-[165px]'
+                            ? 'h-[126px] w-[140px] sm:h-[170px] sm:w-[170px] lg:h-[200px] lg:w-[200px]'
+                            : 'h-[126px] w-[120px] sm:h-[170px] sm:w-[145px] lg:h-[200px] lg:w-[165px]'
                     }
                   />
                 ))}
@@ -294,9 +318,11 @@ export default function Hero() {
           animation: heroMarquee 35s linear infinite;
           will-change: transform;
         }
+
         .hero-marquee:hover {
           animation-play-state: paused;
         }
+
         @keyframes heroMarquee {
           from {
             transform: translateX(0);
@@ -305,9 +331,11 @@ export default function Hero() {
             transform: translateX(-50%);
           }
         }
+
         .hero-loader {
           animation: heroLoader 1.1s ease-in-out infinite;
         }
+
         @keyframes heroLoader {
           0% {
             transform: translateX(-20%);
