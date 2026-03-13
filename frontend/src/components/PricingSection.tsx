@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 const pricingPlans = [
   {
@@ -146,36 +145,36 @@ function PricingCard({
 }) {
   return (
     <div
-      className={`relative rounded-[22px] px-5 py-6 sm:px-6 sm:py-7 ${
+      className={`relative rounded-[20px] px-4 py-5 sm:px-5 sm:py-6 ${
         plan.isDark
-          ? 'border border-black bg-black shadow-[0_10px_24px_rgba(0,0,0,0.10)]'
-          : 'border border-slate-200 bg-white/90 backdrop-blur-[2px] shadow-[0_8px_18px_rgba(15,23,42,0.04)]'
+          ? 'border border-black bg-black shadow-[0_8px_18px_rgba(0,0,0,0.10)]'
+          : 'border border-slate-200 bg-white/90 backdrop-blur-[2px] shadow-[0_6px_14px_rgba(15,23,42,0.04)]'
       } ${isMobile ? 'min-h-full' : ''}`}
     >
       {plan.isPopular && (
-        <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2">
-          <span className="rounded-full border-4 border-black bg-orange-500 px-3 py-1 text-[11px] font-semibold text-white shadow-[0_8px_18px_rgba(249,115,22,0.22)]">
+        <div className="absolute left-1/2 top-0 z-20 -translate-x-1/2 -translate-y-1/2">
+          <span className="rounded-full border-[3px] border-black bg-orange-500 px-3 py-1 text-[10px] font-semibold text-white shadow-[0_6px_14px_rgba(249,115,22,0.22)] sm:text-[11px]">
             Popular
           </span>
         </div>
       )}
 
-      <div className="mb-5 flex items-center justify-between pt-1">
+      <div className={`mb-4 flex items-center justify-between ${plan.isPopular ? 'pt-3' : 'pt-0'}`}>
         <h3 className={`text-sm font-medium ${plan.isDark ? 'text-white' : 'text-slate-900'}`}>
           {plan.name}
         </h3>
       </div>
 
-      <p className={`mb-6 text-sm leading-6 ${plan.isDark ? 'text-white/82' : 'text-slate-700'}`}>
+      <p className={`mb-5 text-sm leading-6 ${plan.isDark ? 'text-white/82' : 'text-slate-700'}`}>
         {plan.description}
       </p>
 
-      <div className="mb-6">
+      <div className="mb-5">
         <div className="flex items-start gap-2">
           <div className="flex items-baseline gap-1">
-            <span className={`text-2xl ${plan.isDark ? 'text-white' : 'text-slate-900'}`}>$</span>
+            <span className={`text-xl ${plan.isDark ? 'text-white' : 'text-slate-900'}`}>$</span>
             <span
-              className={`text-[46px] font-semibold leading-none ${
+              className={`text-[40px] font-semibold leading-none ${
                 plan.isDark ? 'text-white' : 'text-slate-900'
               }`}
             >
@@ -184,7 +183,7 @@ function PricingCard({
           </div>
 
           {plan.price > 0 && (
-            <p className="pt-1 text-sm leading-5">
+            <p className="pt-1 text-xs leading-4 sm:text-sm sm:leading-5">
               <span className={plan.isDark ? 'text-white' : 'text-black'}>{plan.period}</span>
               <br />
               <span className={plan.isDark ? 'text-white/50' : 'text-black/45'}>
@@ -196,18 +195,18 @@ function PricingCard({
       </div>
 
       <button
-        className={`mb-2.5 w-full rounded-xl py-3 text-sm font-semibold transition cursor-pointer ${plan.buttonStyle}`}
+        className={`mb-2.5 w-full rounded-xl py-2.5 text-sm font-semibold transition cursor-pointer ${plan.buttonStyle}`}
       >
         {plan.buttonText}
       </button>
 
-      <p className={`mb-5 text-sm leading-5 ${plan.isDark ? 'text-white/75' : 'text-black/50'}`}>
+      <p className={`mb-4 text-xs leading-5 sm:text-sm ${plan.isDark ? 'text-white/75' : 'text-black/50'}`}>
         {plan.subtext}
       </p>
 
-      <div className={`mb-5 border-t ${plan.isDark ? 'border-white/10' : 'border-slate-200'}`} />
+      <div className={`mb-4 border-t ${plan.isDark ? 'border-white/10' : 'border-slate-200'}`} />
 
-      <div className="space-y-3">
+      <div className="space-y-2.5">
         {plan.features.map((feature, index) => (
           <div key={index} className="flex items-start gap-2.5">
             <svg
@@ -261,9 +260,7 @@ export default function PricingSection() {
     if (!container) return
 
     const updateActive = () => {
-      const cards = Array.from(
-        container.querySelectorAll<HTMLElement>('[data-pricing-card]')
-      )
+      const cards = Array.from(container.querySelectorAll<HTMLElement>('[data-pricing-card]'))
       if (!cards.length) return
 
       const center = container.scrollLeft + container.clientWidth / 2
@@ -312,15 +309,6 @@ export default function PricingSection() {
     setActiveIndex(index)
   }
 
-  const scrollByCard = (direction: 'left' | 'right') => {
-    const nextIndex =
-      direction === 'left'
-        ? Math.max(0, activeIndex - 1)
-        : Math.min(mobilePlans.length - 1, activeIndex + 1)
-
-    scrollToIndex(nextIndex)
-  }
-
   return (
     <section className="relative overflow-hidden bg-white px-4 py-16" dir={isRtl ? 'rtl' : 'ltr'}>
       <ZellijLineBackground />
@@ -356,35 +344,15 @@ export default function PricingSection() {
                 onClick={() => scrollToIndex(index)}
                 aria-label={`Go to pricing card ${index + 1}`}
                 className={`h-2.5 rounded-full transition-all ${
-                  activeIndex === index
-                    ? 'w-6 bg-orange-500'
-                    : 'w-2.5 bg-zinc-300'
+                  activeIndex === index ? 'w-6 bg-orange-500' : 'w-2.5 bg-zinc-300'
                 }`}
               />
             ))}
           </div>
 
-          <button
-            type="button"
-            onClick={() => scrollByCard('left')}
-            className="absolute left-0 top-[42%] z-20 flex -translate-y-1/2 items-center justify-center rounded-full border border-zinc-200/80 bg-white/95 p-2 shadow-sm"
-            aria-label="Scroll left"
-          >
-            <ChevronLeft className="h-4 w-4 text-zinc-500" />
-          </button>
-
-          <button
-            type="button"
-            onClick={() => scrollByCard('right')}
-            className="absolute right-0 top-[42%] z-20 flex -translate-y-1/2 items-center justify-center rounded-full border border-zinc-200/80 bg-white/95 p-2 shadow-sm"
-            aria-label="Scroll right"
-          >
-            <ChevronRight className="h-4 w-4 text-zinc-500" />
-          </button>
-
           <div
             ref={mobileScrollerRef}
-            className="flex gap-4 overflow-x-auto px-[8vw] pb-2 snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+            className="flex gap-4 overflow-x-auto px-[7vw] pt-4 pb-2 snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
           >
             {mobilePlans.map((plan) => (
               <div
