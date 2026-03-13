@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { ArrowRight } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useAuthStore } from '@/stores/authStore'
 
 const travelImages = [
   { id: 1, src: '/assets/places/m3.jpeg', alt: 'Morocco place 1' },
@@ -223,9 +224,16 @@ export default function Hero() {
   const navigate = useNavigate()
   const { t } = useTranslation()
 
+  const { user } = useAuthStore()
+
   const handleSubmit = () => {
     const trimmed = query.trim()
     if (!trimmed || isLoading) return
+
+    if (!user) {
+      navigate('/register')
+      return
+    }
 
     setIsLoading(true)
     sessionStorage.setItem('heroPrompt', trimmed)
