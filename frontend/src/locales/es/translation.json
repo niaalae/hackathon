@@ -101,7 +101,7 @@
     "faq.q27": "¿Cómo puedo comprar con más confianza en Fez?",
     "faq.a27": "Prefiere lugares con reputación verificada, compara opciones, tómate tu tiempo y evita sentirte presionado para comprar. La plataforma puede resaltar opciones artesanales o de comida más fiables.",
     "faq.q28": "¿Puede la plataforma mostrar rutas más seguras o áreas de precaución?",
-    "faq.a28": "Ese es uno de los beneficios previstos. La plataforma puede ofrecer orientación sobre rutas y puntos de precaución para que los viajeros tomen decisiones más informadas.",
+    "faq.a28": "Ese es uno de los beneficios previstos. La plataforma puede ofrecer orientación sobre rutas y puntos de precaución para que los viajeros tome decisiones más informadas.",
     "faq.q29": "¿Puede la plataforma ayudarme a encontrar experiencias auténticas?",
     "faq.a29": "Sí. Un objetivo central es ayudar a los visitantes a descubrir artesanos reales, lugares de comida de confianza y actividades culturalmente significativas en lugar de las genéricas trampas para turistas.",
     "faq.q30": "¿Puedo descubrir artesanías locales a través de la plataforma?",
@@ -245,5 +245,9 @@
     "admin.sidebar.trips": "Viajes",
     "admin.sidebar.analytics": "Analítica",
     "admin.sidebar.settings": "Ajustes",
-    "admin.header.title": "Panel de administración"
+    "admin.header.title": "Panel de administración",
+    "404.title": "Página no encontrada",
+    "404.description": "La página que buscas podría haber sido eliminada, haber cambiado de nombre o no estar disponible temporalmente.",
+    "404.returnHome": "Volver al inicio",
+    "404.support": "Contactar soporte"
 }

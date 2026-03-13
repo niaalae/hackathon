@@ -16,6 +16,7 @@ import UserTrips from './pages/user/Trips'
 import UserGroups from './pages/user/Groups'
 import UserAI from './pages/user/AI'
 import UserMatch from './pages/user/Match'
+import NotFound from '@/pages/NotFound'
 import { useLocation } from 'react-router-dom'
 
 // Planning
@@ -55,7 +56,7 @@ function AppContent() {
         <Route path='summer-parties/festival-guide' element={<FestivalGuide />} />
         <Route path='summer-parties/rooftop-parties' element={<RooftopParties />} />
 
-        <Route path='*' element={<>404</>} />
+        <Route path='*' element={<NotFound />} />
 
         <Route element={<RefreshWrapper />}>
           <Route element={<AuthWrapper />}>

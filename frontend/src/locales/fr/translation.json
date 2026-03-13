@@ -147,5 +147,9 @@
   "admin.sidebar.trips": "Voyages",
   "admin.sidebar.analytics": "Analytique",
   "admin.sidebar.settings": "Paramètres",
-  "admin.header.title": "Panneau d'administration"
+  "admin.header.title": "Panneau d'administration",
+  "404.title": "Page non trouvée",
+  "404.description": "La page que vous recherchez a peut-être été supprimée, a changé de nom o est temporairement indisponible.",
+  "404.returnHome": "Retour à l'accueil",
+  "404.support": "Contacter le support"
 }
