@@ -3,8 +3,8 @@
   "private": true,
   "workspaces": ["frontend", "backend"],
   "scripts": {
-    "build": "npm --prefix frontend run build && npm --prefix backend run build",
-    "start": "npm --prefix backend run start:prod",
-    "postinstall": "npm --prefix backend run generate"
+    "build": "cd frontend && npm run build && cd ../backend && npm run build",
+    "start": "cd backend && npm run start:prod",
+    "postinstall": "cd backend && npm run generate"
   }
 }
