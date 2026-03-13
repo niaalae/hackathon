@@ -68,7 +68,7 @@ export default function PricingSection() {
     const isRtl = i18n.language === 'ar'
 
     return (
-        <section className="bg-slate-50 py-16 px-4" dir={isRtl ? 'rtl' : 'ltr'}>
+        <section className="bg-white py-16 px-4" dir={isRtl ? 'rtl' : 'ltr'}>
             <div className="max-w-7xl mx-auto">
                 <div className="text-center mb-12">
                     <h1 className="text-[40px] font-semibold text-slate-900 mb-3">
