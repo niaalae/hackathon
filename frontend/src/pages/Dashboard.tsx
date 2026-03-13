@@ -56,25 +56,26 @@ export default function Dashboard() {
       <div className="min-h-screen bg-white">
 
         {/* ── Top bar ── */}
-        <div className="border-b border-zinc-100 px-4 py-16 sm:px-6">
+        <div className="border-b border-zinc-100 px-4 py-8 sm:py-16 sm:px-6">
           <div className="mx-auto max-w-2xl text-center">
             <p className="text-xs font-semibold uppercase tracking-[0.25em] text-orange-500">Trip Agent</p>
-            <h1 className="mt-3 text-2xl font-bold text-zinc-900 sm:text-3xl">What are you planning?</h1>
+            <h1 className="mt-2 text-2xl font-bold text-zinc-900 sm:mt-3 sm:text-3xl">What are you planning?</h1>
 
-            <div className="mt-8 flex gap-2">
+            <div className="mt-6 flex flex-col sm:mt-8 sm:flex-row gap-2">
               <input
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') runAgent(prompt) }}
-                placeholder="e.g. 3 days in Fes with friends, budget 3000 MAD"
-                className="h-11 flex-1 rounded-xl border border-zinc-200 bg-zinc-50 px-4 text-sm text-zinc-900 outline-none placeholder:text-zinc-400 focus:border-orange-400 focus:bg-white"
+                placeholder="e.g. 3 days in Fes with friends..."
+                className="h-12 sm:h-11 flex-1 rounded-xl border border-zinc-200 bg-zinc-50 px-4 text-sm text-zinc-900 outline-none placeholder:text-zinc-400 focus:border-orange-400 focus:bg-white transition-all shadow-sm"
               />
               <button
                 onClick={() => runAgent(prompt)}
                 disabled={isLoading}
-                className="flex h-11 items-center gap-2 rounded-xl bg-orange-500 px-5 text-sm font-semibold text-white transition hover:bg-orange-600 disabled:opacity-50"
+                className="flex h-12 sm:h-11 items-center justify-center gap-2 rounded-xl bg-orange-500 px-6 sm:px-5 text-sm font-semibold text-white transition hover:bg-orange-600 disabled:opacity-50 shadow-sm"
               >
                 {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+                <span className="sm:hidden">Plan Trip</span>
               </button>
             </div>
           </div>

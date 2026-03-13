@@ -12,7 +12,7 @@ function createIcon(n: number) {
         iconAnchor: [18, 44],
         popupAnchor: [0, -46],
         html: `<div style="display:flex;flex-direction:column;align-items:center;">
-      <div style="width:34px;height:34px;border-radius:50% 50% 50% 0;background:#1a73e8;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;font-family:'Google Sans',sans-serif;transform:rotate(-45deg);">
+      <div style="width:34px;height:34px;border-radius:50% 50% 50% 0;background:#f97316;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;font-family:'Google Sans',sans-serif;transform:rotate(-45deg);">
         <span style="transform:rotate(45deg)">${n}</span>
       </div>
     </div>`,
@@ -180,7 +180,7 @@ function SearchBar({ onSelect }: SearchBarProps) {
             <div className={`flex items-center gap-3 bg-white rounded-full px-4 py-3 transition-all duration-200 ${focused ? 'shadow-[0_2px_20px_rgba(0,0,0,0.2)] rounded-t-2xl rounded-b-none' : 'shadow-[0_2px_12px_rgba(0,0,0,0.15)] hover:shadow-[0_2px_16px_rgba(0,0,0,0.2)]'}`}
                 style={{ borderRadius: focused && showDropdown ? '16px 16px 0 0' : '9999px' }}>
                 {searching
-                    ? <Loader2 className="h-5 w-5 text-[#1a73e8] animate-spin shrink-0" />
+                    ? <Loader2 className="h-5 w-5 text-[#f97316] animate-spin shrink-0" />
                     : <Search className="h-5 w-5 text-[#5f6368] shrink-0" />
                 }
                 <input
@@ -205,7 +205,7 @@ function SearchBar({ onSelect }: SearchBarProps) {
                 <div className="absolute left-0 right-0 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.15)] rounded-b-2xl overflow-hidden z-50 border-t border-[#e8eaed]">
                     {searching && results.length === 0 && (
                         <div className="flex items-center gap-3 px-4 py-3">
-                            <Loader2 className="h-4 w-4 text-[#1a73e8] animate-spin" />
+                            <Loader2 className="h-4 w-4 text-[#f97316] animate-spin" />
                             <span style={{ fontFamily: "'Google Sans', Roboto, sans-serif", fontSize: 14 }} className="text-[#5f6368]">Searching…</span>
                         </div>
                     )}
@@ -302,7 +302,7 @@ export default function Maps() {
                     <div className="hidden lg:flex absolute top-[76px] left-4 z-[1000] w-[400px] flex-col bg-white rounded-2xl shadow-[0_2px_20px_rgba(0,0,0,0.15)] max-h-[calc(100vh-160px)] overflow-hidden">
                         {/* Route summary */}
                         {pins.length >= 2 && (
-                            <div className="px-4 py-3 border-b border-[#e8eaed] bg-[#1a73e8] rounded-t-2xl">
+                            <div className="px-4 py-3 border-b border-[#e8eaed] bg-[#f97316] rounded-t-2xl">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         <Navigation className="h-5 w-5 text-white" />
@@ -310,19 +310,19 @@ export default function Maps() {
                                             <p style={{ fontFamily: "'Google Sans', sans-serif", fontSize: 15, fontWeight: 600 }} className="text-white">
                                                 {loading ? 'Calculating…' : fmtDist(totalDist)}
                                             </p>
-                                            <p style={{ fontFamily: "Roboto, sans-serif", fontSize: 12 }} className="text-blue-100">
+                                            <p style={{ fontFamily: "Roboto, sans-serif", fontSize: 12 }} className="text-orange-100">
                                                 {loading ? '' : `~${walkMins} min walk · ${pins.length} stops`}
                                             </p>
                                         </div>
                                     </div>
                                     <div className="flex gap-2">
                                         <button onClick={() => setShowRoute(r => !r)}
-                                            className={`text-[11px] font-medium px-3 py-1.5 rounded-full transition ${showRoute ? 'bg-white text-[#1a73e8]' : 'bg-blue-600 text-white border border-blue-400'}`}
+                                            className={`text-[11px] font-medium px-3 py-1.5 rounded-full transition ${showRoute ? 'bg-white text-[#f97316]' : 'bg-orange-600 text-white border border-orange-400'}`}
                                             style={{ fontFamily: "'Google Sans', sans-serif" }}>
                                             {showRoute ? 'Hide route' : 'Show route'}
                                         </button>
                                         <button onClick={() => { setPins([]); setNextId(1) }}
-                                            className="text-[11px] font-medium px-3 py-1.5 rounded-full bg-blue-600 text-white border border-blue-400 hover:bg-blue-500 transition"
+                                            className="text-[11px] font-medium px-3 py-1.5 rounded-full bg-orange-600 text-white border border-orange-400 hover:bg-orange-500 transition"
                                             style={{ fontFamily: "'Google Sans', sans-serif" }}>
                                             Clear
                                         </button>
@@ -337,7 +337,7 @@ export default function Maps() {
                                 <div key={pin.id}>
                                     <div className="group flex items-center gap-3 px-4 py-3 hover:bg-[#f1f3f4] transition cursor-pointer">
                                         {/* Number marker */}
-                                        <div className="h-8 w-8 shrink-0 rounded-full bg-[#1a73e8] flex items-center justify-center text-white text-[12px] font-bold"
+                                        <div className="h-8 w-8 shrink-0 rounded-full bg-[#f97316] flex items-center justify-center text-white text-[12px] font-bold"
                                             style={{ fontFamily: "'Google Sans', sans-serif" }}>
                                             {i + 1}
                                         </div>
@@ -361,7 +361,7 @@ export default function Maps() {
                                             {loading
                                                 ? <span style={{ fontFamily: "Roboto, sans-serif", fontSize: 12 }} className="text-[#9aa0a6] animate-pulse">routing…</span>
                                                 : legDistances[i]
-                                                    ? <span style={{ fontFamily: "Roboto, sans-serif", fontSize: 12 }} className={failed ? 'text-orange-500' : 'text-[#1a73e8]'}>
+                                                    ? <span style={{ fontFamily: "Roboto, sans-serif", fontSize: 12 }} className={failed ? 'text-orange-500' : 'text-[#f97316]'}>
                                                         {failed ? `~${fmtDist(legDistances[i])}` : fmtDist(legDistances[i])}
                                                     </span>
                                                     : null
@@ -408,11 +408,11 @@ export default function Maps() {
                     <div className="overflow-y-auto pb-8" style={{ maxHeight: 'calc(60vh - 80px)' }}>
                         {pins.map((pin, i) => (
                             <div key={pin.id} className="flex items-center gap-3 px-4 py-3 hover:bg-[#f1f3f4]">
-                                <div className="h-8 w-8 shrink-0 rounded-full bg-[#1a73e8] flex items-center justify-center text-white text-[12px] font-bold">{i + 1}</div>
+                                <div className="h-8 w-8 shrink-0 rounded-full bg-[#f97316] flex items-center justify-center text-white text-[12px] font-bold">{i + 1}</div>
                                 <div className="flex-1 min-w-0">
                                     <p style={{ fontFamily: "'Google Sans', sans-serif", fontSize: 14 }} className="text-[#202124] truncate font-medium">{pin.name}</p>
                                     {i < pins.length - 1 && legDistances[i] && (
-                                        <p style={{ fontFamily: "Roboto, sans-serif", fontSize: 12 }} className="text-[#1a73e8]">{fmtDist(legDistances[i])} to next</p>
+                                        <p style={{ fontFamily: "Roboto, sans-serif", fontSize: 12 }} className="text-[#f97316]">{fmtDist(legDistances[i])} to next</p>
                                     )}
                                 </div>
                                 <button onClick={() => removePin(pin.id)} className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-[#e8eaed] transition">
@@ -440,12 +440,12 @@ export default function Maps() {
                                     <div style={{ fontFamily: "'Google Sans', Roboto, sans-serif", background: '#fff', borderRadius: 12, padding: '12px 16px', minWidth: 180, boxShadow: '0 4px 20px rgba(0,0,0,0.15)' }}>
                                         <div className="flex items-start justify-between gap-2 mb-1">
                                             <p style={{ fontSize: 14, fontWeight: 600, color: '#202124' }}>{pin.name}</p>
-                                            <div className="h-5 w-5 shrink-0 rounded-full bg-[#1a73e8] flex items-center justify-center text-white text-[10px] font-bold">{i + 1}</div>
+                                            <div className="h-5 w-5 shrink-0 rounded-full bg-[#f97316] flex items-center justify-center text-white text-[10px] font-bold">{i + 1}</div>
                                         </div>
                                         {pin.type && <p style={{ fontSize: 12, color: '#70757a' }} className="capitalize mb-2">{pin.type}</p>}
                                         <p style={{ fontSize: 11, color: '#9aa0a6', fontFamily: 'monospace' }} className="mb-3">{pin.lat.toFixed(5)}, {pin.lng.toFixed(5)}</p>
                                         {i < pins.length - 1 && legDistances[i] && (
-                                            <p style={{ fontSize: 12, color: '#1a73e8', fontWeight: 500 }} className="mb-2">↓ {fmtDist(legDistances[i])} to next stop</p>
+                                            <p style={{ fontSize: 12, color: '#f97316', fontWeight: 500 }} className="mb-2">↓ {fmtDist(legDistances[i])} to next stop</p>
                                         )}
                                         <button onClick={e => { e.stopPropagation(); removePin(pin.id) }}
                                             style={{ fontSize: 12, color: '#d93025', fontWeight: 500, background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -458,8 +458,8 @@ export default function Maps() {
 
                         {showRoute && route.points.length > 1 && (
                             <Fragment>
-                                <Polyline positions={route.points} pathOptions={{ color: '#1a73e8', weight: 12, opacity: 0.15 }} />
-                                <Polyline positions={route.points} pathOptions={{ color: '#1a73e8', weight: 5, opacity: 0.9, lineCap: 'round', lineJoin: 'round' }} />
+                                <Polyline positions={route.points} pathOptions={{ color: '#f97316', weight: 12, opacity: 0.15 }} />
+                                <Polyline positions={route.points} pathOptions={{ color: '#f97316', weight: 5, opacity: 0.9, lineCap: 'round', lineJoin: 'round' }} />
                                 {failed && <Polyline positions={route.points} pathOptions={{ color: '#fbbc04', weight: 3, opacity: 0.8, dashArray: '8 6' }} />}
                             </Fragment>
                         )}

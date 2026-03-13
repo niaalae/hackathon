@@ -10,6 +10,7 @@ import {
   LogOut
 } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
+import { useNavigate } from 'react-router-dom'
 
 interface MobileDrawerProps {
   isOpen: boolean
@@ -27,31 +28,30 @@ const MENU_ITEMS = [
 
 export const MobileDrawer = ({ isOpen, onClose }: MobileDrawerProps) => {
   const { logout } = useAuthStore()
+  const navigate = useNavigate()
 
   return (
     <>
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 z-[60] bg-black/50 transition-opacity duration-300 ${
-          isOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
-        }`}
+        className={`fixed inset-0 z-[60] bg-black/50 transition-opacity duration-300 ${isOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
+          }`}
         onClick={onClose}
       />
 
       {/* Drawer */}
       <aside
-        className={`fixed inset-y-0 left-0 z-[70] w-[280px] bg-bg shadow-2xl transition-transform duration-300 ease-in-out ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className={`fixed inset-y-0 left-0 z-[70] w-[280px] bg-bg shadow-2xl transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
       >
         <div className="flex h-16 items-center justify-between border-b border-border px-6">
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand text-white">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <div className="flex items-center gap-2 group cursor-pointer" onClick={() => { onClose(); navigate('/'); }}>
+            <span className="text-orange-500 transition-transform duration-200 group-hover:scale-110 flex shrink-0 items-center justify-center">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <path d="M3 12L21 4L17 12L21 20L3 12Z" />
               </svg>
-            </div>
-            <span className="text-lg font-bold text-text">Trippple</span>
+            </span>
+            <span className="text-[17px] font-semibold text-gray-900 tracking-tight">Trippple</span>
           </div>
           <button onClick={onClose} className="p-2 text-text-muted hover:text-text">
             <X className="h-6 w-6" />
@@ -65,10 +65,9 @@ export const MobileDrawer = ({ isOpen, onClose }: MobileDrawerProps) => {
               to={item.path}
               onClick={onClose}
               className={({ isActive }) =>
-                `flex h-12 items-center rounded-xl px-4 transition-all ${
-                  isActive
-                    ? 'bg-active-bg text-brand'
-                    : 'text-text-muted hover:bg-surface hover:text-text'
+                `flex h-12 items-center rounded-xl px-4 transition-all ${isActive
+                  ? 'bg-active-bg text-brand'
+                  : 'text-text-muted hover:bg-surface hover:text-text'
                 }`
               }
             >
@@ -80,9 +79,10 @@ export const MobileDrawer = ({ isOpen, onClose }: MobileDrawerProps) => {
 
         <div className="border-t border-border p-4">
           <button
-            onClick={() => {
-              logout()
+            onClick={async () => {
+              await logout()
               onClose()
+              navigate('/')
             }}
             className="flex h-12 w-full items-center rounded-xl px-4 text-text-muted transition-all hover:bg-red-50 hover:text-red-600"
           >

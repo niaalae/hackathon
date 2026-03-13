@@ -8,11 +8,9 @@ import {
   Sparkles,
   ChevronLeft,
   ChevronRight,
-  LogOut,
-  Settings,
-  User
+  LogOut
 } from 'lucide-react'
-import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/stores/authStore'
 
 interface SidebarProps {
@@ -30,24 +28,24 @@ const MENU_ITEMS = [
 ]
 
 export const Sidebar = ({ isCollapsed, setIsCollapsed }: SidebarProps) => {
-  const { logout, user } = useAuthStore()
+  const { logout } = useAuthStore()
+  const navigate = useNavigate()
 
   return (
     <aside
-      className={`fixed left-0 top-0 z-50 flex h-screen flex-col border-r border-border bg-bg transition-all duration-300 ease-in-out ${
-        isCollapsed ? 'w-[72px]' : 'w-[240px]'
-      }`}
+      className={`fixed left-0 top-0 z-50 flex h-screen flex-col border-r border-border bg-bg transition-all duration-300 ease-in-out ${isCollapsed ? 'w-[72px]' : 'w-[240px]'
+        }`}
     >
       {/* Logo */}
       <div className="flex h-16 items-center border-b border-border px-6">
-        <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-brand text-white shadow-lg shadow-brand/20">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+        <div className="flex items-center gap-2 group cursor-pointer" onClick={() => navigate('/')}>
+          <span className="text-orange-500 transition-transform duration-200 group-hover:scale-110 flex shrink-0 items-center justify-center">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M3 12L21 4L17 12L21 20L3 12Z" />
             </svg>
-          </div>
+          </span>
           {!isCollapsed && (
-            <span className="text-lg font-bold tracking-tight text-text">Trippple</span>
+            <span className="text-[17px] font-semibold text-gray-900 tracking-tight">Trippple</span>
           )}
         </div>
       </div>
@@ -59,10 +57,9 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed }: SidebarProps) => {
             key={item.path}
             to={item.path}
             className={({ isActive }) =>
-              `group relative flex h-11 items-center rounded-xl transition-all duration-200 hover:bg-active-bg ${
-                isActive
-                  ? 'bg-active-bg text-brand'
-                  : 'text-text-muted hover:text-text'
+              `group relative flex h-11 items-center rounded-xl transition-all duration-200 hover:bg-active-bg ${isActive
+                ? 'bg-active-bg text-brand'
+                : 'text-text-muted hover:text-text'
               } ${isCollapsed ? 'justify-center' : 'px-3'}`
             }
           >
@@ -95,10 +92,12 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed }: SidebarProps) => {
       {/* Footer Actions */}
       <div className="border-t border-border p-3 space-y-1">
         <button
-          onClick={() => logout()}
-          className={`group relative flex h-11 w-full items-center rounded-xl text-text-muted transition-all duration-200 hover:bg-red-50 hover:text-red-600 ${
-            isCollapsed ? 'justify-center' : 'px-3'
-          }`}
+          onClick={async () => {
+            await logout()
+            navigate('/')
+          }}
+          className={`group relative flex h-11 w-full items-center rounded-xl text-text-muted transition-all duration-200 hover:bg-red-50 hover:text-red-600 ${isCollapsed ? 'justify-center' : 'px-3'
+            }`}
         >
           <LogOut className="h-5 w-5 shrink-0 transition-colors group-hover:text-red-600" />
           {!isCollapsed && <span className="ml-3 text-sm font-medium">Log out</span>}
@@ -111,9 +110,8 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed }: SidebarProps) => {
 
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className={`group relative flex h-11 w-full items-center rounded-xl text-text-muted transition-all duration-200 hover:bg-active-bg hover:text-brand ${
-            isCollapsed ? 'justify-center' : 'px-3'
-          }`}
+          className={`group relative flex h-11 w-full items-center rounded-xl text-text-muted transition-all duration-200 hover:bg-active-bg hover:text-brand ${isCollapsed ? 'justify-center' : 'px-3'
+            }`}
         >
           {isCollapsed ? (
             <ChevronRight className="h-5 w-5" />
