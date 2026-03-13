@@ -2,6 +2,7 @@ import 'dotenv/config'
 import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { randomUUID } from 'node:crypto'
+import * as bcrypt from 'bcrypt'
 
 const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL })
@@ -224,7 +225,7 @@ async function main() {
   const adminUsers = Array.from({ length: adminCount }, (_, index) => ({
     id: randomUUID(),
     email: `admin${index + 1}@example.com`,
-    passwordHash: 'demo_hash_admin',
+    passwordHash: bcrypt.hashSync('demo_hash_admin',12),
     name: `Admin ${index + 1}`,
     role: 'ADMIN' as const
   }))
