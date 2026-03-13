@@ -7,6 +7,16 @@
   --color-primary: oklch(64.78% 0.1035 229.52);
   --color-accent: oklch(77.8% 0.1035 229.52);
   --color-muted: oklch(92.8% 0.006 264.531);
+
+  /* Travel App Color System */
+  --color-brand: #f97316;
+  --color-brand-hover: #ea6c0a;
+  --color-bg: #ffffff;
+  --color-surface: #f9fafb;
+  --color-text: #0a0a0a;
+  --color-text-muted: #6b7280;
+  --color-border: #e5e7eb;
+  --color-active-bg: #fff7ed;
 }
 
 @layer base {
