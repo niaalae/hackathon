@@ -87,6 +87,71 @@ const transports: Transport[] = [
     price: '20 MAD',
     passengers: 4,
   },
+  {
+    id: '3',
+    type: 'ONCF Train',
+    route: 'Fes - Rabat',
+    from: 'Fes',
+    to: 'Rabat',
+    departure: '1:15 PM',
+    arrival: '3:45 PM',
+    date: 'Mar 16, 2025',
+    status: 'confirmed',
+    price: '85 MAD',
+    passengers: 2,
+  },
+  {
+    id: '4',
+    type: 'Private Driver',
+    route: 'Fes - Ifrane',
+    from: 'Fes',
+    to: 'Ifrane',
+    departure: '8:00 AM',
+    arrival: '9:00 AM',
+    date: 'Mar 17, 2025',
+    status: 'pending',
+    price: '220 MAD',
+    passengers: 3,
+  },
+  {
+    id: '5',
+    type: 'Airport Shuttle',
+    route: 'Fes Saiss - Medina',
+    from: 'Fes Saiss Airport',
+    to: 'Fes Medina',
+    departure: '7:30 PM',
+    arrival: '8:10 PM',
+    date: 'Mar 18, 2025',
+    status: 'confirmed',
+    price: '60 MAD',
+    passengers: 2,
+  },
+  {
+    id: '6',
+    type: 'Shared Van',
+    route: 'Meknes - Azrou',
+    from: 'Meknes',
+    to: 'Azrou',
+    departure: '2:00 PM',
+    arrival: '3:10 PM',
+    date: 'Mar 19, 2025',
+    status: 'cancelled',
+    price: '30 MAD',
+    passengers: 4,
+  },
+  {
+    id: '7',
+    type: 'Day Excursion Coach',
+    route: 'Fes - Chefchaouen',
+    from: 'Fes',
+    to: 'Chefchaouen',
+    departure: '6:30 AM',
+    arrival: '9:30 AM',
+    date: 'Mar 20, 2025',
+    status: 'confirmed',
+    price: '110 MAD',
+    passengers: 8,
+  },
 ]
 
 const riads: RiadBooking[] = [
@@ -102,6 +167,76 @@ const riads: RiadBooking[] = [
     status: 'confirmed',
     price: '2,100 MAD',
     rating: 4.9,
+    amenities: ['wifi', 'breakfast', 'hammam', 'terrace'],
+  },
+  {
+    id: '2',
+    name: 'Riad Laaroussa',
+    image: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop&q=60',
+    location: 'Fes el Bali, Morocco',
+    checkIn: 'Mar 18, 2025',
+    checkOut: 'Mar 21, 2025',
+    nights: 3,
+    roomType: 'Deluxe Patio Room',
+    status: 'confirmed',
+    price: '1,780 MAD',
+    rating: 4.7,
+    amenities: ['wifi', 'breakfast', 'pool', 'terrace'],
+  },
+  {
+    id: '3',
+    name: 'Riad Rcif',
+    image: 'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?w=800&auto=format&fit=crop&q=60',
+    location: 'Bab Rcif, Fes',
+    checkIn: 'Mar 21, 2025',
+    checkOut: 'Mar 23, 2025',
+    nights: 2,
+    roomType: 'Panorama Suite',
+    status: 'pending',
+    price: '1,250 MAD',
+    rating: 4.5,
+    amenities: ['wifi', 'breakfast', 'spa', 'hammam'],
+  },
+  {
+    id: '4',
+    name: 'Riad Daria',
+    image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&auto=format&fit=crop&q=60',
+    location: 'Meknes Medina, Morocco',
+    checkIn: 'Mar 23, 2025',
+    checkOut: 'Mar 25, 2025',
+    nights: 2,
+    roomType: 'Junior Suite',
+    status: 'confirmed',
+    price: '980 MAD',
+    rating: 4.4,
+    amenities: ['wifi', 'breakfast', 'courtyard', 'terrace'],
+  },
+  {
+    id: '5',
+    name: 'Dar Roumana',
+    image: 'https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=800&auto=format&fit=crop&q=60',
+    location: 'Talaa Kbira, Fes',
+    checkIn: 'Mar 25, 2025',
+    checkOut: 'Mar 28, 2025',
+    nights: 3,
+    roomType: 'Atlas Suite',
+    status: 'confirmed',
+    price: '2,450 MAD',
+    rating: 4.8,
+    amenities: ['wifi', 'breakfast', 'spa', 'terrace'],
+  },
+  {
+    id: '6',
+    name: 'Riad Le Calife',
+    image: 'https://images.unsplash.com/photo-1560185127-6ed189bf02f4?w=800&auto=format&fit=crop&q=60',
+    location: 'Fes Medina, Morocco',
+    checkIn: 'Mar 28, 2025',
+    checkOut: 'Mar 31, 2025',
+    nights: 3,
+    roomType: 'Terrace Suite',
+    status: 'pending',
+    price: '1,890 MAD',
+    rating: 4.6,
     amenities: ['wifi', 'breakfast', 'hammam', 'terrace'],
   },
 ]
@@ -143,6 +278,78 @@ const activities: Activity[] = [
     price: '70 MAD',
     category: 'History',
   },
+  {
+    id: '4',
+    name: 'Medina Artisan Workshop',
+    image: 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=800&auto=format&fit=crop&q=60',
+    location: 'Fes Medina',
+    date: 'Mar 17, 2025',
+    time: '2:00 PM',
+    duration: '2.5 hours',
+    status: 'booked',
+    price: '120 MAD',
+    category: 'Craft',
+  },
+  {
+    id: '5',
+    name: 'Meknes Heritage Walk',
+    image: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&auto=format&fit=crop&q=60',
+    location: 'Meknes',
+    date: 'Mar 18, 2025',
+    time: '9:30 AM',
+    duration: '3 hours',
+    status: 'booked',
+    price: '90 MAD',
+    category: 'Culture',
+  },
+  {
+    id: '6',
+    name: 'Atlas Cedar Forest Hike',
+    image: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=800&auto=format&fit=crop&q=60',
+    location: 'Ifrane',
+    date: 'Mar 18, 2025',
+    time: '1:00 PM',
+    duration: '4 hours',
+    status: 'wishlisted',
+    price: '180 MAD',
+    category: 'Nature',
+  },
+  {
+    id: '7',
+    name: 'Zellij Tile Studio',
+    image: 'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=800&auto=format&fit=crop&q=60',
+    location: 'Fes',
+    date: 'Mar 19, 2025',
+    time: '11:00 AM',
+    duration: '1.5 hours',
+    status: 'booked',
+    price: '140 MAD',
+    category: 'Craft',
+  },
+  {
+    id: '8',
+    name: 'Night Food Tour',
+    image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&auto=format&fit=crop&q=60',
+    location: 'Fes Medina',
+    date: 'Mar 19, 2025',
+    time: '7:30 PM',
+    duration: '2 hours',
+    status: 'wishlisted',
+    price: '160 MAD',
+    category: 'Food',
+  },
+  {
+    id: '9',
+    name: 'Sidi Harazem Thermal Spa',
+    image: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800&auto=format&fit=crop&q=60',
+    location: 'Sidi Harazem',
+    date: 'Mar 20, 2025',
+    time: '10:30 AM',
+    duration: '2 hours',
+    status: 'wishlisted',
+    price: '130 MAD',
+    category: 'Wellness',
+  },
 ]
 
 const statusStyles: Record<string, string> = {
@@ -155,6 +362,23 @@ const statusStyles: Record<string, string> = {
 
 export default function UserTrips() {
   const [activeTab, setActiveTab] = useState<'transport' | 'riads' | 'activities'>('transport')
+  const [transportData] = useState(transports)
+  const [riadData] = useState(riads)
+  const [activityData, setActivityData] = useState(activities)
+  const [selectedTransportId, setSelectedTransportId] = useState<string | null>(null)
+  const [selectedRiadId, setSelectedRiadId] = useState<string | null>(null)
+  const [selectedActivityId, setSelectedActivityId] = useState<string | null>(null)
+  const [lastAction, setLastAction] = useState<string | null>(null)
+
+  const handleActivityBooking = (activityId: string) => {
+    setActivityData((prev) =>
+      prev.map((activity) =>
+        activity.id === activityId ? { ...activity, status: 'booked' } : activity,
+      ),
+    )
+    setSelectedActivityId(activityId)
+    setLastAction('Booked activity and added it to your itinerary.')
+  }
 
   return (
     <div className='space-y-6'>
@@ -190,9 +414,9 @@ export default function UserTrips() {
       <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
         <div className='flex flex-wrap gap-2'>
           {[
-            { key: 'transport', label: 'Transport', icon: Car, count: transports.length },
-            { key: 'riads', label: 'Riads', icon: Hotel, count: riads.length },
-            { key: 'activities', label: 'Activities', icon: Ticket, count: activities.length },
+            { key: 'transport', label: 'Transport', icon: Car, count: transportData.length },
+            { key: 'riads', label: 'Riads', icon: Hotel, count: riadData.length },
+            { key: 'activities', label: 'Activities', icon: Ticket, count: activityData.length },
           ].map((tab) => (
             <button
               key={tab.key}
@@ -219,10 +443,26 @@ export default function UserTrips() {
         </div>
       </div>
 
+      {lastAction && (
+        <div className='rounded-[18px] border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-700'>
+          {lastAction}
+        </div>
+      )}
+
       {activeTab === 'transport' && (
         <div className='space-y-4'>
-          {transports.map((transport) => (
-            <div key={transport.id} className='rounded-[20px] border border-zinc-200 bg-white p-6 shadow-sm'>
+          {transportData.map((transport) => {
+            const isSelected = selectedTransportId === transport.id
+            return (
+              <div
+                key={transport.id}
+                className={`rounded-[20px] border border-zinc-200 bg-white p-6 shadow-sm transition hover:shadow-md cursor-pointer ${isSelected ? 'ring-2 ring-orange-200' : ''
+                  }`}
+                onClick={() => {
+                  setSelectedTransportId(isSelected ? null : transport.id)
+                  setLastAction(`Opened transport details for ${transport.route}.`)
+                }}
+              >
               <div className='flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between'>
                 <div className='flex items-center gap-6'>
                   <div className='hidden h-12 w-12 items-center justify-center rounded-lg bg-orange-500/10 text-orange-500 sm:flex'>
@@ -269,15 +509,57 @@ export default function UserTrips() {
                 <Calendar className='h-4 w-4' />
                 {transport.date}
               </div>
+              {isSelected && (
+                <div className='mt-4 flex flex-wrap items-center gap-2 text-xs text-zinc-600'>
+                  <button
+                    className='rounded-full border border-zinc-200 px-3 py-1'
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      setLastAction(`Viewing ticket for ${transport.route}.`)
+                    }}
+                  >
+                    View Ticket
+                  </button>
+                  <button
+                    className='rounded-full border border-zinc-200 px-3 py-1'
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      setLastAction(`Shared ${transport.route} itinerary.`)
+                    }}
+                  >
+                    Share
+                  </button>
+                  <button
+                    className='rounded-full border border-zinc-200 px-3 py-1'
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      setLastAction(`Added ${transport.route} to calendar.`)
+                    }}
+                  >
+                    Add to Calendar
+                  </button>
+                </div>
+              )}
             </div>
-          ))}
+            )
+          })}
         </div>
       )}
 
       {activeTab === 'riads' && (
         <div className='space-y-4'>
-          {riads.map((riad) => (
-            <div key={riad.id} className='overflow-hidden rounded-[20px] border border-zinc-200 bg-white shadow-sm'>
+          {riadData.map((riad) => {
+            const isSelected = selectedRiadId === riad.id
+            return (
+              <div
+                key={riad.id}
+                className={`overflow-hidden rounded-[20px] border border-zinc-200 bg-white shadow-sm transition hover:shadow-md cursor-pointer ${isSelected ? 'ring-2 ring-orange-200' : ''
+                  }`}
+                onClick={() => {
+                  setSelectedRiadId(isSelected ? null : riad.id)
+                  setLastAction(`Opened stay details for ${riad.name}.`)
+                }}
+              >
               <div className='flex flex-col md:flex-row'>
                 <img src={riad.image} alt={riad.name} className='h-48 w-full object-cover md:h-auto md:w-64' />
                 <div className='flex-1 space-y-4 p-6'>
@@ -316,17 +598,59 @@ export default function UserTrips() {
                     </span>
                     <span className='text-zinc-900 font-semibold'>{riad.price}</span>
                   </div>
+                  {isSelected && (
+                    <div className='flex flex-wrap items-center gap-2 border-t border-zinc-200 pt-4 text-xs text-zinc-600'>
+                      <button
+                        className='rounded-full border border-zinc-200 px-3 py-1'
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          setLastAction(`Opened voucher for ${riad.name}.`)
+                        }}
+                      >
+                        View Voucher
+                      </button>
+                      <button
+                        className='rounded-full border border-zinc-200 px-3 py-1'
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          setLastAction(`Messaged host at ${riad.name}.`)
+                        }}
+                      >
+                        Message Host
+                      </button>
+                      <button
+                        className='rounded-full border border-zinc-200 px-3 py-1'
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          setLastAction(`Requested upgrade for ${riad.name}.`)
+                        }}
+                      >
+                        Request Upgrade
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
-          ))}
+            )
+          })}
         </div>
       )}
 
       {activeTab === 'activities' && (
         <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
-          {activities.map((activity) => (
-            <div key={activity.id} className='overflow-hidden rounded-[20px] border border-zinc-200 bg-white shadow-sm'>
+          {activityData.map((activity) => {
+            const isSelected = selectedActivityId === activity.id
+            return (
+              <div
+                key={activity.id}
+                className={`overflow-hidden rounded-[20px] border border-zinc-200 bg-white shadow-sm transition hover:shadow-md cursor-pointer ${isSelected ? 'ring-2 ring-orange-200' : ''
+                  }`}
+                onClick={() => {
+                  setSelectedActivityId(isSelected ? null : activity.id)
+                  setLastAction(`Opened activity details for ${activity.name}.`)
+                }}
+              >
               <div className='relative h-40'>
                 <img src={activity.image} alt={activity.name} className='h-full w-full object-cover' />
                 <div className='absolute inset-0 bg-gradient-to-t from-black/50 to-transparent' />
@@ -353,13 +677,46 @@ export default function UserTrips() {
                 </div>
                 <div className='flex items-center justify-between border-t border-zinc-200 pt-3'>
                   <span className='text-lg font-semibold text-zinc-900'>{activity.price}</span>
-                  <button className='rounded-full border border-zinc-200 px-3 py-1 text-xs text-zinc-600'>
+                  <button
+                    className='rounded-full border border-zinc-200 px-3 py-1 text-xs text-zinc-600'
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      if (activity.status === 'booked') {
+                        setLastAction(`Viewing booking for ${activity.name}.`)
+                      } else {
+                        handleActivityBooking(activity.id)
+                      }
+                    }}
+                  >
                     {activity.status === 'booked' ? 'View Details' : 'Book Now'}
                   </button>
                 </div>
+                {isSelected && (
+                  <div className='flex flex-wrap items-center gap-2 border-t border-zinc-200 pt-3 text-xs text-zinc-600'>
+                    <button
+                      className='rounded-full border border-zinc-200 px-3 py-1'
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        setLastAction(`Added ${activity.name} to favorites.`)
+                      }}
+                    >
+                      Save to Favorites
+                    </button>
+                    <button
+                      className='rounded-full border border-zinc-200 px-3 py-1'
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        setLastAction(`Shared ${activity.name} with your group.`)
+                      }}
+                    >
+                      Share
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>
