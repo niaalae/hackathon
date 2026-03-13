@@ -1,5 +1,5 @@
 import { useAuthStore } from '@/stores/authStore'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Eye, EyeOff } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import axios from 'axios'
@@ -9,21 +9,24 @@ interface RegisterData {
     name: string
     email: string
     password: string
+    confirmPassword: string
 }
 
 export default function Register() {
     const { register } = useAuthStore()
     const navigate = useNavigate()
 
-    const [registerData, setRegisterData] = useState<RegisterData>({ name: '', email: '', password: '' })
-    const [errors, setErrors] = useState({ name: '', email: '', password: '' })
+    const [registerData, setRegisterData] = useState<RegisterData>({ name: '', email: '', password: '', confirmPassword: '' })
+    const [errors, setErrors] = useState({ name: '', email: '', password: '', confirmPassword: '' })
     const [loading, setLoading] = useState(false)
+    const [showPassword, setShowPassword] = useState(false)
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
     async function formRegister(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
         if (loading) return
 
-        const newErrors = { name: '', email: '', password: '' }
+        const newErrors = { name: '', email: '', password: '', confirmPassword: '' }
         let hasError = false
 
         if (!registerData.name.trim()) {
@@ -39,6 +42,14 @@ export default function Register() {
             hasError = true
         } else if (registerData.password.length < 6) {
             newErrors.password = "Password must be at least 6 characters"
+            hasError = true
+        }
+
+        if (!registerData.confirmPassword) {
+            newErrors.confirmPassword = "Please confirm your password"
+            hasError = true
+        } else if (registerData.password !== registerData.confirmPassword) {
+            newErrors.confirmPassword = "Passwords do not match"
             hasError = true
         }
 
@@ -124,16 +135,49 @@ export default function Register() {
 
                     <div className="mt-6">
                         <label className="font-medium text-gray-900">Password</label>
-                        <input
-                            placeholder="Please enter your password"
-                            className={`mt-2 rounded-md ring text-base text-gray-900 focus:ring-2 outline-none px-3 py-3 w-full bg-white ${errors.password ? 'ring-red-500 focus:ring-red-600' : 'ring-gray-200 focus:ring-orange-500'}`}
-                            type="password"
-                            name="password"
-                            value={registerData.password}
-                            onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
-                        />
+                        <div className="relative">
+                            <input
+                                placeholder="Please enter your password"
+                                className={`mt-2 rounded-md ring text-base text-gray-900 focus:ring-2 outline-none px-3 py-3 w-full bg-white ${errors.password ? 'ring-red-500 focus:ring-red-600' : 'ring-gray-200 focus:ring-orange-500'}`}
+                                type={showPassword ? 'text' : 'password'}
+                                name="password"
+                                value={registerData.password}
+                                onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-[60%] -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                            >
+                                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                            </button>
+                        </div>
                         {errors.password && (
                             <p className="mt-1 text-xs font-medium text-red-500">{errors.password}</p>
+                        )}
+                    </div>
+
+                    <div className="mt-6">
+                        <label className="font-medium text-gray-900">Confirm Password</label>
+                        <div className="relative">
+                            <input
+                                placeholder="Please confirm your password"
+                                className={`mt-2 rounded-md ring text-base text-gray-900 focus:ring-2 outline-none px-3 py-3 w-full bg-white ${errors.confirmPassword ? 'ring-red-500 focus:ring-red-600' : 'ring-gray-200 focus:ring-orange-500'}`}
+                                type={showConfirmPassword ? 'text' : 'password'}
+                                name="confirmPassword"
+                                value={registerData.confirmPassword}
+                                onChange={(e) => setRegisterData({ ...registerData, confirmPassword: e.target.value })}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                className="absolute right-3 top-[60%] -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                            >
+                                {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                            </button>
+                        </div>
+                        {errors.confirmPassword && (
+                            <p className="mt-1 text-xs font-medium text-red-500">{errors.confirmPassword}</p>
                         )}
                     </div>
 

@@ -1,5 +1,5 @@
-import axios from 'axios'
 import { create } from 'zustand'
+import api from '@/lib/api'
 
 interface LoginData {
   email: string
@@ -26,8 +26,8 @@ interface AuthStoreInterface {
   setUser: (user: User) => void
   setToken: (token: string) => void
   register: (data: RegisterData) => Promise<void>
-  login: (data: LoginData) => Promise<void>
-  refresh: () => Promise<void>
+  login: (data: LoginData) => Promise<{ user: User; token: string }>
+  refresh: () => Promise<{ user: User; token: string } | undefined>
   logout: () => Promise<void>
 }
 
@@ -41,22 +41,24 @@ export const useAuthStore = create<AuthStoreInterface>((set) => ({
     set({ token })
   },
   register: async (data) => {
-    await axios.post(import.meta.env.VITE_PUBLIC_API_URL + '/register', data, { withCredentials: true })
+    await api.post('/register', data)
   },
   login: async (data) => {
-    const res = await axios.post<{ user: User; token: string }>(import.meta.env.VITE_PUBLIC_API_URL + '/login', data, { withCredentials: true })
+    const res = await api.post<{ user: User; token: string }>('/login', data)
     set({ token: res.data.token, user: res.data.user })
+    return res.data
   },
   refresh: async () => {
     try {
-      const res = await axios.post<{ user: User; token: string }>(import.meta.env.VITE_PUBLIC_API_URL + '/refresh', {}, { withCredentials: true })
+      const res = await api.post<{ user: User; token: string }>('/refresh', {})
       set({ token: res.data.token, user: res.data.user })
+      return res.data
     } catch (e) {
       console.log(e)
     }
   },
   logout: async () => {
-    await axios.post(import.meta.env.VITE_PUBLIC_API_URL + '/logout', {}, { withCredentials: true })
+    await api.post('/logout', {})
     set({ user: null, token: null })
   }
 }))

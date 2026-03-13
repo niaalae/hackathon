@@ -147,5 +147,9 @@
   "admin.sidebar.trips": "الرحلات",
   "admin.sidebar.analytics": "التحليلات",
   "admin.sidebar.settings": "الإعدادات",
-  "admin.header.title": "لوحة الإدارة"
+  "admin.header.title": "لوحة التحكم",
+  "404.title": "الصفحة غير موجودة",
+  "404.description": "الصفحة التي تبحث عنها قد تم حذفها، أو تم تغيير اسمها، أو أنها غير متاحة مؤقتًا.",
+  "404.returnHome": "العودة إلى الصفحة الرئيسية",
+  "404.support": "اتصل بالدعم"
 }

@@ -4,6 +4,7 @@ WORKDIR /app
 # Install deps using workspace lockfile
 COPY package.json package-lock.json ./
 COPY backend/package.json backend/package-lock.json ./backend/
+COPY backend/prisma ./backend/prisma
 COPY frontend/package.json frontend/package-lock.json ./frontend/
 RUN npm ci
 

@@ -245,5 +245,9 @@
   "admin.sidebar.trips": "Trips",
   "admin.sidebar.analytics": "Analytics",
   "admin.sidebar.settings": "Settings",
-  "admin.header.title": "Admin Panel"
+  "admin.header.title": "Admin Panel",
+  "404.title": "Page Not Found",
+  "404.description": "The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.",
+  "404.returnHome": "Return Home",
+  "404.support": "Contact support"
 }
