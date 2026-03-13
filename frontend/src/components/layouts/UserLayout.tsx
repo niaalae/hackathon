@@ -16,20 +16,23 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, Outlet, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import api from '@/lib/api'
 
-const NAV_ITEMS = [
-  { to: 'dashboard', label: 'Home', icon: Gem },
-  { to: 'maps', label: 'Maps', icon: MapPinned },
-  { to: 'match', label: 'Match', icon: Flame, center: true },
-  { to: 'trips', label: 'Trips', icon: CalendarRange },
-  { to: 'groups', label: 'Groups', icon: UsersRound },
-]
-
+import { useTranslation } from 'react-i18next'
 
 export default function UserLayout() {
+  const { t, i18n } = useTranslation()
   const location = useLocation()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { user, logout } = useAuthStore()
+  const isRtl = i18n.language === 'ar'
+
+  const NAV_ITEMS = [
+    { to: 'dashboard', label: t('user.sidebar.home'), icon: Gem },
+    { to: 'maps', label: t('user.sidebar.maps'), icon: MapPinned },
+    { to: 'match', label: t('user.sidebar.match'), icon: Flame, center: true },
+    { to: 'trips', label: t('user.sidebar.trips'), icon: CalendarRange },
+    { to: 'groups', label: t('user.sidebar.groups'), icon: UsersRound },
+  ]
 
   const [chatOpen, setChatOpen] = useState(false)
   const [chatExpanded, setChatExpanded] = useState(false)
@@ -37,8 +40,13 @@ export default function UserLayout() {
   const [messageInput, setMessageInput] = useState('')
   const [autoPromptSent, setAutoPromptSent] = useState(false)
   const [messages, setMessages] = useState([
-    { id: '1', role: 'assistant', content: 'Hi! I can help plan routes, estimate costs, and find safe spots.' },
+    { id: '1', role: 'assistant', content: t('user.chat.welcome') },
   ])
+
+  useEffect(() => {
+    // Update initial message when language changes
+    setMessages(prev => prev.map(m => m.id === '1' ? { ...m, content: t('user.chat.welcome') } : m))
+  }, [t])
 
   const activePath = useMemo(() => location.pathname.replace(/\/+$/, ''), [location.pathname])
 
@@ -78,7 +86,7 @@ export default function UserLayout() {
     } catch (err) {
       setMessages((prev) => [
         ...prev,
-        { id: String(Date.now() + 1), role: 'assistant', content: 'I had trouble reaching the agent. Try again.' },
+        { id: String(Date.now() + 1), role: 'assistant', content: t('user.chat.error') },
       ])
     } finally {
       setChatSending(false)
@@ -88,7 +96,7 @@ export default function UserLayout() {
   useEffect(() => {
     try {
       sessionStorage.setItem('userChatHistory', JSON.stringify(messages))
-    } catch {}
+    } catch { }
   }, [messages])
 
   useEffect(() => {
@@ -106,7 +114,7 @@ export default function UserLayout() {
       <div className='flex items-center justify-between border-b border-zinc-200 px-4 py-3'>
         <div className='flex items-center gap-2 text-sm font-semibold text-zinc-900'>
           <Sparkles className='h-4 w-4 text-orange-500' />
-          AI Agent
+          {t('user.chat.title')}
         </div>
         <div className='flex items-center gap-2'>
           {!chatExpanded && (
@@ -132,9 +140,8 @@ export default function UserLayout() {
         {messages.map((message) => (
           <div key={message.id} className={message.role === 'user' ? 'flex justify-end' : 'flex justify-start'}>
             <div
-              className={`max-w-[85%] rounded-2xl px-4 py-2 text-sm ${
-                message.role === 'user' ? 'bg-orange-500 text-white shadow-[0_10px_22px_rgba(249,115,22,0.25)]' : 'bg-white text-zinc-700 border border-zinc-200'
-              }`}
+              className={`max-w-[85%] rounded-2xl px-4 py-2 text-sm ${message.role === 'user' ? 'bg-orange-500 text-white shadow-[0_10px_22px_rgba(249,115,22,0.25)]' : 'bg-white text-zinc-700 border border-zinc-200'
+                }`}
             >
               {message.content}
             </div>
@@ -157,7 +164,7 @@ export default function UserLayout() {
           <input
             value={messageInput}
             onChange={(event) => setMessageInput(event.target.value)}
-            placeholder='Ask the AI agent...'
+            placeholder={t('user.chat.input')}
             className='h-10 flex-1 rounded-full border border-zinc-200 px-4 text-sm text-zinc-600 focus:border-orange-300'
           />
           <button
@@ -172,12 +179,12 @@ export default function UserLayout() {
   )
 
   return (
-    <main className='min-h-screen bg-[#f4f6f9] text-zinc-900'>
+    <main className='min-h-screen bg-[#f4f6f9] text-zinc-900' dir={isRtl ? 'rtl' : 'ltr'}>
       <div className='mx-auto max-w-[1200px] px-4 pb-24 pt-6 sm:px-6'>
         <header className='mb-6 flex flex-wrap items-center justify-between gap-4'>
           <div>
-            <div className='text-lg font-semibold text-zinc-900'>Dashboard</div>
-            <div className='text-xs text-zinc-500'>User: {user?.name ?? 'Guest'}</div>
+            <div className='text-lg font-semibold text-zinc-900'>{t('user.header.dashboard')}</div>
+            <div className='text-xs text-zinc-500'>{t('user.header.user')}: {user?.name ?? 'Guest'}</div>
           </div>
 
           <div className='flex flex-wrap items-center gap-2'>
@@ -185,15 +192,15 @@ export default function UserLayout() {
               onClick={() => navigate('/')}
               className='flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-semibold text-zinc-600 shadow-sm'
             >
-              <ArrowLeft className='h-4 w-4' />
-              Back to site
+              <ArrowLeft className={`h-4 w-4 ${isRtl ? 'rotate-180' : ''}`} />
+              {t('user.header.back')}
             </button>
             <button
               onClick={() => logout().then(() => navigate('/'))}
               className='flex items-center gap-2 rounded-full bg-zinc-900 px-4 py-2 text-xs font-semibold text-white shadow-[0_12px_24px_rgba(24,24,27,0.2)]'
             >
               <LogOut className='h-4 w-4' />
-              Sign out
+              {t('user.header.signout')}
             </button>
           </div>
         </header>
@@ -208,38 +215,36 @@ export default function UserLayout() {
       <div className='fixed bottom-4 left-1/2 z-[2000] w-full -translate-x-1/2 px-4'>
         <div className='mx-auto flex w-[min(620px,92vw)] items-end justify-center gap-3 relative animate-dock-in'>
           <nav className='w-[min(560px,92vw)] rounded-full border border-[#eceff3] bg-white/95 px-3 py-2 shadow-[0_18px_40px_rgba(15,23,42,0.12)] backdrop-blur transition-all duration-300'>
-          <div className='flex items-end justify-between'>
-            {NAV_ITEMS.map((item) => {
-              const isActive = activePath === '/user' ? item.to === 'dashboard' : activePath.startsWith('/user/' + item.to)
-              const isCenter = item.center
-              return (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  className={`group flex flex-1 flex-col items-center ${isCenter ? '-mt-7' : ''}`}
-                >
-                  <span
-                    className={`flex items-center justify-center rounded-full transition-all duration-300 ${
-                      isCenter
+            <div className='flex items-end justify-between'>
+              {NAV_ITEMS.map((item) => {
+                const isActive = activePath === '/user' ? item.to === 'dashboard' : activePath.startsWith('/user/' + item.to)
+                const isCenter = item.center
+                return (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    className={`group flex flex-1 flex-col items-center ${isCenter ? '-mt-7' : ''}`}
+                  >
+                    <span
+                      className={`flex items-center justify-center rounded-full transition-all duration-300 ${isCenter
                         ? 'h-12 w-12 bg-orange-500 text-white shadow-[0_14px_28px_rgba(249,115,22,0.38)] ring-4 ring-orange-500/15'
                         : isActive
                           ? 'h-9 w-9 bg-zinc-900 text-white shadow-[0_10px_22px_rgba(24,24,27,0.2)]'
                           : 'h-9 w-9 border border-zinc-200 bg-white text-zinc-500 hover:text-zinc-800 hover:shadow-[0_10px_18px_rgba(24,24,27,0.12)]'
-                    }`}
-                  >
-                    <item.icon className={`${isCenter ? 'h-5 w-5' : 'h-4 w-4'}`} />
-                  </span>
-                  <span
-                    className={`text-[10px] transition-all duration-200 ${
-                      isCenter ? 'font-semibold text-orange-600' : isActive ? 'text-orange-600' : 'text-zinc-400'
-                    } opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 group-focus-visible:opacity-100 group-focus-visible:translate-y-0`}
-                  >
-                    {item.label}
-                  </span>
-                </Link>
-              )
-            })}
-          </div>
+                        }`}
+                    >
+                      <item.icon className={`${isCenter ? 'h-5 w-5' : 'h-4 w-4'}`} />
+                    </span>
+                    <span
+                      className={`text-[10px] transition-all duration-200 ${isCenter ? 'font-semibold text-orange-600' : isActive ? 'text-orange-600' : 'text-zinc-400'
+                        } opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 group-focus-visible:opacity-100 group-focus-visible:translate-y-0`}
+                    >
+                      {item.label}
+                    </span>
+                  </Link>
+                )
+              })}
+            </div>
           </nav>
 
         </div>

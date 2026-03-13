@@ -223,7 +223,7 @@ export default function Navbar() {
                       to="/admin"
                       className="text-[13.5px] font-medium text-gray-600 hover:text-gray-900 transition-colors"
                     >
-                      Dashboard
+                      {t('nav.dashboard')}
                     </Link>
                     <button
                       type="button"
@@ -233,7 +233,7 @@ export default function Navbar() {
                       }}
                       className="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-900 text-[13.5px] font-semibold rounded-full transition-all duration-150"
                     >
-                      Logout
+                      {t('nav.logout')}
                     </button>
                   </>
                 ) : (
@@ -382,7 +382,7 @@ export default function Navbar() {
                               className="w-full py-3 text-center border border-gray-200 text-gray-900 text-[14px] font-semibold rounded-xl hover:bg-gray-50 transition-colors"
                               onClick={() => setMobileOpen(false)}
                             >
-                              Dashboard
+                              {t('nav.dashboard')}
                             </Link>
                             <button
                               type="button"
@@ -393,7 +393,7 @@ export default function Navbar() {
                               }}
                               className="w-full py-3 bg-gray-100 text-gray-900 text-[14px] font-semibold rounded-xl hover:bg-gray-200 transition-colors duration-150"
                             >
-                              Logout
+                              {t('nav.logout')}
                             </button>
                           </>
                         ) : (

@@ -90,7 +90,7 @@ export default function Footer() {
                         <form className="relative group">
                             <input
                                 type="email"
-                                placeholder="email@example.com"
+                                placeholder={t('footer.newsletterPlaceholder')}
                                 className="w-full pl-4 pr-12 py-3 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:bg-white focus:border-orange-500 transition-all"
                             />
                             <button
@@ -115,7 +115,7 @@ export default function Footer() {
                         </div>
                         <div className="h-4 w-px bg-gray-100 hidden md:block"></div>
                         <p className="text-xs text-gray-400 font-medium">
-                            Inspired by Morocco. Made for Travelers.
+                            {t('footer.bottomTagline')}
                         </p>
                     </div>
                 </div>
