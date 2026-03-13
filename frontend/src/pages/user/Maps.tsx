@@ -137,11 +137,15 @@ function SearchBar({ onSelect }: SearchBarProps) {
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     useEffect(() => {
-        function handle(e: MouseEvent) {
+        function handle(e: MouseEvent | TouchEvent) {
             if (ref.current && !ref.current.contains(e.target as Node)) setFocused(false)
         }
         document.addEventListener('mousedown', handle)
-        return () => document.removeEventListener('mousedown', handle)
+        document.addEventListener('touchstart', handle) // Mobile touch support
+        return () => {
+            document.removeEventListener('mousedown', handle)
+            document.removeEventListener('touchstart', handle)
+        }
     }, [])
 
     useEffect(() => {
@@ -177,7 +181,9 @@ function SearchBar({ onSelect }: SearchBarProps) {
     return (
         <div ref={ref} className="relative w-full">
             {/* Input pill */}
-            <div className={`flex items-center gap-3 bg-white rounded-full px-4 py-3 transition-all duration-200 ${focused ? 'shadow-[0_2px_20px_rgba(0,0,0,0.2)] rounded-t-2xl rounded-b-none' : 'shadow-[0_2px_12px_rgba(0,0,0,0.15)] hover:shadow-[0_2px_16px_rgba(0,0,0,0.2)]'}`}
+            <form
+                onSubmit={(e) => { e.preventDefault(); inputRef.current?.blur(); }}
+                className={`flex items-center gap-3 bg-white rounded-full px-4 py-3 transition-all duration-200 ${focused ? 'shadow-[0_2px_20px_rgba(0,0,0,0.2)] rounded-t-2xl rounded-b-none' : 'shadow-[0_2px_12px_rgba(0,0,0,0.15)] hover:shadow-[0_2px_16px_rgba(0,0,0,0.2)]'}`}
                 style={{ borderRadius: focused && showDropdown ? '16px 16px 0 0' : '9999px' }}>
                 {searching
                     ? <Loader2 className="h-5 w-5 text-[#f97316] animate-spin shrink-0" />
@@ -190,19 +196,19 @@ function SearchBar({ onSelect }: SearchBarProps) {
                     onFocus={() => setFocused(true)}
                     placeholder="Search Google Maps"
                     style={{ fontFamily: "'Google Sans', Roboto, sans-serif", fontSize: 16 }}
-                    className="flex-1 bg-transparent text-[#202124] placeholder:text-[#9aa0a6] outline-none"
+                    className="flex-1 bg-transparent text-[#202124] placeholder:text-[#9aa0a6] outline-none w-full"
                 />
                 {query && (
-                    <button onClick={() => { setQuery(''); setResults([]); inputRef.current?.focus() }}
+                    <button type="button" onClick={() => { setQuery(''); setResults([]); inputRef.current?.focus() }}
                         className="h-7 w-7 flex items-center justify-center rounded-full hover:bg-[#f1f3f4] transition">
                         <X className="h-4 w-4 text-[#5f6368]" />
                     </button>
                 )}
-            </div>
+            </form>
 
             {/* Dropdown */}
             {showDropdown && (
-                <div className="absolute left-0 right-0 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.15)] rounded-b-2xl overflow-hidden z-50 border-t border-[#e8eaed]">
+                <div className="absolute left-0 right-0 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.15)] rounded-b-2xl overflow-y-auto max-h-[50vh] z-50 border-t border-[#e8eaed]">
                     {searching && results.length === 0 && (
                         <div className="flex items-center gap-3 px-4 py-3">
                             <Loader2 className="h-4 w-4 text-[#f97316] animate-spin" />
@@ -290,10 +296,11 @@ export default function Maps() {
                 .leaflet-control-zoom-in:hover, .leaflet-control-zoom-out:hover { background: #f1f3f4 !important; }
             `}</style>
 
-            <div className="relative h-[calc(100vh-64px)] w-full overflow-hidden bg-[#e8eaed]">
+            {/* Use negative margins to bypass TopBar p-4/p-8 container so map sits flush to edges */}
+            <div className="relative -m-4 md:-m-8 h-[calc(100vh-136px)] md:h-[calc(100vh-64px)] w-[calc(100%+2rem)] md:w-[calc(100%+4rem)] overflow-hidden bg-[#e8eaed] flex flex-col">
 
                 {/* ════ FLOATING SEARCH BAR (top, full width on mobile, fixed on desktop) ════ */}
-                <div className="absolute top-4 left-4 right-4 lg:left-4 lg:right-auto lg:w-[400px] z-[1100]">
+                <div className="absolute top-4 left-4 right-4 lg:left-4 lg:right-auto lg:w-[400px]" style={{ zIndex: 3000 }}>
                     <SearchBar onSelect={handleSearchSelect} />
                 </div>
 
