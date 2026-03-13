@@ -1,5 +1,5 @@
-import axios from 'axios'
 import { create } from 'zustand'
+import api from '@/lib/api'
 
 interface LoginData {
   email: string
@@ -41,22 +41,22 @@ export const useAuthStore = create<AuthStoreInterface>((set) => ({
     set({ token })
   },
   register: async (data) => {
-    await axios.post(import.meta.env.VITE_PUBLIC_API_URL + '/register', data, { withCredentials: true })
+    await api.post('/register', data)
   },
   login: async (data) => {
-    const res = await axios.post<{ user: User; token: string }>(import.meta.env.VITE_PUBLIC_API_URL + '/login', data, { withCredentials: true })
+    const res = await api.post<{ user: User; token: string }>('/login', data)
     set({ token: res.data.token, user: res.data.user })
   },
   refresh: async () => {
     try {
-      const res = await axios.post<{ user: User; token: string }>(import.meta.env.VITE_PUBLIC_API_URL + '/refresh', {}, { withCredentials: true })
+      const res = await api.post<{ user: User; token: string }>('/refresh', {})
       set({ token: res.data.token, user: res.data.user })
     } catch (e) {
       console.log(e)
     }
   },
   logout: async () => {
-    await axios.post(import.meta.env.VITE_PUBLIC_API_URL + '/logout', {}, { withCredentials: true })
+    await api.post('/logout', {})
     set({ user: null, token: null })
   }
 }))
