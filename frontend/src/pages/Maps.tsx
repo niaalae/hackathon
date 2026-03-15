@@ -24,13 +24,7 @@ function createIcon(n: number, isDefault: boolean) {
 interface PinData { id: number; lat: number; lng: number; name: string }
 interface RouteResult { points: LatLngExpression[]; distanceM: number; failed: boolean; legDistances: number[] }
 
-const defaultPins: PinData[] = [
-    { id: 1, lat: 34.0622, lng: -4.9815, name: 'The Ruined Garden' },
-    { id: 2, lat: 34.0628, lng: -4.9832, name: 'Café Clock' },
-    { id: 3, lat: 34.0645, lng: -4.9798, name: 'Dar Roumana' },
-    { id: 4, lat: 34.0612, lng: -4.9775, name: 'Restaurant Nur' },
-    { id: 5, lat: 34.0595, lng: -4.9805, name: 'Palais La Medina' },
-]
+const defaultPins: PinData[] = []
 const defaultIds = new Set(defaultPins.map(p => p.id))
 
 function straightDist(a: PinData, b: PinData) {

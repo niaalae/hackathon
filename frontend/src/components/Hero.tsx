@@ -892,7 +892,7 @@ export default function Hero() {
 
     const tripPlan =
       intent === 'dashboard'
-        ? buildTripPlan(city, durationDays ?? 5, budgetDh)
+        ? buildTripPlan(city, durationDays ?? 5, budgetDh ?? null)
         : null
 
     savePromptContext({
@@ -903,7 +903,7 @@ export default function Hero() {
       durationDays,
       budgetDh,
       demoPrompts: getDemoPrompts(intent, category, city),
-      matchTargetCount: intent === 'match' ? 10 : undefined,
+      matchTargetCount: undefined,
       tripPlan,
     })
 
@@ -942,7 +942,7 @@ export default function Hero() {
         ? buildTripPlan(
             pendingIntent.city,
             pendingIntent.durationDays ?? 5,
-            pendingIntent.budgetDh,
+            pendingIntent.budgetDh ?? null,
           )
         : null
 

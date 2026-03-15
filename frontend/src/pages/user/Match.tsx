@@ -831,7 +831,6 @@ export default function UserMatch() {
   const [deck, setDeck] = useState<PlaceCard[]>(initialDeck)
   const [index, setIndex] = useState(0)
   const [liked, setLiked] = useState<PlaceCard[]>([])
-  const [rejected, setRejected] = useState<string[]>([])
   const [drag, setDrag] = useState({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
   const [swipeDir, setSwipeDir] = useState<'left' | 'right' | null>(null)
@@ -845,7 +844,6 @@ export default function UserMatch() {
     setDeck(initialDeck)
     setIndex(0)
     setLiked([])
-    setRejected([])
     setRound(1)
     setDrag({ x: 0, y: 0 })
     setSwipeDir(null)
@@ -864,7 +862,6 @@ export default function UserMatch() {
     if (nextLiked.length > 1) {
       setDeck(nextLiked)
       setLiked([])
-      setRejected([])
       setIndex(0)
       setRound((prev) => prev + 1)
       setDrag({ x: 0, y: 0 })
@@ -888,7 +885,6 @@ export default function UserMatch() {
     if (direction === 'right') {
       setLiked(nextLiked)
     } else {
-      setRejected((prev) => [...prev, current.id])
     }
 
     if (isLastCard) {
@@ -946,7 +942,6 @@ export default function UserMatch() {
     setDeck(initialDeck)
     setIndex(0)
     setLiked([])
-    setRejected([])
     setRound(1)
     setDrag({ x: 0, y: 0 })
     setSwipeDir(null)

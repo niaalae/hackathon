@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, Fragment, useRef } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents, useMap } from 'react-leaflet'
 import { DivIcon } from 'leaflet'
 import type { LatLngExpression } from 'leaflet'
-import { X, ChevronUp, ChevronDown, Play, MapPin, Footprints, Clock, Flame, Search, Loader2, Navigation, Coffee, Hotel, Utensils, ShoppingBag, Landmark, Trees } from 'lucide-react'
+import { X, ChevronUp, ChevronDown, MapPin, Search, Loader2, Navigation, Coffee, Hotel, Utensils, ShoppingBag, Landmark, Trees } from 'lucide-react'
 import 'leaflet/dist/leaflet.css'
 
 function createIcon(n: number) {

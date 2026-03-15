@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Sparkles,
   Plane,
@@ -104,8 +104,8 @@ export default function UserAI() {
   const [progressWidth, setProgressWidth] = useState(0);
 
   useEffect(() => {
-    let textInterval: NodeJS.Timeout;
-    let progressTimer: NodeJS.Timeout;
+    let textInterval: ReturnType<typeof setInterval> | undefined;
+    let progressTimer: ReturnType<typeof setTimeout> | undefined;
 
     if (phase === 'loading') {
       setLoadingTextIndex(0);

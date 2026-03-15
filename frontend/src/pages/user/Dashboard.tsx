@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type ComponentType } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import type { LucideIcon } from 'lucide-react'
 import {
   ArrowRight,
   CalendarDays,
@@ -814,7 +813,7 @@ function StatCard({
   title: string
   value: string | number
   change: string
-  icon: LucideIcon
+  icon: ComponentType<{ className?: string }>
 }) {
   return (
     <div className='rounded-[24px] border border-zinc-200/80 bg-white p-4 shadow-[0_10px_30px_rgba(24,24,27,0.04)] sm:p-5'>
