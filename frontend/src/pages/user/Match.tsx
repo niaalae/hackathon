@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   RefreshCcw,
   SlidersHorizontal,
+  Search,
 } from 'lucide-react'
 
 type PlaceCategory = 'coffee' | 'restaurant' | 'riad' | 'hotel' | 'jardin' | 'place'
@@ -70,6 +71,39 @@ function getDisplayCategory(category: string) {
   return 'Place'
 }
 
+function normalizeCategory(input: string): PlaceCategory | null {
+  const value = input.toLowerCase().trim()
+
+  if (
+    value.includes('cafe') ||
+    value.includes('coffee') ||
+    value.includes('café') ||
+    value.includes('espresso')
+  ) {
+    return 'coffee'
+  }
+
+  if (value.includes('restaurant') || value.includes('food') || value.includes('dinner')) {
+    return 'restaurant'
+  }
+
+  if (value.includes('riad')) return 'riad'
+  if (value.includes('hotel')) return 'hotel'
+  if (value.includes('garden') || value.includes('jardin') || value.includes('park')) return 'jardin'
+
+  return null
+}
+
+function normalizeCity(input: string): string | null {
+  const value = input.toLowerCase()
+
+  if (value.includes('fez') || value.includes('fes')) return 'Fez'
+  if (value.includes('meknes') || value.includes('meknès')) return 'Meknes'
+  if (value.includes('tangier') || value.includes('طنجة') || value.includes('tanger')) return 'Tangier'
+
+  return null
+}
+
 function buildSeries(
   items: Array<{
     id: string
@@ -90,7 +124,6 @@ function buildSeries(
 }
 
 const allPlaces: PlaceCard[] = buildSeries([
-  // FEZ COFFEE
   {
     id: 'fez-coffee-1',
     name: 'Foundouk Coffee Atelier',
@@ -203,8 +236,6 @@ const allPlaces: PlaceCard[] = buildSeries([
     style: ['budget'],
     tags: ['Meetups', 'Quick Stop', 'Central'],
   },
-
-  // MEKNES COFFEE
   {
     id: 'meknes-coffee-1',
     name: 'Meknes Garden Café',
@@ -275,8 +306,6 @@ const allPlaces: PlaceCard[] = buildSeries([
     style: ['premium'],
     tags: ['Modern', 'Day Work', 'Comfort'],
   },
-
-  // FEZ RIADS / HOTELS
   {
     id: 'fez-riad-1',
     name: 'Riad Noor Fez',
@@ -347,8 +376,6 @@ const allPlaces: PlaceCard[] = buildSeries([
     style: ['premium', 'family'],
     tags: ['View', 'Comfort', 'Premium'],
   },
-
-  // MEKNES RIADS -> 14
   {
     id: 'meknes-riad-1',
     name: 'Riad Olive Meknes',
@@ -545,8 +572,6 @@ const allPlaces: PlaceCard[] = buildSeries([
     style: ['romantic', 'authentic'],
     tags: ['Hidden Gem', 'Authentic', 'Romantic'],
   },
-
-  // MEKNES HOTELS
   {
     id: 'meknes-hotel-1',
     name: 'Imperial Suites Meknes',
@@ -575,8 +600,6 @@ const allPlaces: PlaceCard[] = buildSeries([
     style: ['family', 'mid-range'],
     tags: ['Practical', 'Fast Check-in', 'Reliable'],
   },
-
-  // JARDINS
   {
     id: 'fez-jardin-1',
     name: 'Jnan Sbil Escape',
@@ -633,8 +656,6 @@ const allPlaces: PlaceCard[] = buildSeries([
     style: ['budget'],
     tags: ['Reading', 'Green Break', 'Afternoon'],
   },
-
-  // RESTAURANTS
   {
     id: 'fez-restaurant-1',
     name: 'Dar Taste Fez',
@@ -705,8 +726,6 @@ const allPlaces: PlaceCard[] = buildSeries([
     style: ['mid-range'],
     tags: ['Lunch', 'Urban', 'Easy Stop'],
   },
-
-  // TANGIER
   {
     id: 'tangier-coffee-1',
     name: 'Tangier Bay Café',
@@ -821,33 +840,64 @@ function getActiveFilterChips(context: HeroPromptContext | null) {
   return chips
 }
 
+function truncateDescription(text: string, maxLength = 90) {
+  if (text.length <= maxLength) return text
+  return `${text.slice(0, maxLength).trim()}...`
+}
+
 export default function UserMatch() {
   const context = useMemo(() => getPromptContext(), [])
   const [strictFilters, setStrictFilters] = useState(true)
+  const [searchValue, setSearchValue] = useState('')
+  const [appliedSearch, setAppliedSearch] = useState('')
 
-  const initialDeck = useMemo(() => getMatchPlaces(context, strictFilters), [context, strictFilters])
+  const basePlaces = useMemo(() => getMatchPlaces(context, strictFilters), [context, strictFilters])
+
+  const searchedPlaces = useMemo(() => {
+    if (!appliedSearch.trim()) return basePlaces
+
+    const query = appliedSearch.toLowerCase().trim()
+    const detectedCategory = normalizeCategory(query)
+    const detectedCity = normalizeCity(query)
+
+    const filtered = basePlaces.filter((place) => {
+      const byCategory = detectedCategory ? place.category === detectedCategory : true
+      const byCity = detectedCity ? place.city === detectedCity : true
+
+      const byText =
+        place.name.toLowerCase().includes(query) ||
+        place.city.toLowerCase().includes(query) ||
+        place.category.toLowerCase().includes(query) ||
+        place.description.toLowerCase().includes(query) ||
+        place.tags.some((tag) => tag.toLowerCase().includes(query))
+
+      return (detectedCategory || detectedCity) ? byCategory && byCity : byText
+    })
+
+    return filtered.length ? filtered : basePlaces
+  }, [appliedSearch, basePlaces])
 
   const [round, setRound] = useState(1)
-  const [deck, setDeck] = useState<PlaceCard[]>(initialDeck)
+  const [deck, setDeck] = useState<PlaceCard[]>(searchedPlaces)
   const [index, setIndex] = useState(0)
   const [liked, setLiked] = useState<PlaceCard[]>([])
   const [drag, setDrag] = useState({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
   const [swipeDir, setSwipeDir] = useState<'left' | 'right' | null>(null)
-  const startRef = useRef<{ x: number; y: number } | null>(null)
 
+  const startRef = useRef<{ x: number; y: number } | null>(null)
   const current = deck[index]
   const next = deck[index + 1]
   const activeFilterChips = useMemo(() => getActiveFilterChips(context), [context])
 
   useEffect(() => {
-    setDeck(initialDeck)
+    setDeck(searchedPlaces)
     setIndex(0)
     setLiked([])
     setRound(1)
     setDrag({ x: 0, y: 0 })
     setSwipeDir(null)
-  }, [initialDeck])
+  }, [searchedPlaces])
 
   const progress = useMemo(() => {
     if (!deck.length) return 100
@@ -857,6 +907,10 @@ export default function UserMatch() {
   const finalPool = liked.length ? liked : deck
   const finalMain = finalPool[0] ?? null
   const finalBackup = finalPool[1] ?? null
+
+  const overlayOpacity = Math.min(Math.abs(drag.x) / 120, 1)
+  const showRejectOverlay = drag.x < -30
+  const showChooseOverlay = drag.x > 30
 
   const startNextRoundOrFinish = (nextLiked: PlaceCard[]) => {
     if (nextLiked.length > 1) {
@@ -890,7 +944,7 @@ export default function UserMatch() {
     if (isLastCard) {
       window.setTimeout(() => {
         startNextRoundOrFinish(nextLiked)
-      }, 280)
+      }, 220)
       return
     }
 
@@ -898,7 +952,7 @@ export default function UserMatch() {
       setIndex((prev) => prev + 1)
       setDrag({ x: 0, y: 0 })
       setSwipeDir(null)
-    }, 280)
+    }, 220)
   }
 
   const commitSwipe = (direction: 'left' | 'right') => {
@@ -915,9 +969,11 @@ export default function UserMatch() {
 
   const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
     if (!isDragging || !startRef.current) return
+
     const dx = event.clientX - startRef.current.x
     const dy = event.clientY - startRef.current.y
-    setDrag({ x: dx, y: dy })
+
+    setDrag({ x: dx, y: dy * 0.3 })
   }
 
   const resetDrag = () => {
@@ -929,7 +985,7 @@ export default function UserMatch() {
   const handlePointerUp = () => {
     if (!isDragging) return
 
-    if (Math.abs(drag.x) > 110) {
+    if (Math.abs(drag.x) > 95) {
       setIsDragging(false)
       startRef.current = null
       commitSwipe(drag.x > 0 ? 'right' : 'left')
@@ -939,7 +995,7 @@ export default function UserMatch() {
   }
 
   const restartMatches = () => {
-    setDeck(initialDeck)
+    setDeck(searchedPlaces)
     setIndex(0)
     setLiked([])
     setRound(1)
@@ -947,28 +1003,72 @@ export default function UserMatch() {
     setSwipeDir(null)
   }
 
+  const handleSearchApply = () => {
+    setAppliedSearch(searchValue)
+  }
+
+  const handleSearchKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') handleSearchApply()
+  }
+
+  const clearSearch = () => {
+    setSearchValue('')
+    setAppliedSearch('')
+  }
+
   const isFinished = !current && (liked.length > 0 || deck.length <= 1)
 
   return (
-    <div className="space-y-5">
-      <div>
-        <h2 className="text-xl font-semibold text-zinc-900 sm:text-2xl">
-          Match Places
-        </h2>
-        <p className="text-sm text-zinc-500">
-          {context?.city && context?.category && context.category !== 'general'
-            ? `Swipe through ${context.category} recommendations in ${context.city} and find your best fit.`
-            : 'Swipe through place recommendations and find your best fit.'}
-        </p>
+    <div className="space-y-4">
+      <div className="space-y-3">
+        <div>
+          <h2 className="text-lg font-semibold text-zinc-900 sm:text-xl">Match Places</h2>
+          <p className="mt-1 text-sm text-zinc-500">
+            Search something like <span className="font-medium text-zinc-700">cafe in Fez</span> or{' '}
+            <span className="font-medium text-zinc-700">hotel in Meknes</span>.
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-2 rounded-2xl border border-zinc-200 bg-white p-3 sm:flex-row sm:items-center">
+          <div className="relative flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+            <input
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+              onKeyDown={handleSearchKeyDown}
+              placeholder="Search: cafe in Fez, riad in Meknes..."
+              className="h-11 w-full rounded-full border border-zinc-200 bg-zinc-50 pl-10 pr-4 text-sm text-zinc-800 outline-none transition focus:border-orange-300 focus:bg-white"
+            />
+          </div>
+
+          <div className="flex gap-2">
+            <button
+              onClick={handleSearchApply}
+              className="inline-flex h-11 items-center justify-center rounded-full bg-orange-500 px-4 text-sm font-semibold text-white transition hover:bg-orange-600"
+            >
+              Search
+            </button>
+
+            <button
+              onClick={clearSearch}
+              className="inline-flex h-11 items-center justify-center rounded-full border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className="rounded-full bg-zinc-100">
-        <div className="h-2 rounded-full bg-orange-500 transition-all duration-300" style={{ width: `${progress}%` }} />
+        <div
+          className="h-2 rounded-full bg-orange-500 transition-all duration-300"
+          style={{ width: `${progress}%` }}
+        />
       </div>
 
-      <div className="flex flex-col gap-3 rounded-[24px] border border-zinc-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 rounded-[22px] border border-zinc-200 bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap gap-2">
-          <span className="inline-flex items-center gap-2 rounded-full bg-orange-500/10 px-3 py-1 text-xs font-semibold text-orange-600">
+          <span className="inline-flex items-center gap-2 rounded-full bg-orange-500/10 px-3 py-1 text-[11px] font-semibold text-orange-600">
             <SlidersHorizontal className="h-3.5 w-3.5" />
             {strictFilters ? 'Using your preferences' : 'Showing all suggestions'}
           </span>
@@ -976,11 +1076,17 @@ export default function UserMatch() {
           {activeFilterChips.map((chip) => (
             <span
               key={chip}
-              className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-600"
+              className="rounded-full bg-zinc-100 px-3 py-1 text-[11px] font-medium text-zinc-600"
             >
               {chip}
             </span>
           ))}
+
+          {appliedSearch && (
+            <span className="rounded-full bg-zinc-900 px-3 py-1 text-[11px] font-medium text-white">
+              Search: {appliedSearch}
+            </span>
+          )}
         </div>
 
         <button
@@ -993,30 +1099,32 @@ export default function UserMatch() {
 
       {!isFinished ? (
         <>
-          <div className="flex items-center justify-between rounded-3xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-600">
+          <div className="flex items-center justify-between rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-600">
             <div className="flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-orange-500" />
               <span>Round {round}</span>
             </div>
             <div>
-              Suggestions:{' '}
-              <span className="font-semibold text-zinc-900">{deck.length}</span>
+              Suggestions: <span className="font-semibold text-zinc-900">{deck.length}</span>
             </div>
           </div>
 
-          <div className="relative mx-auto h-[500px] max-w-[360px] sm:h-[520px] sm:max-w-[380px] xl:h-[540px] xl:max-w-[390px]">
+          <div className="relative mx-auto h-[430px] max-w-[310px] sm:h-[450px] sm:max-w-[320px]">
             {next && (
-              <div className="absolute inset-0 translate-y-1 scale-[0.965] rounded-[28px] bg-white shadow-[0_16px_34px_rgba(15,23,42,0.10)]" />
+              <>
+                <div className="absolute inset-x-4 top-4 h-full rounded-[24px] bg-zinc-100" />
+                <div className="absolute inset-x-2 top-2 h-full rounded-[24px] bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]" />
+              </>
             )}
 
             {current ? (
               <div
-                className="relative h-full overflow-hidden rounded-[28px] bg-white shadow-[0_18px_50px_rgba(15,23,42,0.16)]"
+                className="relative h-full overflow-hidden rounded-[24px] border border-zinc-200 bg-white shadow-[0_18px_50px_rgba(15,23,42,0.14)]"
                 style={{
                   transform: swipeDir
-                    ? `translateX(${swipeDir === 'right' ? 560 : -560}px) rotate(${swipeDir === 'right' ? 16 : -16}deg)`
-                    : `translate3d(${drag.x}px, ${drag.y}px, 0) rotate(${drag.x / 18}deg)`,
-                  transition: isDragging ? 'none' : 'transform 320ms cubic-bezier(0.22, 1, 0.36, 1)',
+                    ? `translateX(${swipeDir === 'right' ? 520 : -520}px) rotate(${swipeDir === 'right' ? 14 : -14}deg)`
+                    : `translate3d(${drag.x}px, ${drag.y}px, 0) rotate(${drag.x / 24}deg)`,
+                  transition: isDragging ? 'none' : 'transform 280ms cubic-bezier(0.22, 1, 0.36, 1)',
                   touchAction: 'pan-y',
                 }}
                 onPointerDown={handlePointerDown}
@@ -1024,22 +1132,46 @@ export default function UserMatch() {
                 onPointerUp={handlePointerUp}
                 onPointerCancel={handlePointerUp}
               >
-                <img src={current.image} alt={current.name} className="h-[55%] w-full object-cover" />
-                <div className="absolute inset-x-0 top-0 h-[55%] bg-gradient-to-t from-black/45 to-transparent" />
+                <div className="relative h-[46%]">
+                  <img src={current.image} alt={current.name} className="h-full w-full object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
 
-                <div className="absolute left-4 top-4 rounded-full bg-white/92 px-3 py-1 text-xs font-semibold text-zinc-700">
-                  {current.city}, Morocco
+                  <div className="absolute left-3 top-3 rounded-full bg-white/92 px-3 py-1 text-[11px] font-semibold text-zinc-700">
+                    {current.city}
+                  </div>
+
+                  <div className="absolute right-3 top-3 rounded-full bg-orange-500 px-3 py-1 text-[11px] font-semibold text-white">
+                    {getDisplayCategory(current.category)}
+                  </div>
+
+                  {showRejectOverlay && (
+                    <div
+                      className="absolute left-3 top-14 rounded-xl border-2 border-red-500 bg-white/90 px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.18em] text-red-500"
+                      style={{ opacity: overlayOpacity }}
+                    >
+                      Get Rid
+                    </div>
+                  )}
+
+                  {showChooseOverlay && (
+                    <div
+                      className="absolute right-3 top-14 rounded-xl border-2 border-emerald-500 bg-white/90 px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-600"
+                      style={{ opacity: overlayOpacity }}
+                    >
+                      Choose
+                    </div>
+                  )}
                 </div>
 
-                <div className="absolute right-4 top-4 flex items-center gap-2 rounded-full bg-orange-500 px-3 py-1 text-xs font-semibold text-white">
-                  <Sparkles className="h-3 w-3" />
-                  {getDisplayCategory(current.category)}
-                </div>
-
-                <div className="p-4 sm:p-5">
+                <div className="space-y-3 p-4">
                   <div className="flex items-start justify-between gap-3">
-                    <div className="text-[28px] leading-tight font-semibold text-zinc-900 sm:text-[30px]">
-                      {current.name}
+                    <div>
+                      <h3 className="text-xl font-semibold leading-tight text-zinc-900">
+                        {current.name}
+                      </h3>
+                      <p className="mt-1 text-sm text-zinc-500">
+                        {truncateDescription(current.description)}
+                      </p>
                     </div>
 
                     <div className="flex shrink-0 items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">
@@ -1048,26 +1180,29 @@ export default function UserMatch() {
                     </div>
                   </div>
 
-                  <p className="mt-3 text-sm leading-6 text-zinc-500">{current.description}</p>
-
-                  <div className="mt-4 grid gap-2 text-sm text-zinc-500">
+                  <div className="grid gap-2 text-sm text-zinc-500">
                     <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4" />
+                      <MapPin className="h-4 w-4 text-zinc-400" />
                       {current.city}, Morocco
                     </div>
+
                     <div className="flex items-center gap-2">
-                      <Wallet className="h-4 w-4" />
+                      <Wallet className="h-4 w-4 text-zinc-400" />
                       {current.budget}
                     </div>
+
                     <div className="flex items-center gap-2">
-                      <Wifi className="h-4 w-4" />
+                      <Wifi className="h-4 w-4 text-zinc-400" />
                       {current.wifi ? 'Wi-Fi available' : 'No Wi-Fi'}
                     </div>
                   </div>
 
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {current.tags.map((tag) => (
-                      <span key={tag} className="rounded-full bg-orange-500/10 px-3 py-1 text-xs text-orange-600">
+                  <div className="flex flex-wrap gap-2">
+                    {current.tags.slice(0, 3).map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded-full bg-orange-500/10 px-2.5 py-1 text-[11px] font-medium text-orange-600"
+                      >
                         {tag}
                       </span>
                     ))}
@@ -1075,7 +1210,7 @@ export default function UserMatch() {
                 </div>
               </div>
             ) : (
-              <div className="flex h-full items-center justify-center rounded-[28px] border border-zinc-200 bg-white text-sm text-zinc-500">
+              <div className="flex h-full items-center justify-center rounded-[24px] border border-zinc-200 bg-white text-sm text-zinc-500">
                 No more places to match right now.
               </div>
             )}
@@ -1084,47 +1219,47 @@ export default function UserMatch() {
           <div className="flex items-center justify-center gap-4">
             <button
               onClick={() => current && commitSwipe('left')}
-              className="flex h-12 w-12 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-600 shadow-sm transition hover:bg-zinc-50"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-red-200 bg-red-50 text-red-500 shadow-sm transition hover:bg-red-100"
             >
               <X className="h-5 w-5" />
             </button>
 
             <button
               onClick={() => current && commitSwipe('right')}
-              className="flex h-14 w-14 items-center justify-center rounded-full bg-orange-500 text-white shadow-[0_14px_30px_rgba(249,115,22,0.35)] transition hover:scale-[1.03]"
+              className="flex h-14 w-14 items-center justify-center rounded-full bg-orange-500 text-white shadow-[0_14px_28px_rgba(249,115,22,0.32)] transition hover:scale-[1.03]"
             >
               <Heart className="h-6 w-6" />
             </button>
 
             <button
               onClick={() => current && commitSwipe('right')}
-              className="flex h-12 w-12 items-center justify-center rounded-full border border-orange-200 bg-orange-500/10 text-orange-500 shadow-sm transition hover:bg-orange-500/15"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-emerald-600 shadow-sm transition hover:bg-emerald-100"
             >
               <Flame className="h-5 w-5" />
             </button>
           </div>
         </>
       ) : (
-        <div className="space-y-5">
-          <div className="rounded-[28px] border border-zinc-200 bg-white p-5 shadow-[0_18px_40px_rgba(15,23,42,0.08)]">
+        <div className="space-y-4">
+          <div className="rounded-[24px] border border-zinc-200 bg-white p-4 shadow-[0_18px_40px_rgba(15,23,42,0.08)]">
             <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-orange-500">
               <CheckCircle2 className="h-4 w-4" />
               Best Match Found
             </div>
 
             {finalMain ? (
-              <div className="grid gap-4 md:grid-cols-[170px_1fr]">
+              <div className="grid gap-4 md:grid-cols-[130px_1fr]">
                 <img
                   src={finalMain.image}
                   alt={finalMain.name}
-                  className="h-[170px] w-full rounded-2xl object-cover"
+                  className="h-[130px] w-full rounded-2xl object-cover"
                 />
 
                 <div>
-                  <h3 className="text-2xl font-semibold text-zinc-900">{finalMain.name}</h3>
+                  <h3 className="text-xl font-semibold text-zinc-900">{finalMain.name}</h3>
                   <p className="mt-2 text-sm leading-6 text-zinc-500">{finalMain.description}</p>
 
-                  <div className="mt-4 flex flex-wrap gap-2">
+                  <div className="mt-3 flex flex-wrap gap-2">
                     {finalMain.tags.map((tag) => (
                       <span key={tag} className="rounded-full bg-orange-500/10 px-3 py-1 text-xs text-orange-600">
                         {tag}
@@ -1132,7 +1267,7 @@ export default function UserMatch() {
                     ))}
                   </div>
 
-                  <div className="mt-4 grid gap-2 text-sm text-zinc-600">
+                  <div className="mt-3 grid gap-2 text-sm text-zinc-600">
                     <div className="flex items-center gap-2">
                       <MapPin className="h-4 w-4" />
                       {finalMain.city}, Morocco
@@ -1154,24 +1289,24 @@ export default function UserMatch() {
           </div>
 
           {finalBackup && (
-            <div className="rounded-[28px] border border-zinc-200 bg-white p-5 shadow-[0_18px_40px_rgba(15,23,42,0.08)]">
+            <div className="rounded-[24px] border border-zinc-200 bg-white p-4 shadow-[0_18px_40px_rgba(15,23,42,0.08)]">
               <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-zinc-700">
                 <Sparkles className="h-4 w-4 text-orange-500" />
                 Backup Option
               </div>
 
-              <div className="grid gap-4 md:grid-cols-[150px_1fr]">
+              <div className="grid gap-4 md:grid-cols-[120px_1fr]">
                 <img
                   src={finalBackup.image}
                   alt={finalBackup.name}
-                  className="h-[150px] w-full rounded-2xl object-cover"
+                  className="h-[120px] w-full rounded-2xl object-cover"
                 />
 
                 <div>
-                  <h3 className="text-xl font-semibold text-zinc-900">{finalBackup.name}</h3>
+                  <h3 className="text-lg font-semibold text-zinc-900">{finalBackup.name}</h3>
                   <p className="mt-2 text-sm leading-6 text-zinc-500">{finalBackup.description}</p>
 
-                  <div className="mt-4 flex flex-wrap gap-2">
+                  <div className="mt-3 flex flex-wrap gap-2">
                     {finalBackup.tags.map((tag) => (
                       <span key={tag} className="rounded-full bg-zinc-100 px-3 py-1 text-xs text-zinc-600">
                         {tag}
@@ -1185,7 +1320,7 @@ export default function UserMatch() {
 
           <button
             onClick={restartMatches}
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-5 text-sm font-semibold text-zinc-700 shadow-sm transition hover:bg-zinc-50"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-5 text-sm font-semibold text-zinc-700 shadow-sm transition hover:bg-zinc-50"
           >
             <RefreshCcw className="h-4 w-4" />
             Restart Matching
