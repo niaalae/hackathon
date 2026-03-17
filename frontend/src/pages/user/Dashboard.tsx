@@ -78,6 +78,25 @@ type GroupRecommendation = {
   city: string
 }
 
+type Quest = {
+  id: string
+  title: string
+  description: string
+  progress: number
+  goal: number
+  reward: number
+  tag: string
+  location: string
+}
+
+type LeaderboardEntry = {
+  id: string
+  name: string
+  points: number
+  avatar: string
+  trend: string
+}
+
 const FEZ_IMAGES = {
   cover:
     'https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=1400&q=80',
@@ -774,7 +793,129 @@ export default function UserDashboard() {
     includedItems: isFrench ? 'Éléments inclus' : 'Included items',
     noItems: isFrench ? 'Aucun élément sélectionné.' : 'No items selected.',
     close: isFrench ? 'Fermer' : 'Close',
+    questBoard: isFrench ? 'Tableau des quêtes' : 'Quest board',
+    questSubtitle: isFrench
+      ? 'Des objectifs rapides pour gagner des points.'
+      : 'Quick wins to build your travel score.',
+    questProgress: isFrench ? 'Progression' : 'Progress',
+    questCompleted: isFrench ? 'Quêtes complétées' : 'Quests completed',
+    questScore: isFrench ? 'Score total' : 'Total score',
+    questRank: isFrench ? 'Rang régional' : 'Regional rank',
+    leaderboard: isFrench ? 'Leaderboard local' : 'Local leaderboard',
+    xp: isFrench ? 'points' : 'points',
   }
+
+  const questBoard = useMemo(() => {
+    const city = plan.city
+    const quests: Quest[] = city === 'Meknes'
+      ? [
+        {
+          id: 'quest-mek-1',
+          title: isFrench ? 'Explorer la médina' : 'Medina Explorer',
+          description: isFrench ? 'Visiter 3 portes historiques.' : 'Visit 3 historic gates.',
+          progress: 2,
+          goal: 3,
+          reward: 120,
+          tag: isFrench ? 'Culture' : 'Culture',
+          location: 'Meknes Medina',
+        },
+        {
+          id: 'quest-mek-2',
+          title: isFrench ? 'Goûter local' : 'Local Taste',
+          description: isFrench ? 'Tester 2 spots food.' : 'Try 2 food spots.',
+          progress: 1,
+          goal: 2,
+          reward: 80,
+          tag: isFrench ? 'Food' : 'Food',
+          location: 'Place Hedim',
+        },
+        {
+          id: 'quest-mek-3',
+          title: isFrench ? 'Vue panoramique' : 'Panorama Spot',
+          description: isFrench ? 'Trouver 1 rooftop ou point haut.' : 'Find 1 rooftop or high view.',
+          progress: 0,
+          goal: 1,
+          reward: 60,
+          tag: isFrench ? 'Vue' : 'View',
+          location: 'Meknes Ridge',
+        },
+      ]
+      : [
+        {
+          id: 'quest-fez-1',
+          title: isFrench ? 'Cuir & artisanat' : 'Tannery Discovery',
+          description: isFrench ? 'Visiter 1 tannerie emblématique.' : 'Visit 1 iconic tannery.',
+          progress: 1,
+          goal: 1,
+          reward: 120,
+          tag: isFrench ? 'Artisan' : 'Artisan',
+          location: 'Chouara',
+        },
+        {
+          id: 'quest-fez-2',
+          title: isFrench ? 'Coffee break' : 'Coffee break',
+          description: isFrench ? 'Tester 2 cafés calmes.' : 'Try 2 quiet cafés.',
+          progress: 1,
+          goal: 2,
+          reward: 80,
+          tag: isFrench ? 'Pause' : 'Chill',
+          location: 'Fez Medina',
+        },
+        {
+          id: 'quest-fez-3',
+          title: isFrench ? 'Photo de voyage' : 'Travel photo',
+          description: isFrench ? 'Prendre 3 photos premium.' : 'Capture 3 premium shots.',
+          progress: 2,
+          goal: 3,
+          reward: 100,
+          tag: isFrench ? 'Photo' : 'Photo',
+          location: 'Bab Boujloud',
+        },
+      ]
+
+    const totalQuests = quests.length
+    const completedQuests = quests.filter((quest) => quest.progress >= quest.goal).length
+    const totalScore = quests.reduce((sum, quest) => {
+      const ratio = Math.min(quest.progress / quest.goal, 1)
+      return sum + Math.round(quest.reward * ratio)
+    }, 0)
+
+    const leaderboard: LeaderboardEntry[] = [
+      {
+        id: 'lb-1',
+        name: 'Yasmine A.',
+        points: 920,
+        avatar:
+          'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=120&auto=format&fit=crop&q=60',
+        trend: isFrench ? '+12 cette semaine' : '+12 this week',
+      },
+      {
+        id: 'lb-2',
+        name: 'Karim D.',
+        points: 880,
+        avatar:
+          'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=120&auto=format&fit=crop&q=60',
+        trend: isFrench ? '+8 cette semaine' : '+8 this week',
+      },
+      {
+        id: 'lb-3',
+        name: 'Sofia L.',
+        points: 840,
+        avatar:
+          'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=120&auto=format&fit=crop&q=60',
+        trend: isFrench ? '+5 cette semaine' : '+5 this week',
+      },
+    ]
+
+    return {
+      quests,
+      totalQuests,
+      completedQuests,
+      totalScore,
+      rank: city === 'Meknes' ? 4 : 3,
+      leaderboard,
+    }
+  }, [plan.city, isFrench])
 
   function handleOpenFullModal() {
     setIsFullModalOpen(true)
@@ -846,7 +987,303 @@ export default function UserDashboard() {
                 </div>
               </div>
 
+<<<<<<< HEAD
               <div className='flex flex-col gap-2 sm:flex-row lg:shrink-0'>
+=======
+              <div className='flex gap-3 overflow-x-auto pb-2'>
+                {plan.days.map((day) => (
+                  <DayChip
+                    key={day.day}
+                    day={day}
+                    active={selectedDay.day === day.day}
+                    onClick={() => setActiveDay(day.day)}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className='rounded-[28px] border border-zinc-200 bg-white p-4 shadow-[0_14px_40px_rgba(24,24,27,0.05)] sm:p-5'>
+              <div className='flex items-start justify-between gap-4'>
+                <div>
+                  <p className='text-[11px] font-semibold uppercase tracking-[0.2em] text-orange-500'>
+                    {copy.questBoard}
+                  </p>
+                  <h3 className='mt-2 text-2xl font-semibold tracking-[-0.04em] text-zinc-950'>
+                    {questBoard.totalScore} {copy.xp}
+                  </h3>
+                  <p className='mt-2 text-sm text-zinc-500'>{copy.questSubtitle}</p>
+                </div>
+                <div className='rounded-2xl border border-orange-200 bg-orange-50 px-3 py-2 text-sm font-semibold text-orange-600'>
+                  #{questBoard.rank}
+                </div>
+              </div>
+
+              <div className='mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3'>
+                <div className='rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-3 text-center'>
+                  <p className='text-xs text-zinc-500'>{copy.questCompleted}</p>
+                  <p className='mt-2 text-lg font-semibold text-zinc-950'>
+                    {questBoard.completedQuests}/{questBoard.totalQuests}
+                  </p>
+                </div>
+                <div className='rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-3 text-center'>
+                  <p className='text-xs text-zinc-500'>{copy.questScore}</p>
+                  <p className='mt-2 text-lg font-semibold text-zinc-950'>{questBoard.totalScore}</p>
+                </div>
+                <div className='rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-3 text-center'>
+                  <p className='text-xs text-zinc-500'>{copy.questRank}</p>
+                  <p className='mt-2 text-lg font-semibold text-zinc-950'>#{questBoard.rank}</p>
+                </div>
+              </div>
+
+              <div className='mt-5 space-y-3'>
+                {questBoard.quests.map((quest) => {
+                  const ratio = Math.min(quest.progress / quest.goal, 1)
+                  const completed = ratio >= 1
+                  return (
+                    <div
+                      key={quest.id}
+                      className='rounded-[20px] border border-zinc-200 bg-white p-4'
+                    >
+                      <div className='flex items-start justify-between gap-3'>
+                        <div className='min-w-0'>
+                          <p className='text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-400'>
+                            {quest.tag} · {quest.location}
+                          </p>
+                          <h4 className='mt-2 text-base font-semibold text-zinc-950'>
+                            {quest.title}
+                          </h4>
+                          <p className='mt-2 text-sm text-zinc-500'>{quest.description}</p>
+                        </div>
+                        <div
+                          className={`flex h-9 w-9 items-center justify-center rounded-2xl ${completed
+                            ? 'bg-green-50 text-green-600'
+                            : 'bg-orange-50 text-orange-600'
+                            }`}
+                        >
+                          <CheckCircle2 className='h-4 w-4' />
+                        </div>
+                      </div>
+
+                      <div className='mt-4'>
+                        <div className='mb-2 flex items-center justify-between text-xs text-zinc-500'>
+                          <span>
+                            {copy.questProgress}: {quest.progress}/{quest.goal}
+                          </span>
+                          <span className='font-semibold text-zinc-700'>+{quest.reward} XP</span>
+                        </div>
+                        <div className='h-2 w-full overflow-hidden rounded-full bg-zinc-100'>
+                          <div
+                            className='h-full rounded-full bg-orange-500 transition-all'
+                            style={{ width: `${ratio * 100}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            <div className='rounded-[28px] border border-zinc-200 bg-white p-4 shadow-[0_14px_40px_rgba(24,24,27,0.05)] sm:p-5'>
+              <div className='mb-4 flex items-center justify-between gap-3'>
+                <h3 className='text-lg font-semibold text-zinc-950'>{copy.leaderboard}</h3>
+                <Link to='/user/match' className='text-sm font-medium text-orange-600 hover:underline'>
+                  {isFrench ? 'Voir plus' : 'See more'}
+                </Link>
+              </div>
+              <div className='space-y-3'>
+                {questBoard.leaderboard.map((entry, index) => (
+                  <div
+                    key={entry.id}
+                    className='flex items-center justify-between gap-3 rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-3'
+                  >
+                    <div className='flex items-center gap-3'>
+                      <div className='flex h-9 w-9 items-center justify-center rounded-2xl bg-zinc-900 text-xs font-semibold text-white'>
+                        {index + 1}
+                      </div>
+                      <img
+                        src={entry.avatar}
+                        alt={entry.name}
+                        className='h-9 w-9 rounded-2xl object-cover'
+                      />
+                      <div>
+                        <p className='text-sm font-semibold text-zinc-900'>{entry.name}</p>
+                        <p className='text-xs text-zinc-500'>{entry.trend}</p>
+                      </div>
+                    </div>
+                    <div className='text-sm font-semibold text-zinc-900'>{entry.points} XP</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className='space-y-6'>
+            <div className='rounded-[28px] border border-zinc-200 bg-white p-4 shadow-[0_14px_40px_rgba(24,24,27,0.05)] sm:p-6'>
+              <div className='flex flex-col gap-4 border-b border-zinc-100 pb-6 lg:flex-row lg:items-end lg:justify-between'>
+                <div className='min-w-0'>
+                  <p className='text-[11px] font-semibold uppercase tracking-[0.22em] text-orange-500'>
+                    Day {selectedDay.day}
+                  </p>
+                  <h3 className='mt-2 text-2xl font-semibold tracking-[-0.04em] text-zinc-950 sm:text-3xl'>
+                    {selectedDay.title}
+                  </h3>
+                  <p className='mt-3 max-w-2xl text-sm leading-7 text-zinc-600'>
+                    {selectedDay.summary}
+                  </p>
+                </div>
+
+                <a
+                  href={selectedDay.hotel.mapUrl}
+                  target='_blank'
+                  rel='noreferrer'
+                  className='inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-zinc-200 bg-white px-5 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50'
+                >
+                  {copy.viewDayMap}
+                  <MapPin className='h-4 w-4' />
+                </a>
+              </div>
+
+              <div className='mt-6 rounded-[24px] border border-zinc-200 bg-zinc-50/80 p-4 sm:p-5'>
+                <div className='mb-4 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-400'>
+                  <Hotel className='h-4 w-4 text-orange-500' />
+                  {copy.stayAnchor}
+                </div>
+
+                <div className='grid gap-5 xl:grid-cols-[220px_minmax(0,1fr)]'>
+                  <div className='overflow-hidden rounded-[24px] bg-zinc-100'>
+                    <img
+                      src={selectedDay.hotel.image}
+                      alt={selectedDay.hotel.name}
+                      className='h-full min-h-[220px] w-full object-cover'
+                    />
+                  </div>
+
+                  <div className='flex flex-col justify-between'>
+                    <div>
+                      <h4 className='text-xl font-semibold tracking-[-0.03em] text-zinc-950 sm:text-2xl'>
+                        {selectedDay.hotel.name}
+                      </h4>
+                      <p className='mt-3 text-sm leading-7 text-zinc-600'>
+                        {selectedDay.hotel.description}
+                      </p>
+                      {selectedDay.hotel.price && (
+                        <p className='mt-4 text-sm font-semibold text-orange-600'>
+                          {selectedDay.hotel.price}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className='mt-5 flex flex-col gap-2 sm:flex-row'>
+                      <a
+                        href={selectedDay.hotel.image}
+                        target='_blank'
+                        rel='noreferrer'
+                        className='inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100'
+                      >
+                        {isFrench ? 'Voir le stop' : 'See the stop'}
+                        <ArrowRight className='h-4 w-4' />
+                      </a>
+
+                      <a
+                        href={selectedDay.hotel.mapUrl}
+                        target='_blank'
+                        rel='noreferrer'
+                        className='inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-zinc-950 px-4 text-sm font-semibold text-white transition hover:bg-zinc-800'
+                      >
+                        {isFrench ? 'Voir sur map' : 'View in map'}
+                        <MapPin className='h-4 w-4' />
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className='rounded-[28px] border border-zinc-200 bg-white p-4 shadow-[0_14px_40px_rgba(24,24,27,0.05)] sm:p-6'>
+              <div className='mb-5 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-400'>
+                <CalendarDays className='h-4 w-4 text-orange-500' />
+                {copy.routeOfDay}
+              </div>
+
+              <div className='grid grid-cols-1 gap-5 xl:grid-cols-2'>
+                {selectedDay.stops.map((stop) => (
+                  <StopMiniCard key={stop.id} stop={stop} />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <ModalShell
+        open={isFullModalOpen}
+        onClose={() => setIsFullModalOpen(false)}
+        title={copy.bookFull}
+        subtitle={
+          isFrench
+            ? 'Ce popup blanc confirme la réservation de tout le voyage.'
+            : 'This white popup confirms booking the whole trip.'
+        }
+      >
+        <div className='space-y-5'>
+          <div className='rounded-[24px] border border-zinc-200 bg-zinc-50 p-4 sm:p-5'>
+            <p className='text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-400'>
+              {plan.city}
+            </p>
+            <h4 className='mt-2 text-xl font-semibold text-zinc-950'>{plan.title}</h4>
+            <p className='mt-2 text-sm leading-6 text-zinc-600'>{plan.subtitle}</p>
+
+            <div className='mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3'>
+              <div className='rounded-2xl border border-zinc-200 bg-white p-4'>
+                <p className='text-xs text-zinc-500'>{copy.tripDays}</p>
+                <p className='mt-2 text-lg font-semibold text-zinc-950'>{plan.durationDays}</p>
+              </div>
+              <div className='rounded-2xl border border-zinc-200 bg-white p-4'>
+                <p className='text-xs text-zinc-500'>{copy.totalStopsLabel}</p>
+                <p className='mt-2 text-lg font-semibold text-zinc-950'>{totalStops}</p>
+              </div>
+              <div className='rounded-2xl border border-zinc-200 bg-white p-4'>
+                <p className='text-xs text-zinc-500'>{copy.estimatedBudget}</p>
+                <p className='mt-2 text-lg font-semibold text-zinc-950'>{plan.totalEstimate}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className='flex flex-col-reverse gap-3 sm:flex-row sm:justify-end'>
+            <button
+              onClick={() => setIsFullModalOpen(false)}
+              className='inline-flex h-12 items-center justify-center rounded-2xl border border-zinc-200 bg-white px-5 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50'
+            >
+              {copy.close}
+            </button>
+            <button
+              onClick={handleConfirmFullTrip}
+              className='inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-zinc-950 px-5 text-sm font-semibold text-white transition hover:bg-zinc-800'
+            >
+              {copy.confirmFull}
+              <CheckCircle2 className='h-4 w-4' />
+            </button>
+          </div>
+        </div>
+      </ModalShell>
+
+      <ModalShell
+        open={isPartialModalOpen}
+        onClose={() => setIsPartialModalOpen(false)}
+        title={copy.bookPartial}
+        subtitle={
+          isFrench
+            ? 'Choisissez un jour et les éléments à réserver.'
+            : 'Choose a day and the trip items you want to book.'
+        }
+      >
+        <div className='space-y-6'>
+          <div>
+            <p className='mb-3 text-sm font-semibold text-zinc-900'>{copy.chooseDay}</p>
+            <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+              {plan.days.map((day) => (
+>>>>>>> 98548d0 (Improve agent UI and API wiring)
                 <button
                   onClick={() => setRoadVariant('main')}
                   className={`inline-flex h-10 items-center justify-center gap-2 rounded-xl border px-4 text-sm font-semibold transition ${

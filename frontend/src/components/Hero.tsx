@@ -413,10 +413,6 @@ function getRouteByIntent(intent: IntentType) {
   }
 }
 
-function needsPreferences(intent: IntentType) {
-  return intent === 'match' || intent === 'booking' || intent === 'guide' || intent === 'collab'
-}
-
 function ImageCard({
   src,
   alt,
@@ -875,21 +871,6 @@ export default function Hero() {
     const durationDays = extractDurationDays(trimmed)
     const budgetDh = extractBudgetDh(trimmed)
 
-    const context: PendingIntent = {
-      prompt: trimmed,
-      intent,
-      city,
-      category,
-      durationDays,
-      budgetDh,
-    }
-
-    if (needsPreferences(intent)) {
-      setPendingIntent(context)
-      setPopupOpen(true)
-      return
-    }
-
     const tripPlan =
       intent === 'dashboard'
         ? buildTripPlan(city, durationDays ?? 5, budgetDh ?? null)
@@ -906,11 +887,12 @@ export default function Hero() {
       matchTargetCount: undefined,
       tripPlan,
     })
+    sessionStorage.setItem('heroPrompt', trimmed)
 
     setIsLoading(true)
 
     window.setTimeout(() => {
-      goToIntentRoute(intent)
+      goToIntentRoute('dashboard')
       setIsLoading(false)
       setQuery('')
     }, 900)
@@ -921,6 +903,26 @@ export default function Hero() {
     if (!trimmed || isLoading) return
 
     if (!user) {
+      const city = extractCity(trimmed)
+      const category = extractCategory(trimmed)
+      const durationDays = extractDurationDays(trimmed)
+      const budgetDh = extractBudgetDh(trimmed)
+      const tripPlan = buildTripPlan(city, durationDays ?? 5, budgetDh ?? null)
+
+      savePromptContext({
+        prompt: trimmed,
+        intent: 'dashboard',
+        city,
+        category,
+        durationDays,
+        budgetDh,
+        demoPrompts: getDemoPrompts('dashboard', category, city),
+        matchTargetCount: undefined,
+        tripPlan,
+      })
+
+      sessionStorage.setItem('heroPrompt', trimmed)
+      sessionStorage.setItem('heroPostLoginRoute', '/user/dashboard')
       navigate('/login')
       return
     }

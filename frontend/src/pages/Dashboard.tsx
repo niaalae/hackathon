@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { ArrowRight, Loader2, Sparkles } from 'lucide-react'
 import PageLayout from '@/components/layouts/PageLayout'
-import api from '@/lib/api'
+import { requestHeroAgent } from '@/lib/agent'
 
 type BookingSuggestion = {
   title: string
@@ -13,9 +13,21 @@ type BookingSuggestion = {
 
 type HeroAgentResponse = {
   answer: string
-  intent?: 'booking' | 'information' | 'collaboration' | 'guide' | 'new_trip'
-  followUpQuestion?: string
-  bookings?: BookingSuggestion[]
+  intent: 'booking' | 'information' | 'collaboration' | 'guide' | 'new_trip'
+  followUpQuestion: string | null
+  bookings: BookingSuggestion[]
+  actions: AgentAction[]
+}
+
+type AgentAction = {
+  type:
+    | 'SHOW_TRIPS'
+    | 'SHOW_GROUPS'
+    | 'SHOW_BOOKINGS'
+    | 'SHOW_GUIDES'
+    | 'SHOW_MAP'
+    | 'SHOW_QUESTS'
+  payload?: Record<string, unknown>
 }
 
 export default function Dashboard() {
@@ -36,7 +48,7 @@ export default function Dashboard() {
     setIsLoading(true)
     setError('')
     try {
-      const { data } = await api.post<HeroAgentResponse>('/agent/hero', { prompt: trimmed })
+      const { data } = await requestHeroAgent<HeroAgentResponse>(trimmed)
       setResponse(data)
     } catch {
       setError('Could not reach the trip agent. Please try again.')

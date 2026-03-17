@@ -10,7 +10,7 @@ import {
   Check,
   XCircle,
 } from 'lucide-react';
-import api from '@/lib/api';
+import { requestHeroAgent } from '@/lib/agent';
 
 type BookingSuggestion = {
   title: string;
@@ -77,10 +77,22 @@ type BudgetBreakdown = {
 
 type HeroAgentResponse = {
   answer: string;
-  intent?: 'booking' | 'information' | 'collaboration' | 'guide' | 'new_trip';
-  followUpQuestion?: string;
+  intent: 'booking' | 'information' | 'collaboration' | 'guide' | 'new_trip';
+  followUpQuestion: string | null;
   bookings: BookingSuggestion[];
   travelPlan?: TravelPlan;
+  actions: AgentAction[];
+};
+
+type AgentAction = {
+  type:
+    | 'SHOW_TRIPS'
+    | 'SHOW_GROUPS'
+    | 'SHOW_BOOKINGS'
+    | 'SHOW_GUIDES'
+    | 'SHOW_MAP'
+    | 'SHOW_QUESTS';
+  payload?: Record<string, unknown>;
 };
 
 const LOADING_TEXTS = [
@@ -130,7 +142,7 @@ export default function UserAI() {
     if (!input.trim()) return;
     setPhase('loading');
     try {
-      const res = await api.post<HeroAgentResponse>('/agent/hero', { prompt: input });
+      const res = await requestHeroAgent<HeroAgentResponse>(input);
       setPlan(res.data);
       setPhase('result');
       setActiveTab(0);
@@ -163,24 +175,37 @@ export default function UserAI() {
 
   if (phase === 'idle') {
     return (
-      <div className="space-y-6 max-w-2xl mx-auto">
-        <div className="text-center">
-          <h1 className="flex items-center justify-center gap-2 text-3xl font-bold text-zinc-900">
-            <Sparkles className="h-8 w-8 text-orange-500" />
-            AI Travel Planner 🇲🇦
-          </h1>
-          <p className="mt-2 text-zinc-500">
-            Describe your trip to Morocco and get a complete personalized plan
-          </p>
+      <div className="relative mx-auto max-w-3xl space-y-8">
+        <div className="pointer-events-none absolute -top-24 left-1/2 h-56 w-56 -translate-x-1/2 rounded-full bg-orange-200/40 blur-3xl" />
+        <div className="pointer-events-none absolute -right-12 top-32 h-40 w-40 rounded-full bg-amber-200/40 blur-3xl" />
+
+        <div className="relative overflow-hidden rounded-[28px] border border-orange-100/60 bg-white/90 p-6 shadow-[0_24px_60px_rgba(15,23,42,0.12)] backdrop-blur">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-orange-100 bg-orange-50 px-3 py-1 text-xs font-medium text-orange-700">
+                <Sparkles className="h-3.5 w-3.5" />
+                Trippple AI Concierge
+              </div>
+              <h1 className="text-3xl font-semibold text-zinc-900">
+                Design a premium Morocco trip in seconds
+              </h1>
+              <p className="mt-2 text-sm text-zinc-500">
+                Share your destination, dates, and budget. The agent handles the rest.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-zinc-100 bg-white/70 px-4 py-3 text-xs text-zinc-500 shadow-sm">
+              🎯 Optimized routes • 💬 Smart follow-ups
+            </div>
+          </div>
         </div>
 
-        <div className="space-y-4 rounded-[20px] bg-white p-6 shadow-sm border border-zinc-200">
+        <div className="relative space-y-4 rounded-[24px] border border-zinc-200/70 bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.08)]">
           <textarea
             rows={4}
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            className="w-full rounded-2xl border border-zinc-200 p-4 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 resize-none"
-            placeholder="E.g. I want to visit Marrakech for 5 days with a $1500 budget"
+            className="w-full rounded-2xl border border-zinc-200/80 bg-zinc-50/60 p-4 text-sm text-zinc-900 outline-none transition focus:border-orange-400 focus:ring-4 focus:ring-orange-100 resize-none"
+            placeholder="E.g. Marrakech for 5 days, $1500 budget, from Paris"
           />
           <div className="flex flex-wrap gap-2">
             {[
@@ -192,7 +217,7 @@ export default function UserAI() {
               <button
                 key={chip}
                 onClick={() => setInput(chip)}
-                className="cursor-pointer rounded-full border border-zinc-200 px-3 py-2 text-xs text-zinc-600 transition-colors hover:border-orange-400 hover:text-orange-600"
+                className="cursor-pointer rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-600 shadow-sm transition hover:border-orange-300 hover:text-orange-600"
               >
                 {chip}
               </button>
@@ -200,14 +225,14 @@ export default function UserAI() {
           </div>
           <button
             onClick={handleSubmit}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 py-3 font-semibold text-white hover:bg-orange-600 transition-colors"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 py-3 font-semibold text-white shadow-[0_16px_30px_rgba(249,115,22,0.35)] transition hover:translate-y-[-1px] hover:shadow-[0_22px_40px_rgba(249,115,22,0.4)]"
           >
-            Plan My Morocco Trip →
+            Plan My Morocco Trip
             <Sparkles className="h-4 w-4" />
           </button>
         </div>
 
-        <div className="mx-auto mt-6 w-fit rounded-full border border-zinc-200 px-4 py-2 text-xs text-zinc-400">
+        <div className="mx-auto w-fit rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs text-zinc-400">
           🌍 International destinations coming soon
         </div>
       </div>
@@ -216,13 +241,14 @@ export default function UserAI() {
 
   if (phase === 'loading') {
     return (
-      <div className="space-y-6 max-w-2xl mx-auto flex flex-col items-center justify-center py-20">
-        <div className="text-lg font-medium text-zinc-700 animate-pulse">
+      <div className="mx-auto flex max-w-2xl flex-col items-center justify-center space-y-6 py-20">
+        <div className="flex items-center gap-3 rounded-2xl border border-orange-100 bg-orange-50/60 px-4 py-3 text-sm font-medium text-orange-700 shadow-sm">
+          <Sparkles className="h-4 w-4 animate-pulse" />
           {LOADING_TEXTS[loadingTextIndex]}
         </div>
-        <div className="h-2 w-full max-w-sm overflow-hidden rounded-full bg-zinc-100">
+        <div className="h-2.5 w-full max-w-sm overflow-hidden rounded-full bg-zinc-100">
           <div
-            className="h-full rounded-full bg-orange-500"
+            className="h-full rounded-full bg-gradient-to-r from-orange-500 to-amber-500 shadow-[0_0_12px_rgba(249,115,22,0.45)]"
             style={{
               width: `${progressWidth}%`,
               transition: 'width 4000ms linear',
@@ -235,12 +261,14 @@ export default function UserAI() {
 
   if (phase === 'error') {
     return (
-      <div className="space-y-6 max-w-2xl mx-auto flex flex-col items-center justify-center py-20">
-        <XCircle className="h-16 w-16 text-red-500" />
-        <p className="text-zinc-700">{errorMsg}</p>
+      <div className="mx-auto flex max-w-2xl flex-col items-center justify-center space-y-6 py-20">
+        <div className="rounded-full border border-red-100 bg-red-50 p-4">
+          <XCircle className="h-12 w-12 text-red-500" />
+        </div>
+        <p className="text-sm text-zinc-600">{errorMsg}</p>
         <button
           onClick={resetToIdle}
-          className="rounded-2xl bg-orange-500 px-6 py-2 font-medium text-white hover:bg-orange-600 transition-colors"
+          className="rounded-2xl bg-orange-500 px-6 py-2 font-medium text-white shadow-sm transition-colors hover:bg-orange-600"
         >
           Try Again
         </button>
@@ -252,27 +280,27 @@ export default function UserAI() {
 
   if (!plan.travelPlan) {
     return (
-      <div className="space-y-6 max-w-2xl mx-auto">
-        <div className="rounded-2xl bg-orange-50 p-6 border border-orange-100">
-          <p className="text-orange-900">{plan.answer}</p>
+      <div className="mx-auto max-w-2xl space-y-6">
+        <div className="rounded-2xl border border-orange-100 bg-gradient-to-r from-orange-50 to-amber-50 p-6 shadow-sm">
+          <p className="text-sm text-orange-900">{plan.answer}</p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           {plan.bookings.map((b, i) => (
-            <div key={i} className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-semibold">{b.title}</h3>
+            <div key={i} className="rounded-2xl border border-zinc-200/70 bg-white p-4 shadow-[0_12px_30px_rgba(15,23,42,0.06)]">
+              <div className="mb-2 flex items-center justify-between">
+                <h3 className="font-semibold text-zinc-900">{b.title}</h3>
                 <span className="rounded-full bg-zinc-100 px-2 py-1 text-xs capitalize text-zinc-600">
                   {b.type}
                 </span>
               </div>
-              {b.priceRange && <p className="text-sm font-medium text-orange-600 mb-1">{b.priceRange}</p>}
+              {b.priceRange && <p className="mb-1 text-sm font-medium text-orange-600">{b.priceRange}</p>}
               {b.notes && <p className="text-sm text-zinc-500">{b.notes}</p>}
             </div>
           ))}
         </div>
         <button
           onClick={resetToIdle}
-          className="rounded-2xl bg-orange-500 px-6 py-2 font-medium text-white hover:bg-orange-600 transition-colors"
+          className="rounded-2xl bg-orange-500 px-6 py-2 font-medium text-white shadow-sm transition-colors hover:bg-orange-600"
         >
           New Plan
         </button>
@@ -288,16 +316,16 @@ export default function UserAI() {
     travelPlan.hotels?.find((h) => h.isRecommended) || travelPlan.hotels?.[0];
 
   return (
-    <div className="space-y-6 max-w-3xl mx-auto">
+    <div className="mx-auto max-w-4xl space-y-6">
       {/* Sticky Header */}
-      <div className="sticky top-0 z-20 mb-4 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 p-4 text-white shadow-sm">
+      <div className="sticky top-0 z-20 mb-4 rounded-[22px] bg-gradient-to-r from-orange-500 via-orange-500 to-amber-500 p-5 text-white shadow-[0_20px_50px_rgba(249,115,22,0.3)]">
         <div className="mb-2 flex items-center justify-between">
           <h2 className="text-xl font-bold">
             {travelPlan.from.city} → {travelPlan.to.city}
           </h2>
           <button
             onClick={resetToIdle}
-            className="rounded-xl border border-white px-3 py-1 text-sm font-medium text-white outline-none hover:bg-white/10 transition-colors"
+            className="rounded-xl border border-white/70 px-3 py-1 text-sm font-medium text-white/95 outline-none transition hover:bg-white/10"
           >
             New Plan
           </button>
@@ -315,13 +343,13 @@ export default function UserAI() {
       </div>
 
       {/* Sticky Tab Bar */}
-      <div className="sticky top-[140px] z-10 flex overflow-x-auto border-b border-zinc-200 bg-white scrollbar-hide">
+      <div className="sticky top-[140px] z-10 flex overflow-x-auto rounded-2xl border border-zinc-200/70 bg-white/90 px-2 backdrop-blur scrollbar-hide">
         {TABS.map((tab, idx) => (
           <button
             key={tab}
             onClick={() => setActiveTab(idx)}
-            className={`cursor-pointer whitespace-nowrap px-4 py-3 text-sm transition-colors ${activeTab === idx
-                ? 'border-b-2 border-orange-500 font-semibold text-orange-600'
+            className={`cursor-pointer whitespace-nowrap rounded-2xl px-4 py-3 text-sm transition ${activeTab === idx
+                ? 'bg-orange-500 text-white shadow-[0_10px_25px_rgba(249,115,22,0.35)]'
                 : 'text-zinc-500 hover:text-zinc-700'
               }`}
           >

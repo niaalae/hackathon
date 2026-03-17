@@ -112,7 +112,7 @@ Each AI response returns:
 - Authentication with JWT
 
 ### AI
-- **Gemini API** (free tier)
+- **Groq API** (free tier)
 - Local fallback embeddings if no key
 
 ---
@@ -138,7 +138,7 @@ Each AI response returns:
 ### Current
 - Dataset quality needs cleanup / enrichment
 - Fonts need fixes
-- Agent still uses fallback if Gemini key fails
+- Agent still uses fallback if Groq key fails
 
 ### Next Steps
 - True booking integration (providers + checkout)
@@ -168,4 +168,3 @@ Each AI response returns:
 ## 12) Summary (1‑Line Pitch)
 
 > “Trippple is the AI travel agent that books, plans, and connects travelers in one seamless flow.”
-

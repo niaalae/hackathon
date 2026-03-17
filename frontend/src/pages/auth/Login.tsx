@@ -44,7 +44,13 @@ export default function Login() {
       if (res?.user?.role === 'ADMIN') {
         navigate('/admin')
       } else {
-        navigate('/user')
+        const postLoginRoute = sessionStorage.getItem('heroPostLoginRoute')
+        const hasHeroPrompt = !!sessionStorage.getItem('heroPrompt')
+        const target = postLoginRoute ?? (hasHeroPrompt ? '/user/dashboard' : '/user')
+        if (postLoginRoute) {
+          sessionStorage.removeItem('heroPostLoginRoute')
+        }
+        navigate(target)
       }
     } catch (error: any) {
       console.error('Login failed:', error)

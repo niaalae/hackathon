@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useWindowSize } from '@/hooks/useWindowSize'
 import { TopBar, Sidebar, BottomNav, MobileDrawer } from './user'
+import AgentBubble from './user/AgentBubble'
 
 export default function UserLayout() {
   const { i18n } = useTranslation()
@@ -48,9 +49,12 @@ export default function UserLayout() {
           </div>
         </main>
 
-        {/* Mobile Bottom Navigation */}
-        {isMobile && <BottomNav />}
-      </div>
+      {/* Mobile Bottom Navigation */}
+      {isMobile && <BottomNav />}
+    </div>
+
+    {/* Desktop/Tablet AI Agent Bubble */}
+    {!isMobile && <AgentBubble />}
 
       <style>{`
         .animate-fade-in {

@@ -4,7 +4,7 @@ Trippple is a premium, AI‑driven travel platform that turns a single prompt in
 
 ## What’s Live
 
-- **AI Trip Agent** (Gemini‑powered) that understands intent:
+- **AI Trip Agent** (Groq‑powered) that understands intent:
   - `booking` — builds a travel plan + booking shortlist
   - `information` — answers questions and nudges conversion
   - `collaboration` — helps match and join trip groups
@@ -25,7 +25,7 @@ Trippple is a premium, AI‑driven travel platform that turns a single prompt in
 
 - **Frontend:** React + Vite + TypeScript + Tailwind
 - **Backend:** NestJS + Prisma + PostgreSQL
-- **AI:** Gemini API (Google AI Studio)
+- **AI:** Groq API (OpenAI‑compatible)
 
 ## Key Routes
 
@@ -61,8 +61,8 @@ Create your own `.env` files (they are ignored by git).
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/hackathon"
 JWT_SECRET="super-secure-secret"
 JWT_REFRESH_SECRET="super-secure-refresh-secret"
-GEMINI_API_KEY="<your_gemini_api_key>"
-GEMINI_MODEL="gemini-3-flash-preview"
+GROQ_API_KEY="<your_groq_api_key>"
+GROQ_MODEL="llama-3.1-8b-instant"
 ```
 
 **frontend/.env**

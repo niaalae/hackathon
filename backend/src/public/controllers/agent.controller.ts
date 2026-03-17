@@ -1,7 +1,6 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { HeroAgentService } from '@/services/hero-agent.service';
 import { ChatService } from '@/services/chat.service';
-import { HeroAgentDto } from '../dto/agent/hero-agent.dto';
 import { ChatDto } from '../dto/agent/chat.dto';
 
 @Controller('agent')
@@ -12,8 +11,14 @@ export class AgentPublicController {
   ) { }
 
   @Post('hero')
-  async hero(@Body() body: HeroAgentDto) {
-    return this.heroAgentService.generateHeroReply(body.prompt);
+  async hero(@Body() body: { prompt?: string }) {
+    const prompt = typeof body?.prompt === 'string' ? body.prompt : '';
+    return this.heroAgentService.generateHeroReply(prompt);
+  }
+
+  @Get('hero')
+  async heroGet(@Query('prompt') prompt?: string) {
+    return this.heroAgentService.generateHeroReply(typeof prompt === 'string' ? prompt : '');
   }
 
   @Post('chat')

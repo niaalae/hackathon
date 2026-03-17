@@ -1,4 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { loadEnv } from '@/env';
+import { existsSync, readFileSync } from 'fs';
+import { join } from 'path';
 
 type ChatMessage = {
     role: 'user' | 'assistant';
@@ -8,9 +11,14 @@ type ChatMessage = {
 @Injectable()
 export class ChatService {
     private readonly logger = new Logger(ChatService.name);
-    private readonly apiKey = process.env.GEMINI_API_KEY ?? '';
-    private readonly model = process.env.GEMINI_MODEL ?? 'gemini-3-flash-preview';
-    private readonly endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent`;
+    private get apiKey() {
+        return process.env.GROQ_API_KEY ?? '';
+    }
+
+    private get model() {
+        return process.env.GROQ_MODEL ?? 'llama-3.1-8b-instant';
+    }
+    private readonly endpoint = 'https://api.groq.com/openai/v1/chat/completions';
 
     private readonly systemPrompt = [
         'You are Trippple AI, a friendly travel assistant for Morocco (especially the Fes-Meknes region).',
@@ -21,21 +29,52 @@ export class ChatService {
         'Never return JSON. Reply in plain text only.',
     ].join(' ');
 
+    private loadGroqKeyFromFile(): string {
+        const candidates = [
+            join(process.cwd(), 'backend', '.env'),
+            join(process.cwd(), '.env'),
+            join(__dirname, '..', '..', '.env'),
+            join(__dirname, '..', '..', '..', '.env'),
+        ];
+
+        for (const filePath of candidates) {
+            if (!existsSync(filePath)) continue;
+            const contents = readFileSync(filePath, 'utf8');
+            const line = contents
+                .split('\n')
+                .find((entry) => entry.trim().startsWith('GROQ_API_KEY='));
+            if (!line) continue;
+            const raw = line.split('=')[1]?.trim() ?? '';
+            const cleaned = raw.replace(/^['"]|['"]$/g, '');
+            if (cleaned) return cleaned;
+        }
+
+        return '';
+    }
+
     async chat(message: string, history: ChatMessage[]): Promise<string> {
+        loadEnv()
+        let apiKey = this.apiKey
+        if (!apiKey) {
+            apiKey = this.loadGroqKeyFromFile()
+            if (apiKey) {
+                process.env.GROQ_API_KEY = apiKey
+            }
+        }
         const trimmed = message.trim();
         if (!trimmed) return 'Please ask me something about your trip! 🧳';
 
-        if (!this.apiKey) {
-            return 'The AI agent is not configured yet. Please add your Gemini API key to .env 🔑';
+        if (!apiKey) {
+            return 'The AI agent is not configured yet. Please add your Groq API key to .env 🔑';
         }
 
-        // Build conversation context
-        const conversationParts = [
-            { text: this.systemPrompt },
+        const messages = [
+            { role: 'system' as const, content: this.systemPrompt },
             ...history.slice(-6).map((msg) => ({
-                text: `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`,
+                role: msg.role,
+                content: msg.content,
             })),
-            { text: `User: ${trimmed}` },
+            { role: 'user' as const, content: trimmed },
         ];
 
         try {
@@ -43,27 +82,23 @@ export class ChatService {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'x-goog-api-key': this.apiKey,
+                    Authorization: `Bearer ${apiKey}`,
                 },
                 body: JSON.stringify({
-                    contents: [{ parts: conversationParts }],
-                    generationConfig: {
-                        temperature: 0.7,
-                        maxOutputTokens: 256,
-                    },
+                    model: this.model,
+                    messages,
+                    temperature: 0.7,
+                    max_tokens: 256,
                 }),
             });
 
             if (!response.ok) {
-                this.logger.warn(`Gemini API error: ${response.status}`);
+                this.logger.warn(`Groq API error: ${response.status}`);
                 return 'Sorry, I had trouble thinking. Try again in a moment! 🙏';
             }
 
             const data = await response.json();
-            const text =
-                data?.candidates?.[0]?.content?.parts
-                    ?.map((part: { text?: string }) => part.text ?? '')
-                    .join('') ?? '';
+            const text = data?.choices?.[0]?.message?.content ?? '';
 
             return text.trim() || 'Hmm, I could not come up with an answer. Try rephrasing? 🤔';
         } catch (error) {

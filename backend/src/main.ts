@@ -1,10 +1,8 @@
-import 'dotenv/config'  // ← MUST be first
-
+import './env'
 import { NestFactory } from '@nestjs/core'
 import { AppModule } from './app.module'
 import { ValidationPipe } from '@nestjs/common'
 import cookieParser from 'cookie-parser'
-import 'dotenv/config'
 import { NestExpressApplication } from '@nestjs/platform-express'
 import { existsSync } from 'fs'
 import { join } from 'path'
@@ -33,6 +31,12 @@ const resolveFrontendDist = () => {
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule)
 
+  if (process.env.NODE_ENV !== 'production') {
+    const len = process.env.GROQ_API_KEY ? process.env.GROQ_API_KEY.length : 0
+    // eslint-disable-next-line no-console
+    console.log(`GROQ_API_KEY length: ${len}`)
+  }
+
   app.use(cookieParser())
 
   app.enableCors({
@@ -60,7 +64,7 @@ async function bootstrap() {
   }
 
   const port = Number(process.env.PORT ?? 4001)
-  await app.listen(port)
+  await app.listen(port, '127.0.0.1')
 }
 
 bootstrap()
