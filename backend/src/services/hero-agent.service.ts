@@ -185,6 +185,14 @@ export class HeroAgentService {
     );
   }
 
+  private isGreeting(prompt: string): boolean {
+    const trimmed = prompt.trim().toLowerCase();
+    if (!trimmed) return false;
+    const greetingRegex = /^(hi|hey|hello|yo|sup|wassup|wasup|salam|salut|hola)(\b|!|\.|,|\s)/;
+    if (!greetingRegex.test(trimmed)) return false;
+    return trimmed.split(/\s+/).length <= 4;
+  }
+
   private pickRandom<T>(items: T[]): T {
     if (items.length === 0) {
       throw new Error('Cannot pick from empty list');
@@ -428,6 +436,17 @@ export class HeroAgentService {
     const finalPrompt = randomRequested
       ? this.randomizePrompt(cleanPrompt)
       : cleanPrompt;
+
+    if (this.isGreeting(cleanPrompt) && !this.hasDestination(cleanPrompt)) {
+      return {
+        answer:
+          "Hey! I'm Trippple, your Morocco travel concierge. Tell me a city or the vibe you want and I'll handle the rest.",
+        intent: 'information',
+        followUpQuestion: null,
+        bookings: [],
+        actions: [],
+      };
+    }
     if (!cleanPrompt) {
       const bookings: BookingSuggestion[] = [];
       return {
