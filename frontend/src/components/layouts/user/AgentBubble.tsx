@@ -46,6 +46,7 @@ export default function AgentBubble() {
   const [lastResponse, setLastResponse] = useState<HeroAgentResponse | null>(null)
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showModes, setShowModes] = useState(true)
   const bottomRef = useRef<HTMLDivElement>(null)
 
   const agentModes = [
@@ -141,6 +142,7 @@ export default function AgentBubble() {
     ])
     setInput('')
     setLoading(true)
+    setShowModes(false)
 
     try {
       const { data } = await requestHeroAgent<HeroAgentResponse>(trimmed, history)
@@ -297,39 +299,55 @@ export default function AgentBubble() {
             </div>
           ) : null}
 
-          <div className="mb-3 rounded-2xl border border-orange-100/70 bg-gradient-to-br from-orange-50 via-white to-amber-50 px-3 py-3 shadow-[0_10px_22px_rgba(249,115,22,0.08)]">
+          <div className="mb-3">
             <div className="flex items-center justify-between text-[11px] uppercase tracking-[0.2em] text-zinc-400">
-              <span>Agent modes</span>
-              <span className="text-[10px] font-semibold text-orange-600">Tap to start</span>
+              <span>Quick start</span>
+              <button
+                onClick={() => setShowModes((prev) => !prev)}
+                className="rounded-full border border-orange-100 bg-white px-3 py-1 text-[10px] font-semibold text-orange-600 transition hover:bg-orange-50"
+              >
+                {showModes ? 'Hide' : 'Show'}
+              </button>
             </div>
-            <div className="mt-3 grid grid-cols-2 gap-2">
-              {agentModes.map((mode, index) => {
-                const Icon = mode.icon
-                const spanClass =
-                  index === agentModes.length - 1 ? 'col-span-2' : ''
-                return (
-                  <button
-                    key={mode.label}
-                    onClick={() => void sendMessage(mode.prompt)}
-                    className={`group flex items-center gap-2 rounded-xl border border-white/80 bg-white/90 px-2.5 py-2 text-left shadow-[0_8px_16px_rgba(15,23,42,0.06)] transition hover:-translate-y-0.5 hover:border-orange-200 hover:shadow-[0_12px_20px_rgba(249,115,22,0.12)] ${spanClass}`}
-                  >
-                    <span
-                      className={`flex h-8 w-8 items-center justify-center rounded-lg ${mode.tone}`}
-                    >
-                      <Icon className="h-4 w-4" />
-                    </span>
-                    <span>
-                      <span className="block text-xs font-semibold text-zinc-900">
-                        {mode.label}
-                      </span>
-                      <span className="block text-[10px] text-zinc-500">
-                        {mode.hint}
-                      </span>
-                    </span>
-                  </button>
-                )
-              })}
-            </div>
+
+            {showModes && (
+              <div className="mt-3 rounded-2xl border border-orange-100/70 bg-gradient-to-br from-orange-50 via-white to-amber-50 px-3 py-3 shadow-[0_10px_22px_rgba(249,115,22,0.08)]">
+                <div className="flex items-center justify-between text-[11px] uppercase tracking-[0.2em] text-zinc-400">
+                  <span>Agent modes</span>
+                  <span className="text-[10px] font-semibold text-orange-600">
+                    Tap to start
+                  </span>
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  {agentModes.map((mode, index) => {
+                    const Icon = mode.icon
+                    const spanClass =
+                      index === agentModes.length - 1 ? 'col-span-2' : ''
+                    return (
+                      <button
+                        key={mode.label}
+                        onClick={() => void sendMessage(mode.prompt)}
+                        className={`group flex items-center gap-2 rounded-xl border border-white/80 bg-white/90 px-2.5 py-2 text-left shadow-[0_8px_16px_rgba(15,23,42,0.06)] transition hover:-translate-y-0.5 hover:border-orange-200 hover:shadow-[0_12px_20px_rgba(249,115,22,0.12)] ${spanClass}`}
+                      >
+                        <span
+                          className={`flex h-8 w-8 items-center justify-center rounded-lg ${mode.tone}`}
+                        >
+                          <Icon className="h-4 w-4" />
+                        </span>
+                        <span>
+                          <span className="block text-xs font-semibold text-zinc-900">
+                            {mode.label}
+                          </span>
+                          <span className="block text-[10px] text-zinc-500">
+                            {mode.hint}
+                          </span>
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="flex gap-2">

@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { loadEnv } from '@/env';
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
+import { randomInt } from 'crypto';
 
 type BookingSuggestion = {
   title: string;
@@ -104,6 +105,20 @@ export class HeroAgentService {
     return process.env.GROQ_MODEL ?? 'llama-3.1-8b-instant';
   }
   private readonly endpoint = 'https://api.groq.com/openai/v1/chat/completions';
+  private readonly moroccoCities = [
+    'Fes',
+    'Marrakech',
+    'Casablanca',
+    'Chefchaouen',
+    'Essaouira',
+    'Agadir',
+    'Rabat',
+    'Tangier',
+    'Merzouga',
+    'Ouarzazate',
+    'Imlil',
+    'Dakhla',
+  ];
 
   private fallbackBookings(
     prompt: string,
@@ -162,6 +177,87 @@ export class HeroAgentService {
         notes: 'Shortlist with reviews and safety checks.',
       },
     ];
+  }
+
+  private isRandomRequested(prompt: string): boolean {
+    return /(random|surprise|wild|whatever|anything|go wild|pick for me)/i.test(
+      prompt,
+    );
+  }
+
+  private pickRandom<T>(items: T[]): T {
+    if (items.length === 0) {
+      throw new Error('Cannot pick from empty list');
+    }
+    const index =
+      typeof randomInt === 'function'
+        ? randomInt(items.length)
+        : Math.floor(Math.random() * items.length);
+    return items[index];
+  }
+
+  private hasDestination(prompt: string): boolean {
+    return this.moroccoCities.some((city) =>
+      new RegExp(`\\b${city}\\b`, 'i').test(prompt),
+    );
+  }
+
+  private hasBudget(prompt: string): boolean {
+    return /(\d{2,6})\s*(mad|dh|usd|\$)/i.test(prompt);
+  }
+
+  private hasDatesOrDuration(prompt: string): boolean {
+    if (/\b\d+\s*(day|days|night|nights)\b/i.test(prompt)) return true;
+    if (
+      /\b(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)\b/i.test(prompt)
+    ) {
+      return true;
+    }
+    if (/\b20\d{2}-\d{2}-\d{2}\b/.test(prompt)) return true;
+    return false;
+  }
+
+  private randomizePrompt(prompt: string): string {
+    const needsCity = !this.hasDestination(prompt);
+    const needsBudget = !this.hasBudget(prompt);
+    const needsDates = !this.hasDatesOrDuration(prompt);
+
+    const destination = needsCity
+      ? this.pickRandom(this.moroccoCities)
+      : 'specified';
+    const origin = this.pickRandom(['Fes', 'Casablanca', 'Rabat', 'Tangier']);
+
+    const duration = this.pickRandom([3, 4, 5, 6]);
+    const startOffset = this.pickRandom([7, 10, 14, 21, 28]);
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() + startOffset);
+    const endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + duration);
+    const dateString = `${startDate.toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    })} to ${endDate.toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    })}`;
+
+    const budgetMad = this.pickRandom([3200, 3800, 4500, 5200, 6000, 7200]);
+    const budgetUsd = Math.round(budgetMad / 10);
+
+    const details = [
+      needsCity ? `Destination: ${destination}` : null,
+      needsDates ? `Dates: ${dateString} (${duration} days)` : null,
+      needsBudget ? `Budget: ${budgetMad} MAD (~$${budgetUsd})` : null,
+      `Origin: ${origin}`,
+    ]
+      .filter(Boolean)
+      .join(', ');
+
+    if (!details) return prompt;
+
+    return `${prompt}\n\nRandomized details (approved by user): ${details}.`;
   }
 
   private extractJson(text: string): string | null {
@@ -276,6 +372,22 @@ export class HeroAgentService {
     return actions;
   }
 
+  private shouldShowBookings(
+    intent: HeroAgentResponse['intent'],
+    prompt: string,
+    randomRequested: boolean,
+  ): boolean {
+    if (intent === 'information') return false;
+    if (intent === 'guide' || intent === 'collaboration') return true;
+    if (intent === 'booking' || intent === 'new_trip') {
+      return (
+        (this.hasDestination(prompt) || randomRequested) &&
+        (this.hasBudget(prompt) || randomRequested)
+      );
+    }
+    return false;
+  }
+
   private loadGroqKeyFromFile(): string {
     const candidates = [
       join(process.cwd(), 'backend', '.env'),
@@ -312,8 +424,12 @@ export class HeroAgentService {
       }
     }
     const cleanPrompt = prompt.trim();
+    const randomRequested = this.isRandomRequested(cleanPrompt);
+    const finalPrompt = randomRequested
+      ? this.randomizePrompt(cleanPrompt)
+      : cleanPrompt;
     if (!cleanPrompt) {
-      const bookings = this.fallbackBookings('', 'information');
+      const bookings: BookingSuggestion[] = [];
       return {
         answer: 'Tell me your destination, dates, budget, and vibe. I will handle the rest.',
         intent: 'information',
@@ -326,12 +442,16 @@ export class HeroAgentService {
     if (!apiKey) {
       this.logger.warn('GROQ_API_KEY missing. Check backend/.env.');
       const inferredIntent = this.inferIntentFromPrompt(cleanPrompt);
-      const bookings = this.fallbackBookings(cleanPrompt, inferredIntent);
+      const bookings = this.shouldShowBookings(inferredIntent, cleanPrompt, randomRequested)
+        ? this.fallbackBookings(cleanPrompt, inferredIntent)
+        : [];
       return {
         answer:
           'I can suggest a plan, but the live AI agent is not connected yet. Here is a quick starter plan.',
         intent: inferredIntent,
-        followUpQuestion: 'Do you want to create a new trip with these suggestions?',
+        followUpQuestion: randomRequested
+          ? null
+          : 'Do you want to create a new trip with these suggestions?',
         bookings,
         actions: this.buildActions(inferredIntent, bookings),
       };
@@ -354,11 +474,15 @@ Merzouga, Ouarzazate, Imlil, Dakhla).
 If the user only greets (e.g. "hi", "hello") or does NOT mention a destination,
 respond with JSON that politely asks for a Moroccan city + dates + budget.
 
+If the user says "random", "surprise me", "go wild", "anything", or
+"put everything random", you MUST auto-fill missing details with randomized,
+plausible values and proceed WITHOUT asking more questions.
+
 If the user asks for any destination outside Morocco, respond with JSON:
 {"answer":"We currently only support trips to Morocco. Pick a Moroccan city and I will build the perfect plan.","intent":"information","followUpQuestion":"Which Moroccan city and what budget should I use?","bookings":[],"travelPlan":null}
 
 For valid Morocco trips extract: origin city+country, destination Moroccan city,
-budget in USD, duration in days.
+budget in USD (if user provides MAD, convert using ~1 USD = 10 MAD), duration in days.
 
 Return ONLY valid JSON with exactly these keys:
 answer (2 sentence friendly summary, warm and natural tone, no robotic phrasing),
@@ -415,7 +539,7 @@ maxOutputTokens must handle full itinerary.`;
           messages: [
             { role: 'system', content: systemInstruction },
             ...sanitizedHistory,
-            { role: 'user', content: cleanPrompt },
+            { role: 'user', content: finalPrompt },
           ],
           temperature: 0.3,
           top_p: 0.9,
@@ -427,12 +551,16 @@ maxOutputTokens must handle full itinerary.`;
         const errorText = await response.text();
         this.logger.warn(`Groq API error: ${response.status} ${errorText}`);
         const inferredIntent = this.inferIntentFromPrompt(cleanPrompt);
-        const bookings = this.fallbackBookings(cleanPrompt, inferredIntent);
+        const bookings = this.shouldShowBookings(inferredIntent, cleanPrompt, randomRequested)
+          ? this.fallbackBookings(cleanPrompt, inferredIntent)
+          : [];
         return {
           answer:
             'I had trouble reaching the booking agent. Here is a quick shortlist to get you started.',
           intent: inferredIntent,
-          followUpQuestion: 'Should I create a new trip from these suggestions?',
+          followUpQuestion: randomRequested
+            ? null
+            : 'Should I create a new trip from these suggestions?',
           bookings,
           actions: this.buildActions(inferredIntent, bookings),
         };
@@ -444,11 +572,15 @@ maxOutputTokens must handle full itinerary.`;
 
       if (!jsonText) {
         const inferredIntent = this.inferIntentFromPrompt(cleanPrompt);
-        const bookings = this.fallbackBookings(cleanPrompt, inferredIntent);
+        const bookings = this.shouldShowBookings(inferredIntent, cleanPrompt, randomRequested)
+          ? this.fallbackBookings(cleanPrompt, inferredIntent)
+          : [];
         return {
           answer: this.normalizeAnswer(raw, 'Here is a quick plan to get started.'),
           intent: inferredIntent,
-          followUpQuestion: 'Should I create a new trip or keep browsing?',
+          followUpQuestion: randomRequested
+            ? null
+            : 'Should I create a new trip or keep browsing?',
           bookings,
           actions: this.buildActions(inferredIntent, bookings),
         };
@@ -460,7 +592,9 @@ maxOutputTokens must handle full itinerary.`;
       if (intent === 'information' && inferredIntent !== 'information') {
         intent = inferredIntent;
       }
-      const bookings = this.normalizeBookings(parsed.bookings, cleanPrompt, intent);
+      const bookings = this.shouldShowBookings(intent, cleanPrompt, randomRequested)
+        ? this.normalizeBookings(parsed.bookings, cleanPrompt, intent)
+        : [];
       const travelPlan =
         parsed.travelPlan && typeof parsed.travelPlan === 'object'
           ? (parsed.travelPlan as TravelPlan)
@@ -469,7 +603,9 @@ maxOutputTokens must handle full itinerary.`;
       return {
         answer: this.normalizeAnswer(parsed.answer, 'Here is a quick plan to get started.'),
         intent,
-        followUpQuestion: this.normalizeFollowUp(parsed.followUpQuestion),
+        followUpQuestion: randomRequested
+          ? null
+          : this.normalizeFollowUp(parsed.followUpQuestion),
         bookings,
         travelPlan,
         actions: this.buildActions(intent, bookings, travelPlan),
@@ -477,12 +613,16 @@ maxOutputTokens must handle full itinerary.`;
     } catch (error) {
       this.logger.warn(`Groq API failed: ${String(error)}`);
       const inferredIntent = this.inferIntentFromPrompt(cleanPrompt);
-      const bookings = this.fallbackBookings(cleanPrompt, inferredIntent);
+      const bookings = this.shouldShowBookings(inferredIntent, cleanPrompt, randomRequested)
+        ? this.fallbackBookings(cleanPrompt, inferredIntent)
+        : [];
       return {
         answer:
           'I had trouble generating live recommendations. Here is a quick starter plan.',
         intent: inferredIntent,
-        followUpQuestion: 'Should I create a new trip from these suggestions?',
+        followUpQuestion: randomRequested
+          ? null
+          : 'Should I create a new trip from these suggestions?',
         bookings,
         actions: this.buildActions(inferredIntent, bookings),
       };
