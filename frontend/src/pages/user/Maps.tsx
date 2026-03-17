@@ -32,6 +32,53 @@ interface NominatimResult {
     address?: { road?: string; city?: string; country?: string; suburb?: string }
 }
 
+const makePins = (items: Omit<PinData, 'id'>[]): PinData[] =>
+    items.map((item, index) => ({ id: index + 1, ...item }))
+
+const agentRoutes: Record<string, PinData[]> = {
+    Marrakech: makePins([
+        { lat: 31.6258, lng: -7.9892, name: 'Jemaa el-Fnaa', type: 'landmark' },
+        { lat: 31.6236, lng: -7.9936, name: 'Koutoubia Mosque', type: 'landmark' },
+        { lat: 31.6219, lng: -7.984, name: 'Bahia Palace', type: 'landmark' },
+        { lat: 31.6416, lng: -8.0061, name: 'Jardin Majorelle', type: 'park' },
+    ]),
+    Fes: makePins([
+        { lat: 34.0639, lng: -4.9799, name: 'Bab Boujloud', type: 'landmark' },
+        { lat: 34.0656, lng: -4.9738, name: 'Al Quaraouiyine', type: 'landmark' },
+        { lat: 34.0689, lng: -4.9857, name: 'Chouara Tannery', type: 'market' },
+    ]),
+    Casablanca: makePins([
+        { lat: 33.6084, lng: -7.6325, name: 'Hassan II Mosque', type: 'landmark' },
+        { lat: 33.5832, lng: -7.6263, name: 'Habous Quarter', type: 'market' },
+        { lat: 33.5722, lng: -7.7049, name: 'Morocco Mall', type: 'shopping' },
+    ]),
+    Rabat: makePins([
+        { lat: 34.0209, lng: -6.8226, name: 'Hassan Tower', type: 'landmark' },
+        { lat: 34.0329, lng: -6.8362, name: 'Kasbah of the Udayas', type: 'landmark' },
+        { lat: 34.0083, lng: -6.821, name: 'Chellah', type: 'landmark' },
+    ]),
+    Tangier: makePins([
+        { lat: 35.784, lng: -5.814, name: 'Tangier Medina', type: 'landmark' },
+        { lat: 35.7635, lng: -5.921, name: 'Cap Spartel', type: 'landmark' },
+        { lat: 35.7689, lng: -5.9219, name: 'Hercules Cave', type: 'landmark' },
+    ]),
+    Chefchaouen: makePins([
+        { lat: 35.1683, lng: -5.2635, name: 'Uta el-Hammam', type: 'landmark' },
+        { lat: 35.1732, lng: -5.2713, name: 'Spanish Mosque', type: 'landmark' },
+        { lat: 35.1706, lng: -5.2738, name: 'Ras El Maa', type: 'park' },
+    ]),
+    Essaouira: makePins([
+        { lat: 31.5159, lng: -9.7727, name: 'Skala du Port', type: 'landmark' },
+        { lat: 31.5135, lng: -9.7701, name: 'Essaouira Medina', type: 'landmark' },
+        { lat: 31.5094, lng: -9.7749, name: 'Essaouira Beach', type: 'beach' },
+    ]),
+    Agadir: makePins([
+        { lat: 30.4207, lng: -9.5981, name: 'Agadir Beach', type: 'beach' },
+        { lat: 30.4181, lng: -9.5896, name: 'Souk El Had', type: 'market' },
+        { lat: 30.4278, lng: -9.6216, name: 'Agadir Kasbah', type: 'landmark' },
+    ]),
+}
+
 function straightDist(a: PinData, b: PinData) {
     return Math.round(Math.sqrt((b.lat - a.lat) ** 2 + (b.lng - a.lng) ** 2) * 111000)
 }
@@ -259,6 +306,27 @@ export default function Maps() {
     const [flyTarget, setFlyTarget] = useState<[number, number] | null>(null)
     const nextIdRef = useRef(nextId)
     nextIdRef.current = nextId
+
+    useEffect(() => {
+        const raw = sessionStorage.getItem('agentAction')
+        if (!raw) return
+        try {
+            const action = JSON.parse(raw) as { type?: string; payload?: { city?: string } }
+            if (action.type !== 'SHOW_MAP') return
+            sessionStorage.removeItem('agentAction')
+            const city = action.payload?.city
+            const route = city ? agentRoutes[city] : agentRoutes.Marrakech
+            if (route && route.length) {
+                setPins(route)
+                setNextId(route.length + 1)
+                setPanelOpen(true)
+                setShowRoute(true)
+                setFlyTarget([route[0].lat, route[0].lng])
+            }
+        } catch {
+            sessionStorage.removeItem('agentAction')
+        }
+    }, [])
 
     const { route, loading, totalDist, walkMins, legDistances, failed } = useRoute(pins)
 

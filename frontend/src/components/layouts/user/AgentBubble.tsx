@@ -48,6 +48,20 @@ export default function AgentBubble() {
   const [loading, setLoading] = useState(false)
   const [showModes, setShowModes] = useState(true)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const knownCities = [
+    'Fes',
+    'Marrakech',
+    'Casablanca',
+    'Chefchaouen',
+    'Essaouira',
+    'Agadir',
+    'Rabat',
+    'Tangier',
+    'Merzouga',
+    'Ouarzazate',
+    'Imlil',
+    'Dakhla',
+  ]
 
   const agentModes = [
     {
@@ -114,6 +128,29 @@ export default function AgentBubble() {
     }
   }
 
+  const detectCity = (text: string) =>
+    knownCities.find((city) => new RegExp(`\\b${city}\\b`, 'i').test(text))
+
+  const runAction = (action: AgentAction, promptOverride?: string) => {
+    const target = actionRoutes[action.type]
+    if (!target) return
+    const lastPrompt =
+      promptOverride ||
+      [...messages].reverse().find((msg) => msg.role === 'user')?.content ||
+      ''
+    const payload = {
+      ...action.payload,
+      prompt: lastPrompt,
+      city: detectCity(lastPrompt),
+    }
+    sessionStorage.setItem(
+      'agentAction',
+      JSON.stringify({ type: action.type, payload }),
+    )
+    navigate(target.href)
+    setOpen(false)
+  }
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, loading, open])
@@ -165,6 +202,24 @@ export default function AgentBubble() {
             content: followUp,
           },
         ])
+      }
+
+      const lowerPrompt = trimmed.toLowerCase()
+      const autoAction = data.actions?.find((action) => {
+        if (action.type === 'SHOW_GROUPS' && data.intent === 'collaboration') return true
+        if (action.type === 'SHOW_GUIDES' && data.intent === 'guide') return true
+        if (action.type === 'SHOW_MAP' && /(route|map|navigate)/.test(lowerPrompt)) return true
+        if (
+          action.type === 'SHOW_TRIPS' &&
+          (data.intent === 'booking' || data.intent === 'new_trip')
+        ) {
+          return true
+        }
+        return false
+      })
+
+      if (autoAction) {
+        setTimeout(() => runAction(autoAction, trimmed), 400)
       }
     } catch {
       setMessages((prev) => [
@@ -288,7 +343,7 @@ export default function AgentBubble() {
                 return (
                   <button
                     key={`${action.type}-${index}`}
-                    onClick={() => navigate(target.href)}
+                    onClick={() => runAction(action)}
                     className="rounded-full border border-orange-100 bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-600 transition hover:bg-orange-100"
                   >
                     {target.label}
@@ -350,15 +405,19 @@ export default function AgentBubble() {
             )}
           </div>
 
-          <div className="flex gap-2">
-            <input
+          <div className="flex items-end gap-2">
+            <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') void sendMessage(input)
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault()
+                  void sendMessage(input)
+                }
               }}
               placeholder="Ask the Trippple agent..."
-              className="h-10 flex-1 rounded-2xl border border-zinc-200 bg-white px-4 text-sm text-zinc-900 outline-none transition focus:border-orange-300 focus:ring-2 focus:ring-orange-200/50"
+              rows={2}
+              className="min-h-[56px] flex-1 resize-none rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-orange-300 focus:ring-2 focus:ring-orange-200/50"
             />
             <button
               onClick={() => void sendMessage(input)}

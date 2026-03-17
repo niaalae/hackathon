@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { MapPin, Users, Check, X, Calendar, UserPlus, Info } from 'lucide-react'
 
 interface Member {
@@ -91,6 +91,30 @@ const mockGroups: Group[] = [
 export default function UserGroups() {
   const [joinedGroups, setJoinedGroups] = useState<Record<string, boolean>>({})
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null)
+  const [agentMatch, setAgentMatch] = useState<Group | null>(null)
+
+  useEffect(() => {
+    const raw = sessionStorage.getItem('agentAction')
+    if (!raw) return
+    try {
+      const action = JSON.parse(raw) as { type?: string; payload?: { city?: string } }
+      if (action.type !== 'SHOW_GROUPS') return
+      sessionStorage.removeItem('agentAction')
+      const city = action.payload?.city?.toLowerCase()
+      const matched =
+        city &&
+        mockGroups.find((group) =>
+          group.destination.toLowerCase().includes(city),
+        )
+      const pick = matched || mockGroups[0]
+      if (pick) {
+        setAgentMatch(pick)
+        setSelectedGroup(pick)
+      }
+    } catch {
+      sessionStorage.removeItem('agentAction')
+    }
+  }, [])
 
   const handleJoin = (e: React.MouseEvent, id: string) => {
     e.stopPropagation()
@@ -110,16 +134,32 @@ export default function UserGroups() {
         </div>
       </div>
 
+      {agentMatch && (
+        <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-orange-100 bg-orange-50 px-4 py-3 text-sm text-orange-700 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            Agent matched a group for you in <span className="font-semibold">{agentMatch.destination}</span>.
+            Tap the card to view details.
+          </div>
+          <button
+            onClick={() => setAgentMatch(null)}
+            className="self-start rounded-full bg-white px-3 py-1 text-xs font-semibold text-orange-600 shadow-sm transition hover:bg-orange-100 sm:self-auto"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
       {/* Grid of Groups */}
       <div className='grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
         {mockGroups.map((group) => {
           const isJoined = joinedGroups[group.id]
+          const isMatched = agentMatch?.id === group.id
 
           return (
             <div
               key={group.id}
               onClick={() => handleCardClick(group)}
-              className='overflow-hidden rounded-[20px] border border-zinc-200 bg-white shadow-sm transition-all hover:shadow-md cursor-pointer group flex flex-col h-full'
+              className={`overflow-hidden rounded-[20px] border border-zinc-200 bg-white shadow-sm transition-all hover:shadow-md cursor-pointer group flex flex-col h-full ${isMatched ? 'ring-2 ring-orange-400 ring-offset-2' : ''}`}
             >
               {/* Group Image */}
               <div className='h-48 w-full relative overflow-hidden'>
