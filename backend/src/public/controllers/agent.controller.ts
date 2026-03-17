@@ -11,9 +11,16 @@ export class AgentPublicController {
   ) { }
 
   @Post('hero')
-  async hero(@Body() body: { prompt?: string }) {
+  async hero(
+    @Body()
+    body: {
+      prompt?: string;
+      history?: { role: 'user' | 'assistant'; content: string }[];
+    },
+  ) {
     const prompt = typeof body?.prompt === 'string' ? body.prompt : '';
-    return this.heroAgentService.generateHeroReply(prompt);
+    const history = Array.isArray(body?.history) ? body.history : undefined;
+    return this.heroAgentService.generateHeroReply(prompt, history);
   }
 
   @Get('hero')

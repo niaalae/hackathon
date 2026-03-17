@@ -88,6 +88,11 @@ type AgentAction = {
   payload?: Record<string, unknown>;
 };
 
+type HistoryMessage = {
+  role: 'user' | 'assistant';
+  content: string;
+};
+
 @Injectable()
 export class HeroAgentService {
   private readonly logger = new Logger(HeroAgentService.name);
@@ -100,11 +105,46 @@ export class HeroAgentService {
   }
   private readonly endpoint = 'https://api.groq.com/openai/v1/chat/completions';
 
-  private fallbackBookings(prompt: string): BookingSuggestion[] {
+  private fallbackBookings(
+    prompt: string,
+    intent: HeroAgentResponse['intent'] = 'information',
+  ): BookingSuggestion[] {
     const short = prompt.slice(0, 48).trim();
+    if (intent === 'guide') {
+      return [
+        {
+          title: 'Local guide shortlist',
+          type: 'guide',
+          priceRange: 'Mid-range',
+          notes: 'Verified guides matched to your language and budget.',
+        },
+        {
+          title: 'Private walking tour',
+          type: 'activity',
+          priceRange: 'From $',
+          notes: 'Cultural highlights with a licensed guide.',
+        },
+      ];
+    }
+
+    if (intent === 'collaboration') {
+      return [
+        {
+          title: 'Find matching travel groups',
+          type: 'other',
+          notes: 'We will suggest active trips with similar dates and vibe.',
+        },
+      ];
+    }
+
+    const bookingTitle =
+      intent === 'booking' || intent === 'new_trip'
+        ? `Flight match: ${short || 'Flexible dates'}`
+        : `Trip idea: ${short || 'Flexible dates'}`;
+
     return [
       {
-        title: `Flight match: ${short || 'Flexible dates'}`,
+        title: bookingTitle,
         type: 'flight',
         priceRange: 'Budget to mid-range',
         notes: 'We will surface the best time and price window.',
@@ -131,6 +171,74 @@ export class HeroAgentService {
     return text.slice(start, end + 1);
   }
 
+  private normalizeIntent(value: unknown): HeroAgentResponse['intent'] {
+    const allowed: HeroAgentResponse['intent'][] = [
+      'booking',
+      'information',
+      'collaboration',
+      'guide',
+      'new_trip',
+    ];
+    if (typeof value === 'string' && (allowed as string[]).includes(value)) {
+      return value as HeroAgentResponse['intent'];
+    }
+    return 'information';
+  }
+
+  private inferIntentFromPrompt(prompt: string): HeroAgentResponse['intent'] {
+    const text = prompt.toLowerCase();
+    if (/(book|booking|reserve|reservation|flight|hotel|riad|stay|airbnb|rent|tickets?)/.test(text)) {
+      return 'booking';
+    }
+    if (/(guide|tour guide|local guide|guided tour)/.test(text)) {
+      return 'guide';
+    }
+    if (/(collab|collaborate|group|join|match|people|together|friends)/.test(text)) {
+      return 'collaboration';
+    }
+    if (/(new trip|create trip|start a trip|build a trip)/.test(text)) {
+      return 'new_trip';
+    }
+    return 'information';
+  }
+
+  private normalizeBookings(
+    value: unknown,
+    prompt: string,
+    intent: HeroAgentResponse['intent'],
+  ): BookingSuggestion[] {
+    if (!Array.isArray(value)) {
+      return this.fallbackBookings(prompt, intent);
+    }
+    const cleaned = value
+      .map((item) => {
+        if (!item || typeof item !== 'object') return null;
+        const record = item as Partial<BookingSuggestion>;
+        if (!record.title || !record.type) return null;
+        return {
+          title: String(record.title),
+          type: record.type as BookingSuggestion['type'],
+          priceRange: record.priceRange ? String(record.priceRange) : undefined,
+          notes: record.notes ? String(record.notes) : undefined,
+        };
+      })
+      .filter(Boolean) as BookingSuggestion[];
+
+    return cleaned.length > 0 ? cleaned : this.fallbackBookings(prompt, intent);
+  }
+
+  private normalizeFollowUp(value: unknown): string | null {
+    if (typeof value !== 'string') return null;
+    const trimmed = value.trim();
+    return trimmed ? trimmed : null;
+  }
+
+  private normalizeAnswer(value: unknown, fallback: string): string {
+    if (typeof value !== 'string') return fallback;
+    const trimmed = value.trim();
+    return trimmed || fallback;
+  }
+
   private buildActions(
     intent: HeroAgentResponse['intent'],
     bookings: BookingSuggestion[],
@@ -147,6 +255,10 @@ export class HeroAgentService {
         type: 'SHOW_BOOKINGS',
         payload: { bookings, commissionRate: 0.1 },
       });
+    }
+
+    if ((intent === 'booking' || intent === 'new_trip') && !actions.some(action => action.type === 'SHOW_TRIPS')) {
+      actions.push({ type: 'SHOW_TRIPS' });
     }
 
     if (intent === 'collaboration') {
@@ -187,7 +299,10 @@ export class HeroAgentService {
     return '';
   }
 
-  async generateHeroReply(prompt: string): Promise<HeroAgentResponse> {
+  async generateHeroReply(
+    prompt: string,
+    history?: HistoryMessage[],
+  ): Promise<HeroAgentResponse> {
     loadEnv()
     let apiKey = this.apiKey
     if (!apiKey) {
@@ -198,7 +313,7 @@ export class HeroAgentService {
     }
     const cleanPrompt = prompt.trim();
     if (!cleanPrompt) {
-      const bookings = this.fallbackBookings('');
+      const bookings = this.fallbackBookings('', 'information');
       return {
         answer: 'Tell me your destination, dates, budget, and vibe. I will handle the rest.',
         intent: 'information',
@@ -210,18 +325,29 @@ export class HeroAgentService {
 
     if (!apiKey) {
       this.logger.warn('GROQ_API_KEY missing. Check backend/.env.');
-      const bookings = this.fallbackBookings(cleanPrompt);
+      const inferredIntent = this.inferIntentFromPrompt(cleanPrompt);
+      const bookings = this.fallbackBookings(cleanPrompt, inferredIntent);
       return {
         answer:
           'I can suggest a plan, but the live AI agent is not connected yet. Here is a quick starter plan.',
-        intent: 'information',
+        intent: inferredIntent,
         followUpQuestion: 'Do you want to create a new trip with these suggestions?',
         bookings,
-        actions: this.buildActions('information', bookings),
+        actions: this.buildActions(inferredIntent, bookings),
       };
     }
 
-    const systemInstruction = `You are a Morocco travel specialist AI. ONLY plan trips to Moroccan cities
+    const systemInstruction = `You are Trippple, a Morocco travel specialist AI. Speak naturally and warmly.
+Your job is to classify the user's intent and guide them to the right flow.
+Intents: booking, information, collaboration, guide, new_trip.
+
+If the user requests booking/reservations/flights/hotels, set intent=booking.
+If the user asks for a guide or local tour, set intent=guide.
+If the user wants to plan with friends/meet people/join a group, set intent=collaboration.
+If the user explicitly asks to create/start a trip, set intent=new_trip.
+Otherwise, set intent=information and provide a helpful response.
+
+ONLY plan trips to Moroccan cities
 (Fes, Marrakech, Casablanca, Chefchaouen, Essaouira, Agadir, Rabat, Tangier,
 Merzouga, Ouarzazate, Imlil, Dakhla).
 
@@ -239,8 +365,8 @@ answer (2 sentence friendly summary, warm and natural tone, no robotic phrasing)
 intent (one of: booking/information/collaboration/guide/new_trip),
 followUpQuestion (optional string),
 bookings (3-5 items each with title/type/priceRange/notes),
-travelPlan (full object with all fields below).
-travelPlan must include:
+travelPlan (full object when enough info is provided; otherwise null).
+When travelPlan is provided it must include:
 - from: origin city and country from user prompt
 - to: the Moroccan destination city and country Morocco  
 - duration: number of days as integer
@@ -267,6 +393,16 @@ travelPlan must include:
 No markdown. No extra keys. Valid JSON only. 
 maxOutputTokens must handle full itinerary.`;
 
+    const sanitizedHistory = Array.isArray(history)
+      ? history
+          .filter((entry) => entry && typeof entry.content === 'string')
+          .slice(-6)
+          .map((entry) => ({
+            role: entry.role === 'user' ? 'user' : 'assistant',
+            content: entry.content.trim().slice(0, 800),
+          }))
+      : [];
+
     try {
       const response = await fetch(this.endpoint, {
         method: 'POST',
@@ -278,6 +414,7 @@ maxOutputTokens must handle full itinerary.`;
           model: this.model,
           messages: [
             { role: 'system', content: systemInstruction },
+            ...sanitizedHistory,
             { role: 'user', content: cleanPrompt },
           ],
           temperature: 0.3,
@@ -289,14 +426,15 @@ maxOutputTokens must handle full itinerary.`;
       if (!response.ok) {
         const errorText = await response.text();
         this.logger.warn(`Groq API error: ${response.status} ${errorText}`);
-        const bookings = this.fallbackBookings(cleanPrompt);
+        const inferredIntent = this.inferIntentFromPrompt(cleanPrompt);
+        const bookings = this.fallbackBookings(cleanPrompt, inferredIntent);
         return {
           answer:
             'I had trouble reaching the booking agent. Here is a quick shortlist to get you started.',
-          intent: 'information',
+          intent: inferredIntent,
           followUpQuestion: 'Should I create a new trip from these suggestions?',
           bookings,
-          actions: this.buildActions('information', bookings),
+          actions: this.buildActions(inferredIntent, bookings),
         };
       }
 
@@ -305,40 +443,48 @@ maxOutputTokens must handle full itinerary.`;
       const jsonText = this.extractJson(raw) ?? '';
 
       if (!jsonText) {
-        const bookings = this.fallbackBookings(cleanPrompt);
+        const inferredIntent = this.inferIntentFromPrompt(cleanPrompt);
+        const bookings = this.fallbackBookings(cleanPrompt, inferredIntent);
         return {
-          answer: raw.trim() || 'Here is a quick plan to get started.',
-          intent: 'information',
+          answer: this.normalizeAnswer(raw, 'Here is a quick plan to get started.'),
+          intent: inferredIntent,
           followUpQuestion: 'Should I create a new trip or keep browsing?',
           bookings,
-          actions: this.buildActions('information', bookings),
+          actions: this.buildActions(inferredIntent, bookings),
         };
       }
 
-      const parsed = JSON.parse(jsonText) as HeroAgentResponse;
-      const bookings = Array.isArray(parsed.bookings)
-        ? parsed.bookings
-        : this.fallbackBookings(cleanPrompt);
-      const actions = this.buildActions(parsed.intent, bookings, parsed.travelPlan);
+      const parsed = JSON.parse(jsonText) as Partial<HeroAgentResponse>;
+      let intent = this.normalizeIntent(parsed.intent);
+      const inferredIntent = this.inferIntentFromPrompt(cleanPrompt);
+      if (intent === 'information' && inferredIntent !== 'information') {
+        intent = inferredIntent;
+      }
+      const bookings = this.normalizeBookings(parsed.bookings, cleanPrompt, intent);
+      const travelPlan =
+        parsed.travelPlan && typeof parsed.travelPlan === 'object'
+          ? (parsed.travelPlan as TravelPlan)
+          : undefined;
 
       return {
-        answer: parsed.answer?.trim() || 'Here is a quick plan to get started.',
-        intent: (parsed.intent ?? 'information'),
-        followUpQuestion: parsed.followUpQuestion?.trim() || null,
+        answer: this.normalizeAnswer(parsed.answer, 'Here is a quick plan to get started.'),
+        intent,
+        followUpQuestion: this.normalizeFollowUp(parsed.followUpQuestion),
         bookings,
-        travelPlan: parsed.travelPlan,
-        actions: this.buildActions(parsed.intent ?? 'information', bookings, parsed.travelPlan),
+        travelPlan,
+        actions: this.buildActions(intent, bookings, travelPlan),
       };
     } catch (error) {
       this.logger.warn(`Groq API failed: ${String(error)}`);
-      const bookings = this.fallbackBookings(cleanPrompt);
+      const inferredIntent = this.inferIntentFromPrompt(cleanPrompt);
+      const bookings = this.fallbackBookings(cleanPrompt, inferredIntent);
       return {
         answer:
           'I had trouble generating live recommendations. Here is a quick starter plan.',
-        intent: 'information',
+        intent: inferredIntent,
         followUpQuestion: 'Should I create a new trip from these suggestions?',
         bookings,
-        actions: this.buildActions('information', bookings),
+        actions: this.buildActions(inferredIntent, bookings),
       };
     }
   }

@@ -11,7 +11,19 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   }
 
   async onModuleInit() {
-    await this.$connect()
+    if (!process.env.DATABASE_URL) return
+    try {
+      await Promise.race([
+        this.$connect(),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Prisma connect timeout')), 2000),
+        ),
+      ])
+    } catch (error) {
+      // Allow app to boot even if DB is unreachable (local/dev)
+      // eslint-disable-next-line no-console
+      console.warn('Prisma connect failed, continuing without DB.', error)
+    }
   }
 
   async onModuleDestroy() {

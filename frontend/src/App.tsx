@@ -9,7 +9,7 @@ import Maps from '@/pages/Maps'
 import { useGSAP } from '@gsap/react'
 import { Flip } from 'gsap/all'
 import gsap from 'gsap'
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom'
 import UserDashboard from './pages/user/Dashboard'
 import UserMaps from './pages/user/Maps'
 import UserTrips from './pages/user/Trips'
@@ -44,7 +44,7 @@ function AppContent() {
         <Route index element={<Home />} />
         <Route path='pricing' element={<Pricing />} />
         <Route path='faqs' element={<FAQs />} />
-        <Route path='maps' element={<Maps />} />
+        <Route path='maps' element={<Navigate to='/user/maps' replace />} />
 
         {/* Planning */}
         <Route path='planning/trip-planner' element={<TripPlanner />} />
