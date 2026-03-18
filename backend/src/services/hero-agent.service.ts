@@ -347,6 +347,7 @@ export class HeroAgentService {
     intent: HeroAgentResponse['intent'],
     bookings: BookingSuggestion[],
     travelPlan?: TravelPlan,
+    prompt?: string,
   ): AgentAction[] {
     const actions: AgentAction[] = [];
 
@@ -371,6 +372,10 @@ export class HeroAgentService {
 
     if (intent === 'guide') {
       actions.push({ type: 'SHOW_GUIDES' });
+    }
+
+    if (prompt && /(route|map|navigate|navigation|itinerary|plan a route|route plan)/i.test(prompt)) {
+      actions.push({ type: 'SHOW_MAP' });
     }
 
     if (intent === 'information' && actions.length === 0) {
@@ -454,7 +459,7 @@ export class HeroAgentService {
         intent: 'information',
         followUpQuestion: 'Do you want to create a new trip or match with a collaborator?',
         bookings,
-        actions: this.buildActions('information', bookings),
+        actions: this.buildActions('information', bookings, undefined, cleanPrompt),
       };
     }
 
@@ -472,7 +477,7 @@ export class HeroAgentService {
           ? null
           : 'Do you want to create a new trip with these suggestions?',
         bookings,
-        actions: this.buildActions(inferredIntent, bookings),
+        actions: this.buildActions(inferredIntent, bookings, undefined, cleanPrompt),
       };
     }
 
@@ -581,7 +586,7 @@ maxOutputTokens must handle full itinerary.`;
             ? null
             : 'Should I create a new trip from these suggestions?',
           bookings,
-          actions: this.buildActions(inferredIntent, bookings),
+          actions: this.buildActions(inferredIntent, bookings, undefined, cleanPrompt),
         };
       }
 
@@ -601,7 +606,7 @@ maxOutputTokens must handle full itinerary.`;
             ? null
             : 'Should I create a new trip or keep browsing?',
           bookings,
-          actions: this.buildActions(inferredIntent, bookings),
+          actions: this.buildActions(inferredIntent, bookings, undefined, cleanPrompt),
         };
       }
 
@@ -627,7 +632,7 @@ maxOutputTokens must handle full itinerary.`;
           : this.normalizeFollowUp(parsed.followUpQuestion),
         bookings,
         travelPlan,
-        actions: this.buildActions(intent, bookings, travelPlan),
+        actions: this.buildActions(intent, bookings, travelPlan, cleanPrompt),
       };
     } catch (error) {
       this.logger.warn(`Groq API failed: ${String(error)}`);
@@ -643,7 +648,7 @@ maxOutputTokens must handle full itinerary.`;
           ? null
           : 'Should I create a new trip from these suggestions?',
         bookings,
-        actions: this.buildActions(inferredIntent, bookings),
+        actions: this.buildActions(inferredIntent, bookings, undefined, cleanPrompt),
       };
     }
   }
