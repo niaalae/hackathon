@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import * as bcrypt from 'bcrypt'
-import { prisma } from './seed/files/client'
+import { prisma } from './seed-files/client'
 import {
   ATTRACTION_TYPES,
   BOOKING_STATUS,
@@ -16,7 +16,7 @@ import {
   SWIPE_DIRECTIONS,
   TIMEZONES,
   TRIP_STATUS,
-} from './seed/files/constants'
+} from './seed-files/constants'
 import {
   addDays,
   addHours,
@@ -27,7 +27,7 @@ import {
   rand,
   randInt,
   toMoney,
-} from './seed/files/helpers'
+} from './seed-files/helpers'
 
 async function clearData() {
   await prisma.match.deleteMany()
@@ -38,6 +38,7 @@ async function clearData() {
   await prisma.tripItem.deleteMany()
   await prisma.tripCollaborator.deleteMany()
   await prisma.trip.deleteMany()
+  await prisma.group.deleteMany()
   await prisma.guidePastTrip.deleteMany()
   await prisma.guideMedia.deleteMany()
   await prisma.guide.deleteMany()
@@ -125,6 +126,56 @@ export async function runSeed() {
   ]
 
   await prisma.city.createMany({ data: demoCities })
+
+  const demoGroups = [
+    {
+      id: randomUUID(),
+      cityId: demoCities[0].id,
+      startDate: new Date('2026-04-03T08:00:00Z'),
+      endDate: new Date('2026-04-11T20:00:00Z'),
+      capacity: 6,
+      budgetMin: 1800,
+      budgetMax: 3600,
+    },
+    {
+      id: randomUUID(),
+      cityId: demoCities[0].id,
+      startDate: new Date('2026-04-20T08:00:00Z'),
+      endDate: new Date('2026-04-28T20:00:00Z'),
+      capacity: 4,
+      budgetMin: 1200,
+      budgetMax: 2200,
+    },
+    {
+      id: randomUUID(),
+      cityId: demoCities[1].id,
+      startDate: new Date('2026-06-10T08:00:00Z'),
+      endDate: new Date('2026-06-19T20:00:00Z'),
+      capacity: 8,
+      budgetMin: 2600,
+      budgetMax: 4800,
+    },
+    {
+      id: randomUUID(),
+      cityId: demoCities[2].id,
+      startDate: new Date('2026-08-31T08:00:00Z'),
+      endDate: new Date('2026-09-08T20:00:00Z'),
+      capacity: 5,
+      budgetMin: 1600,
+      budgetMax: 3000,
+    },
+    {
+      id: randomUUID(),
+      cityId: demoCities[2].id,
+      startDate: new Date('2026-10-05T08:00:00Z'),
+      endDate: new Date('2026-10-13T20:00:00Z'),
+      capacity: 10,
+      budgetMin: 2000,
+      budgetMax: 5200,
+    },
+  ]
+
+  await prisma.group.createMany({ data: demoGroups })
 
   const tagData = Array.from({ length: COUNTS.tags }, (_, index) => ({
     id: randomUUID(),
@@ -649,12 +700,14 @@ export async function runSeed() {
     cities: cityData.length,
     attractions: attractionData.length,
     trips: tripData.length,
+    demoGroupCount: demoGroups.length,
     demoTripCount: demoTrips.length,
     demoBookingCount: demoBookings.length,
     commissionRate: COMMISSION_RATE,
   })
 
   console.log('Demo trip ids', demoTrips.map((trip) => trip.id))
+  console.log('Demo group ids', demoGroups.map((group) => group.id))
   console.log('Demo booking ids', demoBookings.map((booking) => booking.id))
   console.log('Commission checks (10%)', demoCommissionChecks)
   console.log(

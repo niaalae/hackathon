@@ -11,6 +11,7 @@ import { EmbeddingService } from './embedding.service';
 import { HeroAgentService } from './hero-agent.service';
 import { ChatService } from './chat.service';
 import { BookingService } from './booking.service';
+import { GroupPublicService } from './group-public.service';
 
 const services = [
   UserService,
@@ -25,6 +26,7 @@ const services = [
   HeroAgentService,
   ChatService,
   BookingService,
+  GroupPublicService,
 ];
 
 @Module({

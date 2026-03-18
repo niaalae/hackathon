@@ -9,6 +9,7 @@ import { RatingPublicController } from './controllers/rating.controller';
 import { UserPublicController } from './controllers/user.controller';
 import { AgentPublicController } from './controllers/agent.controller';
 import { BookingPublicController } from './controllers/booking.controller';
+import { GroupPublicController } from './controllers/group-public.controller';
 
 @Module({
   imports: [ServicesModule],
@@ -22,6 +23,7 @@ import { BookingPublicController } from './controllers/booking.controller';
     UserPublicController,
     AgentPublicController,
     BookingPublicController,
+    GroupPublicController,
   ],
 })
 export class PublicModule {}
