@@ -5,8 +5,8 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  NotFoundException,
   Param,
+  ParseUUIDPipe,
   Post,
   Put,
   Query,
@@ -14,6 +14,7 @@ import {
 import { TripPublicService } from '@/services/trip-public.service';
 import { CreateTripDto } from '@/public/dto/trip/create-trip.dto';
 import { UpdateTripDto } from '@/public/dto/trip/update-trip.dto';
+import { SearchTripQueryDto } from '@/public/dto/trip/search-trip.query.dto';
 
 /**
  * Trip Controller
@@ -122,18 +123,8 @@ export class TripPublicController {
    * - 400: Invalid date format in query parameters
    */
   @Get()
-  findAll(
-    @Query('cityId') cityId?: string,
-    @Query('startDate') startDate?: string,
-    @Query('endDate') endDate?: string,
-    @Query('status') status?: string,
-  ) {
-    return this.tripPublicService.findAll({
-      cityId,
-      startDate,
-      endDate,
-      status,
-    });
+  findAll(@Query() query: SearchTripQueryDto) {
+    return this.tripPublicService.findAll(query);
   }
 
   /**
@@ -169,7 +160,7 @@ export class TripPublicController {
    * - 404: Trip not found
    */
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.tripPublicService.findOne(id);
   }
 
@@ -201,7 +192,7 @@ export class TripPublicController {
    * - 404: Trip, user, or city not found
    */
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateTripDto: UpdateTripDto) {
+  update(@Param('id', new ParseUUIDPipe()) id: string, @Body() updateTripDto: UpdateTripDto) {
     return this.tripPublicService.update(id, updateTripDto);
   }
 
@@ -224,7 +215,7 @@ export class TripPublicController {
    */
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
-  remove(@Param('id') id: string) {
+  remove(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.tripPublicService.remove(id);
   }
 }

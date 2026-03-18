@@ -33,12 +33,22 @@ export class CityService {
     }
   }
 
-  findAll() {
-    return this.prismaService.city.findMany();
+  findAll(params?: { offset?: number; limit?: number }) {
+    const offset = params?.offset ?? 0;
+    const limit = params?.limit ?? 20;
+    return this.prismaService.city.findMany({
+      skip: offset,
+      take: limit,
+      orderBy: { name: 'asc' },
+    });
   }
 
-  findOne(id: string) {
-    return this.prismaService.city.findUnique({ where: { id } });
+  async findOne(id: string) {
+    const city = await this.prismaService.city.findUnique({ where: { id } });
+    if (!city) {
+      throw new NotFoundException('City not found');
+    }
+    return city;
   }
 
   async update(id: string, updateCityDto: UpdateCityDto) {

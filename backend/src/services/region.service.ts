@@ -22,12 +22,22 @@ export class RegionService {
     }
   }
 
-  findAll() {
-    return this.prismaService.region.findMany();
+  findAll(params?: { offset?: number; limit?: number }) {
+    const offset = params?.offset ?? 0;
+    const limit = params?.limit ?? 20;
+    return this.prismaService.region.findMany({
+      skip: offset,
+      take: limit,
+      orderBy: { name: 'asc' },
+    });
   }
 
-  findOne(id: string) {
-    return this.prismaService.region.findUnique({ where: { id } });
+  async findOne(id: string) {
+    const region = await this.prismaService.region.findUnique({ where: { id } });
+    if (!region) {
+      throw new NotFoundException('Region not found');
+    }
+    return region;
   }
 
   async update(id: string, updateRegionDto: UpdateRegionDto) {

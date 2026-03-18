@@ -22,12 +22,22 @@ export class RatingService {
     }
   }
 
-  findAll() {
-    return this.prismaService.rating.findMany();
+  findAll(params?: { offset?: number; limit?: number }) {
+    const offset = params?.offset ?? 0;
+    const limit = params?.limit ?? 20;
+    return this.prismaService.rating.findMany({
+      skip: offset,
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
-  findOne(id: string) {
-    return this.prismaService.rating.findUnique({ where: { id } });
+  async findOne(id: string) {
+    const rating = await this.prismaService.rating.findUnique({ where: { id } });
+    if (!rating) {
+      throw new NotFoundException('Rating not found');
+    }
+    return rating;
   }
 
   async update(id: string, updateRatingDto: UpdateRatingDto) {

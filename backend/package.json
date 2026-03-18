@@ -21,7 +21,9 @@
     "generate": "prisma generate",
     "migrate": "prisma migrate dev",
     "reset": "prisma migrate reset",
-    "seed": "tsx ./prisma/seed.ts"
+    "seed": "tsx ./prisma/seed.ts",
+    "smoke:api": "tsx ./scripts/api-smoke.ts",
+    "load:check": "tsx ./scripts/load-check.ts"
   },
   "dependencies": {
     "@mapbox/polyline": "^1.2.1",

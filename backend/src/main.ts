@@ -6,6 +6,7 @@ import cookieParser from 'cookie-parser'
 import { NestExpressApplication } from '@nestjs/platform-express'
 import { existsSync } from 'fs'
 import { join } from 'path'
+import { ApiExceptionFilter } from './common/filters/api-exception.filter'
 
 type ExpressLike = {
   get: (path: RegExp, handler: (req: unknown, res: { sendFile: (path: string) => void }) => void) => void
@@ -30,6 +31,9 @@ const resolveFrontendDist = () => {
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule)
+  const allowedOrigins = process.env.CORS_ORIGINS
+    ? process.env.CORS_ORIGINS.split(',').map((origin) => origin.trim()).filter(Boolean)
+    : null
 
   if (process.env.NODE_ENV !== 'production') {
     const len = process.env.GROQ_API_KEY ? process.env.GROQ_API_KEY.length : 0
@@ -40,7 +44,7 @@ async function bootstrap() {
   app.use(cookieParser())
 
   app.enableCors({
-    origin: true,
+    origin: allowedOrigins && allowedOrigins.length ? allowedOrigins : true,
     credentials: true
   })
   app.setGlobalPrefix('api')
@@ -52,6 +56,7 @@ async function bootstrap() {
       transform: true
     })
   )
+  app.useGlobalFilters(new ApiExceptionFilter())
 
   const frontendDist = resolveFrontendDist()
   if (frontendDist) {

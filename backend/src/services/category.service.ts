@@ -22,12 +22,22 @@ export class CategoryService {
     }
   }
 
-  findAll() {
-    return this.prismaService.tag.findMany();
+  findAll(params?: { offset?: number; limit?: number }) {
+    const offset = params?.offset ?? 0;
+    const limit = params?.limit ?? 20;
+    return this.prismaService.tag.findMany({
+      skip: offset,
+      take: limit,
+      orderBy: { name: 'asc' },
+    });
   }
 
-  findOne(id: string) {
-    return this.prismaService.tag.findUnique({ where: { id } });
+  async findOne(id: string) {
+    const tag = await this.prismaService.tag.findUnique({ where: { id } });
+    if (!tag) {
+      throw new NotFoundException('Tag not found');
+    }
+    return tag;
   }
 
   async update(id: string, updateCategoryDto: UpdateCategoryDto) {

@@ -1,8 +1,9 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsISO8601, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
+import { IsInt, IsISO8601, IsNotEmpty, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class SearchGroupsQueryDto {
   @IsString()
+  @IsNotEmpty()
   city!: string;
 
   @IsOptional()
@@ -18,6 +19,12 @@ export class SearchGroupsQueryDto {
   @IsNumber()
   @Min(0)
   budget?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  offset?: number;
 
   @IsOptional()
   @Type(() => Number)

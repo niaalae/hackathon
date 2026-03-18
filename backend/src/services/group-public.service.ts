@@ -29,6 +29,7 @@ export class GroupPublicService {
     }
 
     const budget = query.budget;
+    const offset = query.offset ?? 0;
     const limit = query.limit ?? 20;
 
     const groups = await this.prismaService.group.findMany({
@@ -52,6 +53,7 @@ export class GroupPublicService {
       include: {
         city: true,
       },
+      skip: offset,
       take: limit,
     });
 
@@ -103,6 +105,7 @@ export class GroupPublicService {
         start: start.toISOString(),
         end: end.toISOString(),
         budget: budget ?? null,
+        offset,
         limit,
       },
       total: matches.length,

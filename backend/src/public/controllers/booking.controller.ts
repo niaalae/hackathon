@@ -6,12 +6,15 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { BookingService } from '@/services/booking.service';
 import { CreateBookingDto } from '@/public/dto/booking/create-booking.dto';
 import { UpdateBookingDto } from '@/public/dto/booking/update-booking.dto';
+import { PaginationQueryDto } from '@/public/dto/common/pagination-query.dto';
 
 /**
  * Booking Controller
@@ -90,8 +93,8 @@ export class BookingPublicController {
    * Response: Array of booking objects (see create response schema above)
    */
   @Get()
-  findAll() {
-    return this.bookingService.findAll();
+  findAll(@Query() query: PaginationQueryDto) {
+    return this.bookingService.findAll(query);
   }
 
   /**
@@ -108,7 +111,7 @@ export class BookingPublicController {
    * - 404: Booking not found
    */
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.bookingService.findOne(id);
   }
 
@@ -128,7 +131,7 @@ export class BookingPublicController {
    * commissionValue will be recalculated automatically.
    */
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateBookingDto: UpdateBookingDto) {
+  update(@Param('id', new ParseUUIDPipe()) id: string, @Body() updateBookingDto: UpdateBookingDto) {
     return this.bookingService.update(id, updateBookingDto);
   }
 
@@ -147,7 +150,7 @@ export class BookingPublicController {
    */
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
-  remove(@Param('id') id: string) {
+  remove(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.bookingService.remove(id);
   }
 }

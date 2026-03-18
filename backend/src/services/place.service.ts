@@ -58,18 +58,23 @@ export class PlaceService {
     }
   }
 
-  findAll() {
+  findAll(params?: { offset?: number; limit?: number }) {
+    const offset = params?.offset ?? 0;
+    const limit = params?.limit ?? 20;
     return this.prismaService.attraction.findMany({
+      skip: offset,
+      take: limit,
       include: {
         city: true,
         media: true,
         tags: { include: { tag: true } },
       },
+      orderBy: { name: 'asc' },
     });
   }
 
-  findOne(id: string) {
-    return this.prismaService.attraction.findUnique({
+  async findOne(id: string) {
+    const attraction = await this.prismaService.attraction.findUnique({
       where: { id },
       include: {
         city: true,
@@ -77,6 +82,12 @@ export class PlaceService {
         tags: { include: { tag: true } },
       },
     });
+
+    if (!attraction) {
+      throw new NotFoundException('Attraction not found');
+    }
+
+    return attraction;
   }
 
   async update(id: string, updatePlaceDto: UpdatePlaceDto) {

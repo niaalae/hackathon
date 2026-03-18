@@ -21,8 +21,8 @@ export class BookingService {
    */
   private calculateCommission(basePrice: number, commissionPct: number): number {
     const commission = basePrice * commissionPct;
-    // Round to 2 decimals to ensure financial precision
-    return Math.round(commission * 100) / 100;
+    // Use decimal string rounding to avoid floating-point edge cases.
+    return Number(commission.toFixed(2));
   }
 
   /**
@@ -102,8 +102,12 @@ export class BookingService {
     }
   }
 
-  async findAll() {
+  async findAll(params?: { offset?: number; limit?: number }) {
+    const offset = params?.offset ?? 0;
+    const limit = params?.limit ?? 20;
     return await this.prismaService.booking.findMany({
+      skip: offset,
+      take: limit,
       include: { trip: true, user: true },
       orderBy: { createdAt: 'desc' },
     });

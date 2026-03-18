@@ -7,6 +7,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { CreateTripDto } from '@/public/dto/trip/create-trip.dto';
 import { UpdateTripDto } from '@/public/dto/trip/update-trip.dto';
 import { getPrismaErrorCode } from '@/prisma/prisma-error.util';
+import { SearchTripQueryDto } from '@/public/dto/trip/search-trip.query.dto';
 
 @Injectable()
 export class TripPublicService {
@@ -84,12 +85,7 @@ export class TripPublicService {
     }
   }
 
-  async findAll(filters?: {
-    cityId?: string;
-    startDate?: string;
-    endDate?: string;
-    status?: string;
-  }) {
+  async findAll(filters?: SearchTripQueryDto) {
     const where: any = {};
 
     if (filters?.cityId) {
@@ -130,8 +126,13 @@ export class TripPublicService {
       }
     }
 
+    const offset = filters?.offset ?? 0;
+    const limit = filters?.limit ?? 20;
+
     return await this.prismaService.trip.findMany({
       where,
+      skip: offset,
+      take: limit,
       include: {
         owner: true,
         city: true,
