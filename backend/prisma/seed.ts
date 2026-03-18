@@ -1,111 +1,33 @@
-import 'dotenv/config'
-import { PrismaClient } from '@prisma/client'
-import { PrismaPg } from '@prisma/adapter-pg'
 import { randomUUID } from 'node:crypto'
 import * as bcrypt from 'bcrypt'
-
-const prisma = new PrismaClient({
-  adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL })
-})
-
-const DEFAULT_SCALE = 10
-const SCALE = Math.max(1, Number.parseInt(process.env.SEED_SCALE ?? `${DEFAULT_SCALE}`, 10) || DEFAULT_SCALE)
-const CHUNK_SIZE = 500
-
-const COUNTS = {
-  regions: 6 * SCALE,
-  cities: 18 * SCALE,
-  attractions: 120 * SCALE,
-  tags: 30 * SCALE,
-  users: 120 * SCALE,
-  guides: 18 * SCALE,
-  trips: 60 * SCALE,
-  tripItems: 300 * SCALE,
-  bookings: 120 * SCALE,
-  ratings: 120 * SCALE,
-  messages: 120 * SCALE,
-  swipes: 240 * SCALE,
-  matches: 90 * SCALE,
-  infoBlocks: 150 * SCALE,
-  translations: 120 * SCALE,
-  guideMediaPerGuide: 2,
-  guidePastTripsPerGuide: 1,
-  attractionMediaPerAttraction: 1
-}
-
-const IMAGE_POOL = [
-  'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1200&auto=format&fit=crop&q=60',
-  'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1200&auto=format&fit=crop&q=60',
-  'https://images.unsplash.com/photo-1528909514045-2fa4ac7a08ba?w=1200&auto=format&fit=crop&q=60',
-  'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1200&auto=format&fit=crop&q=60'
-]
-
-const COUNTRIES = ['Portugal', 'Spain', 'Italy', 'France', 'Greece', 'Turkey', 'USA', 'Mexico', 'Japan', 'Thailand']
-const TIMEZONES = ['Europe/Lisbon', 'Europe/Madrid', 'Europe/Paris', 'America/New_York', 'Asia/Tokyo', 'Africa/Casablanca']
-const ATTRACTION_TYPES = ['Landmark', 'Museum', 'Beach', 'Market', 'Trail', 'Gallery', 'Fort', 'Park', 'Viewpoint', 'Palace']
-const BOOKING_TYPES = ['FLIGHT', 'STAY', 'EXPERIENCE', 'RENTAL', 'GUIDE'] as const
-const BOOKING_STATUS = ['PENDING', 'CONFIRMED', 'CANCELED'] as const
-const TRIP_STATUS = ['DRAFT', 'ACTIVE', 'COMPLETED', 'CANCELED'] as const
-const COLLAB_ROLES = ['EDITOR', 'VIEWER'] as const
-const MEDIA_TYPES = ['PHOTO', 'VIDEO'] as const
-const SWIPE_DIRECTIONS = ['LIKE', 'PASS'] as const
-const MATCH_STATUS = ['ACTIVE', 'BLOCKED'] as const
-const INFO_CATEGORIES = ['tips', 'transport', 'budget', 'food', 'safety', 'weather', 'events']
-
-function mulberry32(seed: number) {
-  return function () {
-    let t = (seed += 0x6d2b79f5)
-    t = Math.imul(t ^ (t >>> 15), t | 1)
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
-  }
-}
-
-const rand = mulberry32(42)
-
-function randInt(min: number, max: number) {
-  return Math.floor(rand() * (max - min + 1)) + min
-}
-
-function pick<T>(items: readonly T[]): T {
-  return items[randInt(0, items.length - 1)]
-}
-
-function pickManyUnique<T>(items: readonly T[], count: number) {
-  const result = new Set<T>()
-  const max = Math.min(count, items.length)
-  while (result.size < max) {
-    result.add(pick(items))
-  }
-  return Array.from(result)
-}
-
-function chunk<T>(items: T[], size: number) {
-  const chunks: T[][] = []
-  for (let i = 0; i < items.length; i += size) {
-    chunks.push(items.slice(i, i + size))
-  }
-  return chunks
-}
-
-async function createManyInBatches<T>(label: string, items: T[], action: (data: T[]) => Promise<unknown>) {
-  for (const batch of chunk(items, CHUNK_SIZE)) {
-    await action(batch)
-  }
-  console.log(`${label}: ${items.length}`)
-}
-
-function imageFor(index: number) {
-  return IMAGE_POOL[index % IMAGE_POOL.length]
-}
-
-function addDays(date: Date, days: number) {
-  return new Date(date.getTime() + days * 86400000)
-}
-
-function addHours(date: Date, hours: number) {
-  return new Date(date.getTime() + hours * 3600000)
-}
+import { prisma } from './seed/files/client'
+import {
+  ATTRACTION_TYPES,
+  BOOKING_STATUS,
+  BOOKING_TYPES,
+  COLLAB_ROLES,
+  COMMISSION_RATE,
+  COUNTRIES,
+  COUNTS,
+  INFO_CATEGORIES,
+  MATCH_STATUS,
+  MEDIA_TYPES,
+  SCALE,
+  SWIPE_DIRECTIONS,
+  TIMEZONES,
+  TRIP_STATUS,
+} from './seed/files/constants'
+import {
+  addDays,
+  addHours,
+  createManyInBatches,
+  imageFor,
+  pick,
+  pickManyUnique,
+  rand,
+  randInt,
+  toMoney,
+} from './seed/files/helpers'
 
 async function clearData() {
   await prisma.match.deleteMany()
@@ -130,7 +52,7 @@ async function clearData() {
   await prisma.user.deleteMany()
 }
 
-async function main() {
+export async function runSeed() {
   await clearData()
 
   const regionData = Array.from({ length: COUNTS.regions }, (_, index) => ({
@@ -139,7 +61,7 @@ async function main() {
     country: pick(COUNTRIES),
     slug: `region-${String(index + 1).padStart(4, '0')}`,
     description: `Region ${index + 1} travel highlights and local culture.`,
-    coverImage: imageFor(index)
+    coverImage: imageFor(index),
   }))
 
   await createManyInBatches('regions', regionData, (data) => prisma.region.createMany({ data }))
@@ -157,7 +79,7 @@ async function main() {
       lng: Number((rand() * 360 - 180).toFixed(6)),
       timezone: pick(TIMEZONES),
       description: `City ${index + 1} is known for food, views, and neighborhoods.`,
-      coverImage: imageFor(index + 1)
+      coverImage: imageFor(index + 1),
     }
   })
 
@@ -165,9 +87,48 @@ async function main() {
 
   const cityIds = cityData.map((city) => city.id)
 
+  // Create demo cities for demo trips
+  const demoCities = [
+    {
+      id: randomUUID(),
+      regionId: regionIds[0],
+      name: 'Paris',
+      slug: 'paris-demo',
+      lat: 48.8566,
+      lng: 2.3522,
+      timezone: 'Europe/Paris',
+      description: 'The City of Light. Experience iconic landmarks, world-class museums, and charming cafés.',
+      coverImage: imageFor(0),
+    },
+    {
+      id: randomUUID(),
+      regionId: regionIds[1 % regionIds.length],
+      name: 'Tokyo',
+      slug: 'tokyo-demo',
+      lat: 35.6762,
+      lng: 139.6503,
+      timezone: 'Asia/Tokyo',
+      description: 'The bustling capital of Japan. Discover vibrant neighborhoods, cutting-edge technology, and amazing food.',
+      coverImage: imageFor(1),
+    },
+    {
+      id: randomUUID(),
+      regionId: regionIds[2 % regionIds.length],
+      name: 'Lisbon',
+      slug: 'lisbon-demo',
+      lat: 38.7223,
+      lng: -9.1393,
+      timezone: 'Europe/Lisbon',
+      description: 'Portugal\'s charming capital. Enjoy coastal views, historic neighborhoods, and delicious pastéis de nata.',
+      coverImage: imageFor(2),
+    },
+  ]
+
+  await prisma.city.createMany({ data: demoCities })
+
   const tagData = Array.from({ length: COUNTS.tags }, (_, index) => ({
     id: randomUUID(),
-    name: `tag-${String(index + 1).padStart(4, '0')}`
+    name: `tag-${String(index + 1).padStart(4, '0')}`,
   }))
 
   await createManyInBatches('tags', tagData, (data) => prisma.tag.createMany({ data }))
@@ -187,7 +148,7 @@ async function main() {
       description: `Attraction ${index + 1} is a popular stop for visitors.`,
       avgPrice: Number((rand() * 45 + 5).toFixed(2)),
       durationMinutes: randInt(30, 240),
-      coverImage: imageFor(index + 2)
+      coverImage: imageFor(index + 2),
     }
   })
 
@@ -202,8 +163,8 @@ async function main() {
       type: pick(MEDIA_TYPES),
       url: imageFor(index + mediaIndex),
       caption: `Attraction ${index + 1} media ${mediaIndex + 1}`,
-      position: mediaIndex
-    }))
+      position: mediaIndex,
+    })),
   )
 
   await createManyInBatches('attraction media', attractionMediaData, (data) => prisma.attractionMedia.createMany({ data }))
@@ -212,7 +173,7 @@ async function main() {
     const tags = pickManyUnique(tagIds, randInt(2, 4))
     return tags.map((tagId) => ({
       attractionId: attraction.id,
-      tagId
+      tagId,
     }))
   })
 
@@ -225,9 +186,9 @@ async function main() {
   const adminUsers = Array.from({ length: adminCount }, (_, index) => ({
     id: randomUUID(),
     email: `admin${index + 1}@example.com`,
-    passwordHash: bcrypt.hashSync('demo_hash_admin',12),
+    passwordHash: bcrypt.hashSync('demo_hash_admin', 12),
     name: `Admin ${index + 1}`,
-    role: 'ADMIN' as const
+    role: 'ADMIN' as const,
   }))
 
   const guideUsers = Array.from({ length: guideCount }, (_, index) => ({
@@ -240,8 +201,8 @@ async function main() {
     preferences: {
       focus: pick(['history', 'food', 'nature', 'nightlife', 'culture']),
       pace: pick(['slow', 'moderate', 'fast']),
-      languages: ['en']
-    }
+      languages: ['en'],
+    },
   }))
 
   const travelerUsers = Array.from({ length: travelerCount }, (_, index) => ({
@@ -255,8 +216,8 @@ async function main() {
       travelStyle: pickManyUnique(['food', 'history', 'nature', 'art', 'beach', 'nightlife'], randInt(1, 3)),
       pace: pick(['slow', 'moderate', 'fast']),
       budget: pick(['low', 'mid', 'high']),
-      currency: 'USD'
-    }
+      currency: 'USD',
+    },
   }))
 
   const userData = [...adminUsers, ...guideUsers, ...travelerUsers]
@@ -274,7 +235,7 @@ async function main() {
     contactPhone: `+100000${String(index + 1).padStart(4, '0')}`,
     verified: rand() > 0.4,
     ratingAvg: Number((rand() * 1.5 + 3.5).toFixed(2)),
-    ratingCount: randInt(3, 150)
+    ratingCount: randInt(3, 150),
   }))
 
   await createManyInBatches('guides', guideData, (data) => prisma.guide.createMany({ data }))
@@ -288,8 +249,8 @@ async function main() {
       type: pick(MEDIA_TYPES),
       url: imageFor(index + mediaIndex),
       caption: `Guide ${index + 1} media ${mediaIndex + 1}`,
-      position: mediaIndex
-    }))
+      position: mediaIndex,
+    })),
   )
 
   await createManyInBatches('guide media', guideMediaData, (data) => prisma.guideMedia.createMany({ data }))
@@ -303,8 +264,8 @@ async function main() {
       startDate: addDays(new Date('2025-01-01T08:00:00Z'), randInt(1, 250)),
       endDate: addDays(new Date('2025-01-01T08:00:00Z'), randInt(251, 350)),
       summary: `Highlights from past trip ${index + 1}-${tripIndex + 1}.`,
-      mediaUrl: imageFor(index + 1)
-    }))
+      mediaUrl: imageFor(index + 1),
+    })),
   )
 
   await createManyInBatches('guide past trips', guidePastTripData, (data) => prisma.guidePastTrip.createMany({ data }))
@@ -324,7 +285,7 @@ async function main() {
       startDate,
       endDate,
       budgetTotal: Number((rand() * 4000 + 500).toFixed(2)),
-      currency: 'USD'
+      currency: 'USD',
     }
   })
 
@@ -332,18 +293,191 @@ async function main() {
 
   const tripIds = tripData.map((trip) => trip.id)
 
+  const demoTrips = [
+    {
+      id: randomUUID(),
+      ownerUserId: travelerIds[0],
+      title: 'Paris Spring Escape',
+      description: 'Discover the magic of Paris in spring. Visit the Eiffel Tower, stroll through Montmartre, and enjoy world-class dining.',
+      cityId: demoCities[0].id,
+      status: 'ACTIVE' as const,
+      startDate: new Date('2026-04-05T09:00:00Z'),
+      endDate: new Date('2026-04-10T20:00:00Z'),
+      budgetTotal: 3200,
+      currency: 'USD',
+    },
+    {
+      id: randomUUID(),
+      ownerUserId: travelerIds[1 % travelerIds.length],
+      title: 'Tokyo Food Adventure',
+      description: 'A culinary journey through Tokyo. Experience Michelin-starred restaurants, street food markets, and traditional tea ceremonies.',
+      cityId: demoCities[1].id,
+      status: 'ACTIVE' as const,
+      startDate: new Date('2026-06-12T09:00:00Z'),
+      endDate: new Date('2026-06-18T20:00:00Z'),
+      budgetTotal: 4100,
+      currency: 'USD',
+    },
+    {
+      id: randomUUID(),
+      ownerUserId: travelerIds[2 % travelerIds.length],
+      title: 'Lisbon Coastal Retreat',
+      description: 'Relax on Lisbon\'s beautiful beaches and explore historic neighborhoods. Perfect for a Portuguese seafood feast.',
+      cityId: demoCities[2].id,
+      status: 'ACTIVE' as const,
+      startDate: new Date('2026-09-01T09:00:00Z'),
+      endDate: new Date('2026-09-07T20:00:00Z'),
+      budgetTotal: 2700,
+      currency: 'USD',
+    },
+  ]
+
+  await prisma.trip.createMany({
+    data: demoTrips,
+  })
+
+  const demoTripItems = demoTrips.flatMap((trip, index) => {
+    const cityName = demoCities[index].name
+    return [
+      {
+        id: randomUUID(),
+        tripId: trip.id,
+        day: 1,
+        title: `${cityName} arrival and neighborhood walk`,
+        location: `${cityName} City Center`,
+        time: addHours(trip.startDate, 3),
+        notes: `Kickoff day in ${cityName}.`,
+        type: 'arrival',
+      },
+      {
+        id: randomUUID(),
+        tripId: trip.id,
+        day: 2,
+        title: `${cityName} highlights`,
+        location: `${cityName} Main District`,
+        time: addHours(addDays(trip.startDate, 1), 4),
+        notes: `Guided highlights for ${cityName}.`,
+        type: index % 2 === 0 ? 'sightseeing' : 'food',
+      },
+    ]
+  })
+
+  await prisma.tripItem.createMany({ data: demoTripItems })
+
+  const demoBookings = [
+    {
+      id: randomUUID(),
+      tripId: demoTrips[0].id,
+      userId: demoTrips[0].ownerUserId,
+      itemName: 'Flight to Paris',
+      type: 'FLIGHT' as const,
+      provider: 'Air Demo',
+      externalRef: 'DEMO-PARIS-FLT-001',
+      basePrice: 820,
+      commissionPct: COMMISSION_RATE,
+      commissionValue: toMoney(820 * COMMISSION_RATE),
+      currency: 'USD',
+      status: 'CONFIRMED' as const,
+      startDate: new Date('2026-04-05T07:00:00Z'),
+      endDate: new Date('2026-04-05T11:00:00Z'),
+    },
+    {
+      id: randomUUID(),
+      tripId: demoTrips[0].id,
+      userId: demoTrips[0].ownerUserId,
+      itemName: 'Hotel Stay in Paris',
+      type: 'STAY' as const,
+      provider: 'Hotel Demo Paris',
+      externalRef: 'DEMO-PARIS-STY-002',
+      basePrice: 640,
+      commissionPct: COMMISSION_RATE,
+      commissionValue: toMoney(640 * COMMISSION_RATE),
+      currency: 'USD',
+      status: 'CONFIRMED' as const,
+      startDate: new Date('2026-04-05T14:00:00Z'),
+      endDate: new Date('2026-04-10T10:00:00Z'),
+    },
+    {
+      id: randomUUID(),
+      tripId: demoTrips[1].id,
+      userId: demoTrips[1].ownerUserId,
+      itemName: 'Tokyo Local Guide Tour',
+      type: 'GUIDE' as const,
+      provider: 'Tokyo Local Guide',
+      externalRef: 'DEMO-TOKYO-GUI-003',
+      basePrice: 300,
+      commissionPct: COMMISSION_RATE,
+      commissionValue: toMoney(300 * COMMISSION_RATE),
+      currency: 'USD',
+      status: 'CONFIRMED' as const,
+      startDate: new Date('2026-06-13T09:00:00Z'),
+      endDate: new Date('2026-06-13T17:00:00Z'),
+    },
+    {
+      id: randomUUID(),
+      tripId: demoTrips[1].id,
+      userId: demoTrips[1].ownerUserId,
+      itemName: 'Tokyo Food Experience',
+      type: 'EXPERIENCE' as const,
+      provider: 'Tokyo Food Tour',
+      externalRef: 'DEMO-TOKYO-EXP-004',
+      basePrice: 180,
+      commissionPct: COMMISSION_RATE,
+      commissionValue: toMoney(180 * COMMISSION_RATE),
+      currency: 'USD',
+      status: 'CONFIRMED' as const,
+      startDate: new Date('2026-06-14T12:00:00Z'),
+      endDate: new Date('2026-06-14T16:00:00Z'),
+    },
+    {
+      id: randomUUID(),
+      tripId: demoTrips[2].id,
+      userId: demoTrips[2].ownerUserId,
+      itemName: 'Car Rental in Lisbon',
+      type: 'RENTAL' as const,
+      provider: 'Lisbon Mobility Demo',
+      externalRef: 'DEMO-LISBON-RNT-005',
+      basePrice: 220,
+      commissionPct: COMMISSION_RATE,
+      commissionValue: toMoney(220 * COMMISSION_RATE),
+      currency: 'USD',
+      status: 'CONFIRMED' as const,
+      startDate: new Date('2026-09-02T08:00:00Z'),
+      endDate: new Date('2026-09-06T20:00:00Z'),
+    },
+  ]
+
+  await prisma.booking.createMany({ data: demoBookings })
+
+  const demoCommissionChecks = demoBookings.map((booking) => {
+    const price = toMoney(booking.basePrice)
+    const expectedCommission = toMoney(price * COMMISSION_RATE)
+    const computedCommission = toMoney(booking.commissionValue)
+    if (computedCommission !== expectedCommission) {
+      throw new Error(
+        `Commission mismatch for booking ${booking.id}: expected ${expectedCommission}, got ${computedCommission}`,
+      )
+    }
+    return {
+      bookingId: booking.id,
+      itemName: booking.itemName,
+      tripId: booking.tripId,
+      basePrice: price,
+      commissionRate: COMMISSION_RATE,
+      commission: computedCommission,
+    }
+  })
+
   const tripCollaboratorData = tripData.flatMap((trip) => {
     const collaborators = pickManyUnique(travelerIds, randInt(1, 3)).filter((id) => id !== trip.ownerUserId)
     return collaborators.map((userId) => ({
       tripId: trip.id,
       userId,
-      role: pick(COLLAB_ROLES)
+      role: pick(COLLAB_ROLES),
     }))
   })
 
-  await createManyInBatches('trip collaborators', tripCollaboratorData, (data) =>
-    prisma.tripCollaborator.createMany({ data })
-  )
+  await createManyInBatches('trip collaborators', tripCollaboratorData, (data) => prisma.tripCollaborator.createMany({ data }))
 
   const tripItemsData = Array.from({ length: COUNTS.tripItems }, (_, index) => {
     const trip = tripData[index % tripData.length]
@@ -357,7 +491,7 @@ async function main() {
       location: `Area ${randInt(1, 50)}`,
       time,
       notes: `Notes for activity ${index + 1}.`,
-      type: pick(['arrival', 'sightseeing', 'excursion', 'food', 'relax'])
+      type: pick(['arrival', 'sightseeing', 'excursion', 'food', 'relax']),
     }
   })
 
@@ -367,22 +501,33 @@ async function main() {
     const trip = tripData[index % tripData.length]
     const startDate = addDays(trip.startDate ?? tripBaseDate, randInt(0, 5))
     const endDate = addDays(startDate, randInt(1, 6))
+    const basePrice = Number((rand() * 900 + 50).toFixed(2))
+    const commissionValue = toMoney(basePrice * COMMISSION_RATE)
     return {
       id: randomUUID(),
       tripId: trip.id,
       userId: trip.ownerUserId,
+      itemName: `Booking ${index + 1}`,
       type: pick(BOOKING_TYPES),
       provider: `Provider ${randInt(1, 30)}`,
       externalRef: `REF-${randInt(100000, 999999)}`,
-      price: Number((rand() * 900 + 50).toFixed(2)),
+      basePrice,
+      commissionPct: COMMISSION_RATE,
+      commissionValue,
       currency: 'USD',
       status: pick(BOOKING_STATUS),
       startDate,
-      endDate
+      endDate,
     }
   })
 
   await createManyInBatches('bookings', bookingsData, (data) => prisma.booking.createMany({ data }))
+
+  const frontendTripPayload = await prisma.trip.findMany({
+    where: { id: { in: demoTrips.map((trip) => trip.id) } },
+    include: { collaborators: true, items: true, bookings: true },
+    orderBy: { startDate: 'asc' },
+  })
 
   const ratingsData = Array.from({ length: COUNTS.ratings }, (_, index) => ({
     id: randomUUID(),
@@ -390,7 +535,7 @@ async function main() {
     guideId: guideIds[index % guideIds.length],
     tripId: tripIds[index % tripIds.length],
     score: randInt(3, 5),
-    comment: `Review ${index + 1} from traveler feedback.`
+    comment: `Review ${index + 1} from traveler feedback.`,
   }))
 
   await createManyInBatches('ratings', ratingsData, (data) => prisma.rating.createMany({ data }))
@@ -401,7 +546,7 @@ async function main() {
     toGuideId: guideIds[index % guideIds.length],
     tripId: tripIds[index % tripIds.length],
     message: `Message ${index + 1} about trip details.`,
-    status: pick(['sent', 'read', 'archived'])
+    status: pick(['sent', 'read', 'archived']),
   }))
 
   await createManyInBatches('messages', messagesData, (data) => prisma.message.createMany({ data }))
@@ -410,7 +555,7 @@ async function main() {
     id: randomUUID(),
     fromUserId: travelerIds[index % travelerIds.length],
     targetGuideId: guideIds[index % guideIds.length],
-    direction: pick(SWIPE_DIRECTIONS)
+    direction: pick(SWIPE_DIRECTIONS),
   }))
 
   await createManyInBatches('swipes', swipesData, (data) => prisma.swipe.createMany({ data }))
@@ -419,7 +564,7 @@ async function main() {
     id: randomUUID(),
     userId: travelerIds[index % travelerIds.length],
     guideId: guideIds[index % guideIds.length],
-    status: pick(MATCH_STATUS)
+    status: pick(MATCH_STATUS),
   }))
 
   await createManyInBatches('matches', matchesData, (data) => prisma.match.createMany({ data }))
@@ -445,7 +590,7 @@ async function main() {
       title: `Region tip ${i + 1}`,
       content: `Helpful region tip ${i + 1} for visitors.`,
       category: pick(INFO_CATEGORIES),
-      language: 'en'
+      language: 'en',
     })
   }
 
@@ -457,7 +602,7 @@ async function main() {
       title: `City tip ${i + 1}`,
       content: `Helpful city tip ${i + 1} for visitors.`,
       category: pick(INFO_CATEGORIES),
-      language: 'en'
+      language: 'en',
     })
   }
 
@@ -469,7 +614,7 @@ async function main() {
       title: `Attraction tip ${i + 1}`,
       content: `Helpful attraction tip ${i + 1} for visitors.`,
       category: pick(INFO_CATEGORIES),
-      language: 'en'
+      language: 'en',
     })
   }
 
@@ -490,7 +635,7 @@ async function main() {
       entityId,
       language: pick(['es', 'fr', 'pt']),
       field: pick(['name', 'description']),
-      value: `Translated ${type} ${index + 1}`
+      value: `Translated ${type} ${index + 1}`,
     }
   })
 
@@ -503,12 +648,28 @@ async function main() {
     regions: regionData.length,
     cities: cityData.length,
     attractions: attractionData.length,
-    trips: tripData.length
+    trips: tripData.length,
+    demoTripCount: demoTrips.length,
+    demoBookingCount: demoBookings.length,
+    commissionRate: COMMISSION_RATE,
   })
+
+  console.log('Demo trip ids', demoTrips.map((trip) => trip.id))
+  console.log('Demo booking ids', demoBookings.map((booking) => booking.id))
+  console.log('Commission checks (10%)', demoCommissionChecks)
+  console.log(
+    'Frontend readiness: /trips payload includes demo trips and bookings',
+    frontendTripPayload.map((trip) => ({
+      tripId: trip.id,
+      bookings: trip.bookings.length,
+      items: trip.items.length,
+      collaborators: trip.collaborators.length,
+    })),
+  )
 }
 
-main()
-  .catch((error) => {
+runSeed()
+  .catch(error => {
     console.error('Seed failed:', error)
     process.exitCode = 1
   })

@@ -4,10 +4,11 @@ import { RegionPublicController } from './controllers/region.controller';
 import { CategoryPublicController } from './controllers/category.controller';
 import { CityPublicController } from './controllers/city.controller';
 import { PlacePublicController } from './controllers/place.controller';
-import { TripPublicController } from './controllers/trip.controller';
+import { TripPublicController } from './controllers/trip-public.controller';
 import { RatingPublicController } from './controllers/rating.controller';
 import { UserPublicController } from './controllers/user.controller';
 import { AgentPublicController } from './controllers/agent.controller';
+import { BookingPublicController } from './controllers/booking.controller';
 
 @Module({
   imports: [ServicesModule],
@@ -20,6 +21,7 @@ import { AgentPublicController } from './controllers/agent.controller';
     RatingPublicController,
     UserPublicController,
     AgentPublicController,
+    BookingPublicController,
   ],
 })
 export class PublicModule {}
