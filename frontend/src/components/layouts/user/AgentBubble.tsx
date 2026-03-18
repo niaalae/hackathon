@@ -207,7 +207,9 @@ export default function AgentBubble() {
       const lowerPrompt = trimmed.toLowerCase()
       const wantsRoute = /(route|map|navigate|navigation|itinerary)/.test(lowerPrompt)
       const autoAction = data.actions?.find((action) => {
-        if (wantsRoute && action.type === 'SHOW_MAP') return true
+        if (wantsRoute) {
+          return action.type === 'SHOW_MAP'
+        }
         if (action.type === 'SHOW_GROUPS' && data.intent === 'collaboration') return true
         if (action.type === 'SHOW_GUIDES' && data.intent === 'guide') return true
         if (
