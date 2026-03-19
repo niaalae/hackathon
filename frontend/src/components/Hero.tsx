@@ -496,7 +496,7 @@ function ZellijLineBackground() {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
       <svg
-        className="absolute inset-0 h-full w-full opacity-[0.25]"
+        className="absolute inset-0 h-full w-full opacity-[0.35]"
         viewBox="0 0 1600 1000"
         fill="none"
         preserveAspectRatio="xMidYMid slice"

@@ -20,21 +20,15 @@ function ZellijLineBackground() {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
       <svg
-        className="absolute inset-0 h-full w-full opacity-[0.25]"
+        className="absolute inset-0 h-full w-full opacity-[0.35]"
         viewBox="0 0 1600 1000"
         fill="none"
         preserveAspectRatio="xMidYMid slice"
         aria-hidden="true"
       >
         <defs>
-          <pattern id="zellijRealPatternServices" width="220" height="220" patternUnits="userSpaceOnUse">
-            <g
-              stroke="rgba(37,99,235,0.26)"
-              strokeWidth="1.1"
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
+          <pattern id="zellijRealPattern" width="220" height="220" patternUnits="userSpaceOnUse">
+            <g stroke="rgba(37,99,235,0.26)" strokeWidth="1.1" fill="none" strokeLinecap="round" strokeLinejoin="round">
               <polygon points="110,22 124,60 110,72 96,60" />
               <polygon points="178,42 162,74 150,68 154,34" />
               <polygon points="198,110 160,124 148,110 160,96" />
@@ -91,7 +85,7 @@ function ZellijLineBackground() {
           </pattern>
 
           <radialGradient
-            id="leftGlowServices"
+            id="leftGlow"
             cx="0"
             cy="0"
             r="1"
@@ -103,7 +97,7 @@ function ZellijLineBackground() {
           </radialGradient>
 
           <radialGradient
-            id="rightGlowServices"
+            id="rightGlow"
             cx="0"
             cy="0"
             r="1"
@@ -114,21 +108,22 @@ function ZellijLineBackground() {
             <stop offset="1" stopColor="rgba(249,115,22,0)" />
           </radialGradient>
 
-          <linearGradient id="sectionFadeServices" x1="0" y1="0" x2="0" y2="1">
+          <linearGradient id="heroFade" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="rgba(255,255,255,0.0)" />
             <stop offset="58%" stopColor="rgba(255,255,255,0.55)" />
             <stop offset="100%" stopColor="rgba(255,255,255,0.97)" />
           </linearGradient>
         </defs>
 
-        <rect width="1600" height="1000" fill="url(#zellijRealPatternServices)" />
-        <rect width="1600" height="1000" fill="url(#leftGlowServices)" />
-        <rect width="1600" height="1000" fill="url(#rightGlowServices)" />
-        <rect width="1600" height="1000" fill="url(#sectionFadeServices)" />
+        <rect width="1600" height="1000" fill="url(#zellijRealPattern)" />
+        <rect width="1600" height="1000" fill="url(#leftGlow)" />
+        <rect width="1600" height="1000" fill="url(#rightGlow)" />
+        <rect width="1600" height="1000" fill="url(#heroFade)" />
       </svg>
     </div>
   )
 }
+
 
 export default function CollaborationSection() {
   const { t, i18n } = useTranslation()
