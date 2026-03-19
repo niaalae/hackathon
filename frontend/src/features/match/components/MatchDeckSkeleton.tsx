@@ -1,21 +1,33 @@
 export default function MatchDeckSkeleton() {
-  return (
-    <div className="space-y-3" aria-hidden="true">
-      <div className="h-2 animate-pulse rounded-full bg-zinc-200" />
+  const pulse = 'animate-pulse motion-reduce:animate-none bg-zinc-200/85'
 
-      <div className="flex items-center justify-between rounded-2xl border border-zinc-200 bg-white px-4 py-3">
-        <div className="h-4 w-20 animate-pulse rounded bg-zinc-200" />
-        <div className="h-4 w-24 animate-pulse rounded bg-zinc-200" />
+  return (
+    <div className="space-y-4" aria-hidden="true">
+      <div className={`h-2 rounded-full ${pulse}`} />
+
+      <div className="flex items-center justify-between rounded-2xl border border-zinc-200 bg-white px-4 py-3 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
+        <div className="flex items-center gap-2">
+          <div className={`h-4 w-4 rounded-full ${pulse}`} />
+          <div className={`h-4 w-16 rounded ${pulse}`} />
+        </div>
+        <div className={`h-4 w-24 rounded ${pulse}`} />
       </div>
 
-      <div className="mx-auto h-[430px] max-w-[310px] animate-pulse rounded-[24px] border border-zinc-200 bg-zinc-100 sm:h-[450px] sm:max-w-[320px]" />
+      <div className="relative mx-auto h-[430px] max-w-[310px] sm:h-[450px] sm:max-w-[320px]">
+        <div className="absolute inset-x-4 top-4 h-full rounded-[24px] bg-zinc-100" style={{ opacity: 0.62, transform: 'scale(0.985)' }} />
+        <div
+          className="absolute inset-x-2 top-2 h-full rounded-[24px] border border-zinc-200 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]"
+          style={{ opacity: 0.82, transform: 'scale(0.992)' }}
+        />
+
+        <div className={`relative h-full rounded-[24px] border border-zinc-200 ${pulse} shadow-[0_18px_50px_rgba(15,23,42,0.1)]`} />
+      </div>
 
       <div className="flex items-center justify-center gap-4">
-        <div className="h-11 w-11 animate-pulse rounded-full bg-zinc-200" />
-        <div className="h-14 w-14 animate-pulse rounded-full bg-zinc-200" />
-        <div className="h-11 w-11 animate-pulse rounded-full bg-zinc-200" />
+        <div className={`h-11 w-11 rounded-full ${pulse}`} />
+        <div className={`h-14 w-14 rounded-full ${pulse}`} />
+        <div className={`h-11 w-11 rounded-full ${pulse}`} />
       </div>
     </div>
   )
 }
-

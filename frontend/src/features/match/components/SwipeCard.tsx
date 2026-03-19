@@ -1,6 +1,7 @@
 import { memo, useEffect, useRef, useState } from 'react'
 import { MapPin, Star, Wallet, Wifi } from 'lucide-react'
 import type { SwipeDirection, TripSwipeItem } from '@/types/match'
+import { usePrefersReducedMotion } from '@/features/match/utils/usePrefersReducedMotion'
 
 export type SwipeRequest = {
   id: number
@@ -22,34 +23,34 @@ type GestureThresholds = {
 }
 
 const SWIPE_MOTION = {
-  swipeDistancePx: 520,
-  swipeRotateDeg: 14,
-  dragRotateDivisor: 24,
-  springTransition: 'transform 320ms cubic-bezier(0.22, 1, 0.36, 1)',
-  fadeTransition: 'opacity 220ms ease',
-  scaleTransition: 'scale 280ms cubic-bezier(0.22, 1, 0.36, 1)',
+  swipeDistancePx: 560,
+  swipeRotateDeg: 13,
+  dragRotateDivisor: 26,
+  springTransition: 'transform 300ms cubic-bezier(0.2, 0.9, 0.2, 1)',
+  fadeTransition: 'opacity 200ms ease-out',
+  scaleTransition: 'scale 240ms cubic-bezier(0.2, 0.9, 0.2, 1)',
 } as const
 
 const GESTURE_THRESHOLD_BY_POINTER: Record<string, GestureThresholds> = {
   touch: {
-    intentThresholdPx: 14,
-    axisRatio: 1.28,
-    swipeTriggerPx: 104,
+    intentThresholdPx: 13,
+    axisRatio: 1.24,
+    swipeTriggerPx: 98,
   },
   mouse: {
-    intentThresholdPx: 10,
-    axisRatio: 1.14,
-    swipeTriggerPx: 92,
+    intentThresholdPx: 9,
+    axisRatio: 1.12,
+    swipeTriggerPx: 84,
   },
   pen: {
-    intentThresholdPx: 12,
-    axisRatio: 1.2,
-    swipeTriggerPx: 96,
+    intentThresholdPx: 11,
+    axisRatio: 1.16,
+    swipeTriggerPx: 90,
   },
   default: {
-    intentThresholdPx: 12,
-    axisRatio: 1.2,
-    swipeTriggerPx: 96,
+    intentThresholdPx: 11,
+    axisRatio: 1.16,
+    swipeTriggerPx: 90,
   },
 }
 
@@ -64,24 +65,52 @@ function truncateDescription(text: string, maxLength = 100) {
 }
 
 function SwipeCard({ trip, onSwipe, swipeRequest }: SwipeCardProps) {
+  const prefersReducedMotion = usePrefersReducedMotion()
   const [drag, setDrag] = useState({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
   const [swipeDir, setSwipeDir] = useState<SwipeDirection | null>(null)
-  const [gestureAxis, setGestureAxis] = useState<GestureAxis>('undecided')
   const startRef = useRef<{ x: number; y: number } | null>(null)
   const pointerIdRef = useRef<number | null>(null)
   const pointerTypeRef = useRef<string | null>(null)
+  const thresholdsRef = useRef<GestureThresholds>(GESTURE_THRESHOLD_BY_POINTER.default)
+  const gestureAxisRef = useRef<GestureAxis>('undecided')
+  const isDraggingRef = useRef(false)
+  const dragRef = useRef({ x: 0, y: 0 })
+  const pendingDragRef = useRef<{ x: number; y: number } | null>(null)
+  const dragFrameRef = useRef<number | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
+
+  const flushDragFrame = () => {
+    dragFrameRef.current = null
+    if (!pendingDragRef.current) return
+    const next = pendingDragRef.current
+    pendingDragRef.current = null
+    dragRef.current = next
+    setDrag((prev) => (prev.x === next.x && prev.y === next.y ? prev : next))
+  }
 
   useEffect(() => {
     setDrag({ x: 0, y: 0 })
     setIsDragging(false)
     setSwipeDir(null)
-    setGestureAxis('undecided')
+    gestureAxisRef.current = 'undecided'
+    isDraggingRef.current = false
+    dragRef.current = { x: 0, y: 0 }
+    pendingDragRef.current = null
+    if (dragFrameRef.current !== null) {
+      cancelAnimationFrame(dragFrameRef.current)
+      dragFrameRef.current = null
+    }
     startRef.current = null
     pointerIdRef.current = null
     pointerTypeRef.current = null
   }, [trip.id])
+
+  useEffect(() => {
+    return () => {
+      if (dragFrameRef.current !== null) cancelAnimationFrame(dragFrameRef.current)
+    }
+  }, [])
 
   useEffect(() => {
     if (!swipeRequest || isDragging || swipeDir) return
@@ -92,69 +121,88 @@ function SwipeCard({ trip, onSwipe, swipeRequest }: SwipeCardProps) {
   const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     if (swipeDir) return
     setIsDragging(true)
-    setGestureAxis('undecided')
+    isDraggingRef.current = true
+    gestureAxisRef.current = 'undecided'
     startRef.current = { x: event.clientX, y: event.clientY }
     pointerIdRef.current = event.pointerId
     pointerTypeRef.current = event.pointerType || null
+    thresholdsRef.current = getGestureThresholds(pointerTypeRef.current)
     containerRef.current = event.currentTarget
   }
 
   const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (!isDragging || !startRef.current) return
+    if (!isDraggingRef.current || !startRef.current) return
     const dx = event.clientX - startRef.current.x
     const dy = event.clientY - startRef.current.y
-    const thresholds = getGestureThresholds(pointerTypeRef.current)
+    const thresholds = thresholdsRef.current
 
-    if (gestureAxis === 'undecided') {
+    if (gestureAxisRef.current === 'undecided') {
       const absX = Math.abs(dx)
       const absY = Math.abs(dy)
 
       if (absX < thresholds.intentThresholdPx && absY < thresholds.intentThresholdPx) return
 
       if (absX > absY * thresholds.axisRatio) {
-        setGestureAxis('horizontal')
+        gestureAxisRef.current = 'horizontal'
 
         if (pointerIdRef.current !== null && containerRef.current) {
           containerRef.current.setPointerCapture(pointerIdRef.current)
         }
       } else if (absY > absX * thresholds.axisRatio) {
-        setGestureAxis('vertical')
+        gestureAxisRef.current = 'vertical'
         return
       } else {
         return
       }
     }
 
-    if (gestureAxis === 'vertical') return
-    setDrag({ x: dx, y: dy * 0.3 })
+    if (gestureAxisRef.current === 'vertical') return
+    pendingDragRef.current = { x: dx, y: dy * 0.3 }
+    if (dragFrameRef.current === null) {
+      dragFrameRef.current = requestAnimationFrame(flushDragFrame)
+    }
   }
 
   const resetDrag = () => {
+    if (dragFrameRef.current !== null) {
+      cancelAnimationFrame(dragFrameRef.current)
+      dragFrameRef.current = null
+    }
+    pendingDragRef.current = null
     setDrag({ x: 0, y: 0 })
     setIsDragging(false)
-    setGestureAxis('undecided')
+    isDraggingRef.current = false
+    gestureAxisRef.current = 'undecided'
+    dragRef.current = { x: 0, y: 0 }
     startRef.current = null
     pointerIdRef.current = null
     pointerTypeRef.current = null
   }
 
   const handlePointerUp = () => {
-    if (!isDragging) return
+    if (!isDraggingRef.current) return
 
-    if (gestureAxis !== 'horizontal') {
+    if (dragFrameRef.current !== null) {
+      cancelAnimationFrame(dragFrameRef.current)
+      flushDragFrame()
+    }
+
+    if (gestureAxisRef.current !== 'horizontal') {
       resetDrag()
       return
     }
 
-    const thresholds = getGestureThresholds(pointerTypeRef.current)
+    const thresholds = thresholdsRef.current
+    const dragX = dragRef.current.x
 
-    if (Math.abs(drag.x) > thresholds.swipeTriggerPx) {
+    if (Math.abs(dragX) > thresholds.swipeTriggerPx) {
       setIsDragging(false)
-      setGestureAxis('undecided')
+      isDraggingRef.current = false
+      gestureAxisRef.current = 'undecided'
       startRef.current = null
       pointerIdRef.current = null
       pointerTypeRef.current = null
-      const direction: SwipeDirection = drag.x > 0 ? 'right' : 'left'
+      const direction: SwipeDirection = dragX > 0 ? 'right' : 'left'
       setSwipeDir(direction)
       onSwipe(direction)
     } else {
@@ -170,19 +218,27 @@ function SwipeCard({ trip, onSwipe, swipeRequest }: SwipeCardProps) {
   const showChooseOverlay = dragX > 30
   const cardOpacity = swipeDir ? 0 : 1 - dragStrength * 0.08
   const cardScale = swipeDir ? 0.98 : isDragging ? 1 - dragStrength * 0.015 : 1
+  const transformStyle = swipeDir
+    ? prefersReducedMotion
+      ? `translateX(${swipeDir === 'right' ? SWIPE_MOTION.swipeDistancePx : -SWIPE_MOTION.swipeDistancePx}px)`
+      : `translateX(${swipeDir === 'right' ? SWIPE_MOTION.swipeDistancePx : -SWIPE_MOTION.swipeDistancePx}px) rotate(${swipeDir === 'right' ? SWIPE_MOTION.swipeRotateDeg : -SWIPE_MOTION.swipeRotateDeg}deg) scale(${cardScale})`
+    : prefersReducedMotion
+      ? `translate3d(${dragX}px, ${dragY}px, 0)`
+      : `translate3d(${dragX}px, ${dragY}px, 0) rotate(${dragX / SWIPE_MOTION.dragRotateDivisor}deg) scale(${cardScale})`
+  const transitionStyle = isDragging
+    ? 'none'
+    : prefersReducedMotion
+      ? 'transform 160ms ease-out, opacity 140ms linear'
+      : `${SWIPE_MOTION.springTransition}, ${SWIPE_MOTION.fadeTransition}, ${SWIPE_MOTION.scaleTransition}`
 
   return (
     <div
       ref={containerRef}
       className="relative h-full overflow-hidden rounded-[24px] border border-zinc-200 bg-white shadow-[0_18px_50px_rgba(15,23,42,0.14)]"
       style={{
-        transform: swipeDir
-          ? `translateX(${swipeDir === 'right' ? SWIPE_MOTION.swipeDistancePx : -SWIPE_MOTION.swipeDistancePx}px) rotate(${swipeDir === 'right' ? SWIPE_MOTION.swipeRotateDeg : -SWIPE_MOTION.swipeRotateDeg}deg) scale(${cardScale})`
-          : `translate3d(${dragX}px, ${dragY}px, 0) rotate(${dragX / SWIPE_MOTION.dragRotateDivisor}deg) scale(${cardScale})`,
+        transform: transformStyle,
         opacity: cardOpacity,
-        transition: isDragging
-          ? 'none'
-          : `${SWIPE_MOTION.springTransition}, ${SWIPE_MOTION.fadeTransition}, ${SWIPE_MOTION.scaleTransition}`,
+        transition: transitionStyle,
         touchAction: 'pan-y',
         willChange: 'transform, opacity',
       }}

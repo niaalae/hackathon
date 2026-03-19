@@ -92,7 +92,7 @@ export default function MatchSummary({ result, onRestart }: MatchSummaryProps) {
 
       <button
         onClick={onRestart}
-        className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-5 text-sm font-semibold text-zinc-700 shadow-sm transition hover:bg-zinc-50"
+        className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-5 text-sm font-semibold text-zinc-700 shadow-sm transition duration-150 hover:-translate-y-0.5 hover:bg-zinc-50 hover:shadow-md active:translate-y-0 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 focus-visible:ring-offset-2 motion-reduce:transform-none"
       >
         <RefreshCcw className="h-4 w-4" />
         Restart Matching
@@ -100,4 +100,3 @@ export default function MatchSummary({ result, onRestart }: MatchSummaryProps) {
     </div>
   )
 }
-
