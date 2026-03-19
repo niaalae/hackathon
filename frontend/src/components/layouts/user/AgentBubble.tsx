@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Calendar, Compass, Loader2, MapPin, Send, Sparkles, Users, X } from 'lucide-react'
+import { Calendar, Compass, Loader2, MapPin, Send, Sparkles, Users, ArrowUpRight, Route, X } from 'lucide-react'
 import { requestHeroAgent } from '@/lib/agent'
 import { useWindowSize } from '@/hooks/useWindowSize'
 import { useNavigate } from 'react-router-dom'
@@ -101,16 +101,52 @@ export default function AgentBubble() {
     },
   ]
 
+  const quickActions = agentModes.map((mode) => ({
+    label: mode.label,
+    prompt: mode.prompt,
+    icon: mode.icon,
+  }))
+
   const actionRoutes: Record<
     AgentActionType,
-    { label: string; href: string } | null
+    { label: string; href: string; description: string; icon: typeof Sparkles } | null
   > = {
-    SHOW_TRIPS: { label: 'Open trips', href: '/user/trips' },
-    SHOW_GROUPS: { label: 'Open groups', href: '/user/groups' },
-    SHOW_BOOKINGS: { label: 'See bookings', href: '/user/trips' },
-    SHOW_GUIDES: { label: 'Find guides', href: '/user/trips' },
-    SHOW_MAP: { label: 'Open map', href: '/user/maps' },
-    SHOW_QUESTS: { label: 'Open quests', href: '/user/ai' },
+    SHOW_TRIPS: {
+      label: 'Review trip plan',
+      href: '/user/trips',
+      description: 'Open your itinerary, stays, and transport picks.',
+      icon: Compass,
+    },
+    SHOW_GROUPS: {
+      label: 'Join a group trip',
+      href: '/user/groups',
+      description: 'See active trips that match your vibe and dates.',
+      icon: Users,
+    },
+    SHOW_BOOKINGS: {
+      label: 'Compare booking picks',
+      href: '/user/trips',
+      description: 'Flights, stays, and activities curated for you.',
+      icon: Calendar,
+    },
+    SHOW_GUIDES: {
+      label: 'Find local guides',
+      href: '/user/trips',
+      description: 'Verified guides matched to your region and budget.',
+      icon: MapPin,
+    },
+    SHOW_MAP: {
+      label: 'View the route map',
+      href: '/user/maps',
+      description: 'Open the interactive route and live pins.',
+      icon: Route,
+    },
+    SHOW_QUESTS: {
+      label: 'Open quest mode',
+      href: '/user/ai',
+      description: 'Gamified missions and travel challenges.',
+      icon: Sparkles,
+    },
   }
 
   const intentLabel = (intent?: HeroAgentResponse['intent']) => {
@@ -251,7 +287,7 @@ export default function AgentBubble() {
       </button>
 
       <div
-        className={`fixed bottom-20 right-6 z-[9999] flex h-[720px] w-[360px] max-w-[90vw] max-h-[85vh] flex-col overflow-hidden rounded-3xl border border-white/60 bg-white/95 shadow-[0_24px_70px_rgba(15,23,42,0.18)] ring-1 ring-orange-100/70 backdrop-blur-xl transition-all duration-200 ${
+        className={`fixed bottom-20 right-6 z-[9999] flex h-[78vh] min-h-[560px] w-[380px] max-w-[92vw] max-h-[86vh] flex-col overflow-hidden rounded-3xl border border-white/60 bg-white/95 shadow-[0_24px_70px_rgba(15,23,42,0.18)] ring-1 ring-orange-100/70 backdrop-blur-xl transition-all duration-200 ${
           open ? 'pointer-events-auto translate-y-0 opacity-100' : 'pointer-events-none translate-y-3 opacity-0'
         }`}
       >
@@ -274,7 +310,7 @@ export default function AgentBubble() {
           </button>
         </div>
 
-        <div className="flex-1 min-h-0 space-y-4 overflow-y-auto px-4 py-4">
+        <div className="flex-1 min-h-0 space-y-3 overflow-y-auto px-4 py-4">
           {messages.map((msg) => (
             <div
               key={msg.id}
@@ -339,27 +375,41 @@ export default function AgentBubble() {
               <div className="text-[11px] uppercase tracking-[0.2em] text-zinc-400">
                 Next steps
               </div>
-              <div className="mt-2 flex flex-wrap gap-2">
-              {lastResponse.actions.map((action, index) => {
-                const target = actionRoutes[action.type]
-                if (!target) return null
-                return (
-                  <button
-                    key={`${action.type}-${index}`}
-                    onClick={() => runAction(action)}
-                    className="rounded-full border border-orange-100 bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-600 transition hover:bg-orange-100"
-                  >
-                    {target.label}
-                  </button>
-                )
-              })}
+              <div className="mt-2 space-y-2">
+                {lastResponse.actions.map((action, index) => {
+                  const target = actionRoutes[action.type]
+                  if (!target) return null
+                  const Icon = target.icon
+                  return (
+                    <button
+                      key={`${action.type}-${index}`}
+                      onClick={() => runAction(action)}
+                      className="group flex w-full items-center gap-3 rounded-2xl border border-orange-100/80 bg-white px-3 py-3 text-left shadow-[0_10px_22px_rgba(249,115,22,0.1)] transition hover:-translate-y-0.5 hover:border-orange-200 hover:shadow-[0_16px_26px_rgba(249,115,22,0.16)]"
+                    >
+                      <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-orange-50 text-orange-600">
+                        <Icon className="h-4 w-4" />
+                      </span>
+                      <span className="flex-1">
+                        <span className="block text-sm font-semibold text-zinc-900">
+                          {target.label}
+                        </span>
+                        <span className="block text-[11px] text-zinc-500">
+                          {target.description}
+                        </span>
+                      </span>
+                      <span className="flex h-8 w-8 items-center justify-center rounded-full border border-zinc-200 text-zinc-400 transition group-hover:border-orange-200 group-hover:text-orange-500">
+                        <ArrowUpRight className="h-4 w-4" />
+                      </span>
+                    </button>
+                  )
+                })}
               </div>
             </div>
           ) : null}
 
           <div className="mb-3">
             <div className="flex items-center justify-between text-[11px] uppercase tracking-[0.2em] text-zinc-400">
-              <span>Quick start</span>
+              <span>Agent tools</span>
               <button
                 onClick={() => setShowModes((prev) => !prev)}
                 className="rounded-full border border-orange-100 bg-white px-3 py-1 text-[10px] font-semibold text-orange-600 transition hover:bg-orange-50"
@@ -408,6 +458,27 @@ export default function AgentBubble() {
             )}
           </div>
 
+          <div className="mb-3">
+            <div className="text-[11px] uppercase tracking-[0.2em] text-zinc-400">
+              Quick actions
+            </div>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {quickActions.map((action) => {
+                const Icon = action.icon
+                return (
+                  <button
+                    key={action.label}
+                    onClick={() => void sendMessage(action.prompt)}
+                    className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-zinc-600 shadow-sm transition hover:border-orange-200 hover:text-orange-600"
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    {action.label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
           <div className="flex items-end gap-2">
             <textarea
               value={input}
@@ -419,8 +490,8 @@ export default function AgentBubble() {
                 }
               }}
               placeholder="Ask the Trippple agent..."
-              rows={2}
-              className="min-h-[56px] flex-1 resize-none rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-orange-300 focus:ring-2 focus:ring-orange-200/50"
+              rows={3}
+              className="min-h-[64px] flex-1 resize-none rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-orange-300 focus:ring-2 focus:ring-orange-200/50"
             />
             <button
               onClick={() => void sendMessage(input)}

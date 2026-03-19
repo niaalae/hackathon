@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   AlertCircle,
   Calendar,
@@ -435,6 +435,28 @@ export default function UserTrips() {
     title: string
     message: string
   } | null>(null)
+
+  useEffect(() => {
+    const raw = sessionStorage.getItem('agentAction')
+    if (!raw) return
+    try {
+      const parsed = JSON.parse(raw) as { type?: string }
+      if (parsed?.type === 'SHOW_BOOKINGS') {
+        setActiveTab('transport')
+        setLastAction('Showing booking options selected by the agent.')
+        sessionStorage.removeItem('agentAction')
+      } else if (parsed?.type === 'SHOW_GUIDES') {
+        setActiveTab('activities')
+        setLastAction('Surfacing guide-friendly activities for your destination.')
+        sessionStorage.removeItem('agentAction')
+      } else if (parsed?.type === 'SHOW_TRIPS') {
+        setLastAction('Your latest trip options are ready to review.')
+        sessionStorage.removeItem('agentAction')
+      }
+    } catch {
+      // Ignore malformed payloads.
+    }
+  }, [])
 
   const handleActivityBooking = (activityId: string) => {
     const currentActivity = activityData.find((activity) => activity.id === activityId)

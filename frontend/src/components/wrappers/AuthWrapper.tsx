@@ -4,7 +4,7 @@ import { useLayoutEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 
 export default function AuthWrapper() {
-  const { token, logout, setUser, setToken } = useAuthStore()
+  const { token, logout, setUser, setToken, setHasRefresh } = useAuthStore()
   const [ready, setReady] = useState<boolean>(false)
 
   useLayoutEffect(() => {
@@ -35,6 +35,11 @@ export default function AuthWrapper() {
 
             return api(originalRequest)
           } catch (refreshError) {
+            const status = (refreshError as any)?.response?.status
+            if (status === 401) {
+              setHasRefresh(false)
+              return Promise.reject(error)
+            }
             logout()
             return Promise.reject(refreshError)
           }

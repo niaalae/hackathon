@@ -193,6 +193,23 @@ export class HeroAgentService {
     return trimmed.split(/\s+/).length <= 4;
   }
 
+  private hasTravelSignal(prompt: string): boolean {
+    return /(trip|travel|plan|booking|book|flight|hotel|riad|stay|itinerary|route|map|guide|tour|visit|vacation|group|collab|match)/i.test(
+      prompt,
+    );
+  }
+
+  private isVaguePrompt(prompt: string): boolean {
+    const trimmed = prompt.trim();
+    if (!trimmed) return true;
+    const tokens = trimmed.split(/\s+/).filter(Boolean);
+    return (
+      tokens.length <= 3 &&
+      !this.hasTravelSignal(trimmed) &&
+      !this.hasDestination(trimmed)
+    );
+  }
+
   private pickRandom<T>(items: T[]): T {
     if (items.length === 0) {
       throw new Error('Cannot pick from empty list');
@@ -291,16 +308,16 @@ export class HeroAgentService {
 
   private inferIntentFromPrompt(prompt: string): HeroAgentResponse['intent'] {
     const text = prompt.toLowerCase();
-    if (/(book|booking|reserve|reservation|flight|hotel|riad|stay|airbnb|rent|tickets?)/.test(text)) {
+    if (/(book|booking|reserve|reservation|flight|hotel|riad|stay|airbnb|rent|tickets?|checkout|pay)/.test(text)) {
       return 'booking';
     }
-    if (/(guide|tour guide|local guide|guided tour)/.test(text)) {
+    if (/(guide|tour guide|local guide|guided tour|touring|guide me|private guide)/.test(text)) {
       return 'guide';
     }
-    if (/(collab|collaborate|group|join|match|people|together|friends)/.test(text)) {
+    if (/(collab|collaborate|group|join|match|people|together|friends|partner|swipe|tinder|meet)/.test(text)) {
       return 'collaboration';
     }
-    if (/(new trip|create trip|start a trip|build a trip)/.test(text)) {
+    if (/(new trip|create trip|start a trip|build a trip|make a trip|trip from scratch)/.test(text)) {
       return 'new_trip';
     }
     return 'information';
@@ -341,6 +358,15 @@ export class HeroAgentService {
     if (typeof value !== 'string') return fallback;
     const trimmed = value.trim();
     return trimmed || fallback;
+  }
+
+  private stripTrailingQuestions(text: string): string {
+    const parts = text.split(/(?<=[.!?])\s+/);
+    while (parts.length > 0 && parts[parts.length - 1].trim().endsWith('?')) {
+      parts.pop();
+    }
+    const cleaned = parts.join(' ').trim();
+    return cleaned || text;
   }
 
   private buildActions(
@@ -452,6 +478,16 @@ export class HeroAgentService {
         actions: [],
       };
     }
+    if (this.isVaguePrompt(cleanPrompt)) {
+      return {
+        answer:
+          "Hey! Tell me what you're dreaming about — a city, vibe, or quick idea — and I can handle the plan for you.",
+        intent: 'information',
+        followUpQuestion: null,
+        bookings: [],
+        actions: [],
+      };
+    }
     if (!cleanPrompt) {
       const bookings: BookingSuggestion[] = [];
       return {
@@ -484,6 +520,7 @@ export class HeroAgentService {
     const systemInstruction = `You are Trippple, a Morocco travel specialist AI. Speak naturally and warmly.
 Your job is to classify the user's intent and guide them to the right flow.
 Intents: booking, information, collaboration, guide, new_trip.
+Always use the conversation history. If the user answers a previous question, do NOT ask the same thing again.
 
 If the user requests booking/reservations/flights/hotels, set intent=booking.
 If the user asks for a guide or local tour, set intent=guide.
@@ -495,8 +532,7 @@ ONLY plan trips to Moroccan cities
 (Fes, Marrakech, Casablanca, Chefchaouen, Essaouira, Agadir, Rabat, Tangier,
 Merzouga, Ouarzazate, Imlil, Dakhla).
 
-If the user only greets (e.g. "hi", "hello") or does NOT mention a destination,
-respond with JSON that politely asks for a Moroccan city + dates + budget.
+If the user only greets or is vague, respond politely and ask what city or vibe they want.
 
 If the user says "random", "surprise me", "go wild", "anything", or
 "put everything random", you MUST auto-fill missing details with randomized,
@@ -616,6 +652,9 @@ maxOutputTokens must handle full itinerary.`;
       if (intent === 'information' && inferredIntent !== 'information') {
         intent = inferredIntent;
       }
+      if (randomRequested && intent === 'information') {
+        intent = 'booking';
+      }
       const bookings = this.shouldShowBookings(intent, cleanPrompt, randomRequested)
         ? this.normalizeBookings(parsed.bookings, cleanPrompt, intent)
         : [];
@@ -624,8 +663,16 @@ maxOutputTokens must handle full itinerary.`;
           ? (parsed.travelPlan as TravelPlan)
           : undefined;
 
+      const normalizedAnswer = this.normalizeAnswer(
+        parsed.answer,
+        'Here is a quick plan to get started.',
+      );
+      const finalAnswer = randomRequested
+        ? this.stripTrailingQuestions(normalizedAnswer)
+        : normalizedAnswer;
+
       return {
-        answer: this.normalizeAnswer(parsed.answer, 'Here is a quick plan to get started.'),
+        answer: finalAnswer,
         intent,
         followUpQuestion: randomRequested
           ? null

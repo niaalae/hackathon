@@ -9,7 +9,7 @@ export default defineConfig(({ mode }) => {
   const rawTarget = env.VITE_DEV_API_TARGET || env.VITE_PUBLIC_API_URL || ''
   const apiTarget = rawTarget.startsWith('http')
     ? rawTarget
-    : 'http://localhost:4001'
+    : 'http://127.0.0.1:4001'
 
   return {
     plugins: [react(), tailwindcss()],
