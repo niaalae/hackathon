@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { Flame, Heart, Sparkles, X } from 'lucide-react'
-import SwipeCard from '@/features/match/components/SwipeCard'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Flame, Heart, Sparkles, Undo2, X } from 'lucide-react'
+import SwipeCard, { type SwipeRequest } from '@/features/match/components/SwipeCard'
 import type { MatchSessionResult, SwipeDecision, SwipeDirection, TripSwipeItem } from '@/types/match'
 
 type SwipeDeckProps = {
@@ -8,32 +8,54 @@ type SwipeDeckProps = {
   onComplete: (result: MatchSessionResult) => void
 }
 
+type DecisionEntry = SwipeDecision & {
+  snapshot: {
+    deck: TripSwipeItem[]
+    index: number
+    liked: TripSwipeItem[]
+    skipped: TripSwipeItem[]
+    round: number
+  }
+}
+
 export default function SwipeDeck({ items, onComplete }: SwipeDeckProps) {
   const [round, setRound] = useState(1)
   const [deck, setDeck] = useState<TripSwipeItem[]>(items)
   const [index, setIndex] = useState(0)
   const [liked, setLiked] = useState<TripSwipeItem[]>([])
-  const [decisions, setDecisions] = useState<SwipeDecision[]>([])
-  const [drag, setDrag] = useState({ x: 0, y: 0 })
-  const [isDragging, setIsDragging] = useState(false)
-  const [swipeDir, setSwipeDir] = useState<SwipeDirection | null>(null)
+  const [skipped, setSkipped] = useState<TripSwipeItem[]>([])
+  const [decisions, setDecisions] = useState<DecisionEntry[]>([])
+  const [swipeRequest, setSwipeRequest] = useState<SwipeRequest | null>(null)
 
-  const startRef = useRef<{ x: number; y: number } | null>(null)
   const completedRef = useRef(false)
+  const timeoutRef = useRef<number | null>(null)
+  const requestCounterRef = useRef(0)
 
   const current = deck[index]
   const next = deck[index + 1]
 
   useEffect(() => {
+    if (timeoutRef.current) {
+      window.clearTimeout(timeoutRef.current)
+      timeoutRef.current = null
+    }
     setDeck(items)
     setIndex(0)
     setLiked([])
+    setSkipped([])
     setRound(1)
     setDecisions([])
-    setDrag({ x: 0, y: 0 })
-    setSwipeDir(null)
+    setSwipeRequest(null)
     completedRef.current = false
   }, [items])
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        window.clearTimeout(timeoutRef.current)
+      }
+    }
+  }, [])
 
   const progress = useMemo(() => {
     if (!deck.length) return 100
@@ -46,82 +68,86 @@ export default function SwipeDeck({ items, onComplete }: SwipeDeckProps) {
       setLiked([])
       setIndex(0)
       setRound((prev) => prev + 1)
-      setDrag({ x: 0, y: 0 })
-      setSwipeDir(null)
       return
     }
 
     setDeck(nextLiked.length ? nextLiked : [])
     setLiked(nextLiked)
     setIndex(0)
-    setDrag({ x: 0, y: 0 })
-    setSwipeDir(null)
   }
 
-  const processDecision = (direction: SwipeDirection) => {
+  const processDecision = useCallback((direction: SwipeDirection) => {
     if (!current) return
 
-    const decision: SwipeDecision = {
+    const decision: DecisionEntry = {
       tripId: current.id,
       direction,
       timestamp: Date.now(),
+      snapshot: {
+        deck: [...deck],
+        index,
+        liked: [...liked],
+        skipped: [...skipped],
+        round,
+      },
     }
 
     setDecisions((prev) => [...prev, decision])
 
     const nextLiked = direction === 'right' ? [...liked, current] : liked
+    const nextSkipped = direction === 'left' ? [...skipped, current] : skipped
     const isLastCard = index >= deck.length - 1
 
     if (direction === 'right') setLiked(nextLiked)
+    if (direction === 'left') setSkipped(nextSkipped)
+
+    if (timeoutRef.current) {
+      window.clearTimeout(timeoutRef.current)
+      timeoutRef.current = null
+    }
 
     if (isLastCard) {
-      window.setTimeout(() => {
+      timeoutRef.current = window.setTimeout(() => {
         startNextRoundOrFinish(nextLiked)
+        timeoutRef.current = null
       }, 220)
       return
     }
 
-    window.setTimeout(() => {
+    timeoutRef.current = window.setTimeout(() => {
       setIndex((prev) => prev + 1)
-      setDrag({ x: 0, y: 0 })
-      setSwipeDir(null)
+      timeoutRef.current = null
     }, 220)
-  }
+  }, [current, deck, index, liked, round, skipped])
 
-  const commitSwipe = (direction: SwipeDirection) => {
-    setSwipeDir(direction)
-    processDecision(direction)
-  }
+  const queueButtonSwipe = useCallback(
+    (direction: SwipeDirection) => {
+      if (!current) return
+      requestCounterRef.current += 1
+      setSwipeRequest({ id: requestCounterRef.current, direction })
+    },
+    [current],
+  )
 
-  const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (!current) return
-    setIsDragging(true)
-    startRef.current = { x: event.clientX, y: event.clientY }
-    event.currentTarget.setPointerCapture(event.pointerId)
-  }
+  const handleRewind = () => {
+    if (!decisions.length) return
 
-  const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (!isDragging || !startRef.current) return
-    const dx = event.clientX - startRef.current.x
-    const dy = event.clientY - startRef.current.y
-    setDrag({ x: dx, y: dy * 0.3 })
-  }
-
-  const resetDrag = () => {
-    setDrag({ x: 0, y: 0 })
-    setIsDragging(false)
-    startRef.current = null
-  }
-
-  const handlePointerUp = () => {
-    if (!isDragging) return
-    if (Math.abs(drag.x) > 95) {
-      setIsDragging(false)
-      startRef.current = null
-      commitSwipe(drag.x > 0 ? 'right' : 'left')
-    } else {
-      resetDrag()
+    if (timeoutRef.current) {
+      window.clearTimeout(timeoutRef.current)
+      timeoutRef.current = null
     }
+
+    const lastDecision = decisions[decisions.length - 1]
+    const snapshot = lastDecision.snapshot
+
+    setDeck(snapshot.deck)
+    setIndex(snapshot.index)
+    setLiked(snapshot.liked)
+    setSkipped(snapshot.skipped)
+    setRound(snapshot.round)
+    setSwipeRequest(null)
+    completedRef.current = false
+    setDecisions((prev) => prev.slice(0, -1))
   }
 
   const isFinished = !current && (liked.length > 0 || deck.length <= 1)
@@ -135,11 +161,12 @@ export default function SwipeDeck({ items, onComplete }: SwipeDeckProps) {
 
     onComplete({
       likedTrips: finalPool,
+      skippedTrips: skipped,
       topPicks,
       totalSwiped: decisions.length,
-      decisions,
+      decisions: decisions.map(({ tripId, direction, timestamp }) => ({ tripId, direction, timestamp })),
     })
-  }, [deck, decisions, isFinished, liked, onComplete])
+  }, [deck, decisions, isFinished, liked, onComplete, skipped])
 
   if (!current) {
     return (
@@ -168,40 +195,49 @@ export default function SwipeDeck({ items, onComplete }: SwipeDeckProps) {
       <div className="relative mx-auto h-[430px] max-w-[310px] sm:h-[450px] sm:max-w-[320px]">
         {next && (
           <>
-            <div className="absolute inset-x-4 top-4 h-full rounded-[24px] bg-zinc-100" />
-            <div className="absolute inset-x-2 top-2 h-full rounded-[24px] bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]" />
+            <div
+              className="absolute inset-x-4 top-4 h-full rounded-[24px] bg-zinc-100 transition-all duration-300"
+              style={{ opacity: 0.62, transform: 'scale(0.985)' }}
+            />
+            <div
+              className="absolute inset-x-2 top-2 h-full rounded-[24px] bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)] transition-all duration-300"
+              style={{ opacity: 0.82, transform: 'scale(0.992)' }}
+            />
           </>
         )}
 
         <SwipeCard
           trip={current}
-          dragX={drag.x}
-          dragY={drag.y}
-          isDragging={isDragging}
-          swipeDir={swipeDir}
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
+          onSwipe={processDecision}
+          swipeRequest={swipeRequest}
         />
       </div>
 
       <div className="flex items-center justify-center gap-4">
         <button
-          onClick={() => commitSwipe('left')}
+          onClick={handleRewind}
+          disabled={decisions.length === 0}
+          className="flex h-11 w-11 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-600 shadow-sm transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-45"
+        >
+          <Undo2 className="h-5 w-5" />
+        </button>
+
+        <button
+          onClick={() => queueButtonSwipe('left')}
           className="flex h-11 w-11 items-center justify-center rounded-full border border-red-200 bg-red-50 text-red-500 shadow-sm transition hover:bg-red-100"
         >
           <X className="h-5 w-5" />
         </button>
 
         <button
-          onClick={() => commitSwipe('right')}
+          onClick={() => queueButtonSwipe('right')}
           className="flex h-14 w-14 items-center justify-center rounded-full bg-orange-500 text-white shadow-[0_14px_28px_rgba(249,115,22,0.32)] transition hover:scale-[1.03]"
         >
           <Heart className="h-6 w-6" />
         </button>
 
         <button
-          onClick={() => commitSwipe('right')}
+          onClick={() => queueButtonSwipe('right')}
           className="flex h-11 w-11 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-emerald-600 shadow-sm transition hover:bg-emerald-100"
         >
           <Flame className="h-5 w-5" />
@@ -210,4 +246,3 @@ export default function SwipeDeck({ items, onComplete }: SwipeDeckProps) {
     </>
   )
 }
-

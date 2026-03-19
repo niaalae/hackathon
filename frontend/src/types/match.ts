@@ -50,8 +50,8 @@ export type SwipeDecision = {
 
 export type MatchSessionResult = {
   likedTrips: TripSwipeItem[]
+  skippedTrips: TripSwipeItem[]
   topPicks: TripSwipeItem[]
   totalSwiped: number
   decisions: SwipeDecision[]
 }
-

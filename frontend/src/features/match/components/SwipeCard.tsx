@@ -1,15 +1,61 @@
+import { memo, useEffect, useRef, useState } from 'react'
 import { MapPin, Star, Wallet, Wifi } from 'lucide-react'
 import type { SwipeDirection, TripSwipeItem } from '@/types/match'
 
+export type SwipeRequest = {
+  id: number
+  direction: SwipeDirection
+}
+
 type SwipeCardProps = {
   trip: TripSwipeItem
-  dragX: number
-  dragY: number
-  isDragging: boolean
-  swipeDir: SwipeDirection | null
-  onPointerDown: (event: React.PointerEvent<HTMLDivElement>) => void
-  onPointerMove: (event: React.PointerEvent<HTMLDivElement>) => void
-  onPointerUp: () => void
+  onSwipe: (direction: SwipeDirection) => void
+  swipeRequest: SwipeRequest | null
+}
+
+type GestureAxis = 'undecided' | 'horizontal' | 'vertical'
+
+type GestureThresholds = {
+  intentThresholdPx: number
+  axisRatio: number
+  swipeTriggerPx: number
+}
+
+const SWIPE_MOTION = {
+  swipeDistancePx: 520,
+  swipeRotateDeg: 14,
+  dragRotateDivisor: 24,
+  springTransition: 'transform 320ms cubic-bezier(0.22, 1, 0.36, 1)',
+  fadeTransition: 'opacity 220ms ease',
+  scaleTransition: 'scale 280ms cubic-bezier(0.22, 1, 0.36, 1)',
+} as const
+
+const GESTURE_THRESHOLD_BY_POINTER: Record<string, GestureThresholds> = {
+  touch: {
+    intentThresholdPx: 14,
+    axisRatio: 1.28,
+    swipeTriggerPx: 104,
+  },
+  mouse: {
+    intentThresholdPx: 10,
+    axisRatio: 1.14,
+    swipeTriggerPx: 92,
+  },
+  pen: {
+    intentThresholdPx: 12,
+    axisRatio: 1.2,
+    swipeTriggerPx: 96,
+  },
+  default: {
+    intentThresholdPx: 12,
+    axisRatio: 1.2,
+    swipeTriggerPx: 96,
+  },
+}
+
+function getGestureThresholds(pointerType: string | null) {
+  if (!pointerType) return GESTURE_THRESHOLD_BY_POINTER.default
+  return GESTURE_THRESHOLD_BY_POINTER[pointerType] ?? GESTURE_THRESHOLD_BY_POINTER.default
 }
 
 function truncateDescription(text: string, maxLength = 100) {
@@ -17,34 +63,133 @@ function truncateDescription(text: string, maxLength = 100) {
   return `${text.slice(0, maxLength).trim()}...`
 }
 
-export default function SwipeCard({
-  trip,
-  dragX,
-  dragY,
-  isDragging,
-  swipeDir,
-  onPointerDown,
-  onPointerMove,
-  onPointerUp,
-}: SwipeCardProps) {
+function SwipeCard({ trip, onSwipe, swipeRequest }: SwipeCardProps) {
+  const [drag, setDrag] = useState({ x: 0, y: 0 })
+  const [isDragging, setIsDragging] = useState(false)
+  const [swipeDir, setSwipeDir] = useState<SwipeDirection | null>(null)
+  const [gestureAxis, setGestureAxis] = useState<GestureAxis>('undecided')
+  const startRef = useRef<{ x: number; y: number } | null>(null)
+  const pointerIdRef = useRef<number | null>(null)
+  const pointerTypeRef = useRef<string | null>(null)
+  const containerRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    setDrag({ x: 0, y: 0 })
+    setIsDragging(false)
+    setSwipeDir(null)
+    setGestureAxis('undecided')
+    startRef.current = null
+    pointerIdRef.current = null
+    pointerTypeRef.current = null
+  }, [trip.id])
+
+  useEffect(() => {
+    if (!swipeRequest || isDragging || swipeDir) return
+    setSwipeDir(swipeRequest.direction)
+    onSwipe(swipeRequest.direction)
+  }, [isDragging, onSwipe, swipeDir, swipeRequest])
+
+  const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (swipeDir) return
+    setIsDragging(true)
+    setGestureAxis('undecided')
+    startRef.current = { x: event.clientX, y: event.clientY }
+    pointerIdRef.current = event.pointerId
+    pointerTypeRef.current = event.pointerType || null
+    containerRef.current = event.currentTarget
+  }
+
+  const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDragging || !startRef.current) return
+    const dx = event.clientX - startRef.current.x
+    const dy = event.clientY - startRef.current.y
+    const thresholds = getGestureThresholds(pointerTypeRef.current)
+
+    if (gestureAxis === 'undecided') {
+      const absX = Math.abs(dx)
+      const absY = Math.abs(dy)
+
+      if (absX < thresholds.intentThresholdPx && absY < thresholds.intentThresholdPx) return
+
+      if (absX > absY * thresholds.axisRatio) {
+        setGestureAxis('horizontal')
+
+        if (pointerIdRef.current !== null && containerRef.current) {
+          containerRef.current.setPointerCapture(pointerIdRef.current)
+        }
+      } else if (absY > absX * thresholds.axisRatio) {
+        setGestureAxis('vertical')
+        return
+      } else {
+        return
+      }
+    }
+
+    if (gestureAxis === 'vertical') return
+    setDrag({ x: dx, y: dy * 0.3 })
+  }
+
+  const resetDrag = () => {
+    setDrag({ x: 0, y: 0 })
+    setIsDragging(false)
+    setGestureAxis('undecided')
+    startRef.current = null
+    pointerIdRef.current = null
+    pointerTypeRef.current = null
+  }
+
+  const handlePointerUp = () => {
+    if (!isDragging) return
+
+    if (gestureAxis !== 'horizontal') {
+      resetDrag()
+      return
+    }
+
+    const thresholds = getGestureThresholds(pointerTypeRef.current)
+
+    if (Math.abs(drag.x) > thresholds.swipeTriggerPx) {
+      setIsDragging(false)
+      setGestureAxis('undecided')
+      startRef.current = null
+      pointerIdRef.current = null
+      pointerTypeRef.current = null
+      const direction: SwipeDirection = drag.x > 0 ? 'right' : 'left'
+      setSwipeDir(direction)
+      onSwipe(direction)
+    } else {
+      resetDrag()
+    }
+  }
+
+  const dragX = drag.x
+  const dragY = drag.y
+  const dragStrength = Math.min(Math.abs(dragX) / 220, 1)
   const overlayOpacity = Math.min(Math.abs(dragX) / 120, 1)
   const showRejectOverlay = dragX < -30
   const showChooseOverlay = dragX > 30
+  const cardOpacity = swipeDir ? 0 : 1 - dragStrength * 0.08
+  const cardScale = swipeDir ? 0.98 : isDragging ? 1 - dragStrength * 0.015 : 1
 
   return (
     <div
+      ref={containerRef}
       className="relative h-full overflow-hidden rounded-[24px] border border-zinc-200 bg-white shadow-[0_18px_50px_rgba(15,23,42,0.14)]"
       style={{
         transform: swipeDir
-          ? `translateX(${swipeDir === 'right' ? 520 : -520}px) rotate(${swipeDir === 'right' ? 14 : -14}deg)`
-          : `translate3d(${dragX}px, ${dragY}px, 0) rotate(${dragX / 24}deg)`,
-        transition: isDragging ? 'none' : 'transform 280ms cubic-bezier(0.22, 1, 0.36, 1)',
+          ? `translateX(${swipeDir === 'right' ? SWIPE_MOTION.swipeDistancePx : -SWIPE_MOTION.swipeDistancePx}px) rotate(${swipeDir === 'right' ? SWIPE_MOTION.swipeRotateDeg : -SWIPE_MOTION.swipeRotateDeg}deg) scale(${cardScale})`
+          : `translate3d(${dragX}px, ${dragY}px, 0) rotate(${dragX / SWIPE_MOTION.dragRotateDivisor}deg) scale(${cardScale})`,
+        opacity: cardOpacity,
+        transition: isDragging
+          ? 'none'
+          : `${SWIPE_MOTION.springTransition}, ${SWIPE_MOTION.fadeTransition}, ${SWIPE_MOTION.scaleTransition}`,
         touchAction: 'pan-y',
+        willChange: 'transform, opacity',
       }}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerCancel={onPointerUp}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
     >
       <div className="relative h-[46%]">
         <img src={trip.image} alt={trip.title} className="h-full w-full object-cover" />
@@ -117,3 +262,4 @@ export default function SwipeCard({
   )
 }
 
+export default memo(SwipeCard)

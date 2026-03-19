@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Search, SlidersHorizontal } from 'lucide-react'
+import api from '@/lib/api'
 import SwipeDeck from '@/features/match/components/SwipeDeck'
 import MatchSummary from '@/features/match/components/MatchSummary'
+import MatchDeckSkeleton from '@/features/match/components/MatchDeckSkeleton'
 import { MOCK_TRIP_SWIPE_DATA } from '@/data/mockTripSwipeData'
 import { getActiveFilterChips, getMatchedTrips } from '@/features/match/utils/matchScoring'
+import { mapTripsResponseToSwipeItems } from '@/features/match/utils/mapTripApi'
 import { matchesTripSearch } from '@/features/match/utils/searchNormalize'
-import type { HeroPromptContext, MatchSessionResult } from '@/types/match'
+import type { HeroPromptContext, MatchSessionResult, TripSwipeItem } from '@/types/match'
 
 function getPromptContext(): HeroPromptContext | null {
   try {
@@ -23,10 +26,41 @@ export default function UserMatch() {
   const [appliedSearch, setAppliedSearch] = useState('')
   const [result, setResult] = useState<MatchSessionResult | null>(null)
   const [restartSeed, setRestartSeed] = useState(0)
+  const [trips, setTrips] = useState<TripSwipeItem[]>([])
+  const [isLoadingTrips, setIsLoadingTrips] = useState(true)
+  const [tripsError, setTripsError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let mounted = true
+
+    async function loadTrips() {
+      setIsLoadingTrips(true)
+      setTripsError(null)
+
+      try {
+        const res = await api.get('/trips')
+        const mapped = mapTripsResponseToSwipeItems(res.data)
+
+        if (!mounted) return
+        setTrips(mapped)
+      } catch {
+        if (!mounted) return
+        setTrips(MOCK_TRIP_SWIPE_DATA)
+        setTripsError('Unable to load trips from API. Showing fallback suggestions.')
+      } finally {
+        if (mounted) setIsLoadingTrips(false)
+      }
+    }
+
+    loadTrips()
+    return () => {
+      mounted = false
+    }
+  }, [])
 
   const baseTrips = useMemo(
-    () => getMatchedTrips(MOCK_TRIP_SWIPE_DATA, context, strictFilters),
-    [context, strictFilters],
+    () => getMatchedTrips(trips, context, strictFilters),
+    [context, strictFilters, trips],
   )
 
   const searchedTrips = useMemo(() => {
@@ -36,6 +70,7 @@ export default function UserMatch() {
   }, [appliedSearch, baseTrips])
 
   const activeFilterChips = useMemo(() => getActiveFilterChips(context), [context])
+  const isApiEmptyState = !isLoadingTrips && trips.length === 0
 
   useEffect(() => {
     setResult(null)
@@ -124,7 +159,20 @@ export default function UserMatch() {
         </button>
       </div>
 
-      {result ? (
+      {tripsError && (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+          {tripsError}
+        </div>
+      )}
+
+      {isLoadingTrips ? (
+        <MatchDeckSkeleton />
+      ) : isApiEmptyState ? (
+        <div className="rounded-2xl border border-zinc-200 bg-white px-4 py-8 text-center">
+          <p className="text-sm font-medium text-zinc-800">No trip suggestions available yet.</p>
+          <p className="mt-1 text-sm text-zinc-500">Try again later or adjust your filters when trips are available.</p>
+        </div>
+      ) : result ? (
         <MatchSummary result={result} onRestart={restartMatches} />
       ) : (
         <SwipeDeck key={restartSeed} items={searchedTrips} onComplete={setResult} />
@@ -132,4 +180,3 @@ export default function UserMatch() {
     </div>
   )
 }
-
