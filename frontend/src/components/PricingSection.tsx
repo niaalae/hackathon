@@ -349,7 +349,7 @@ export default function PricingSection() {
   return (
     <section className="relative overflow-hidden bg-white px-4 py-16" dir={isRtl ? 'rtl' : 'ltr'}>
       <ZellijLineBackground />
-      <div className="absolute left-1/2 top-0 h-[540px] w-[540px] -translate-x-1/2 rounded-full bg-orange-50/30 blur-3xl" />
+      <div className="absolute left-1/2 top-0 h-135 w-135 -translate-x-1/2 rounded-full bg-orange-50/30 blur-3xl" />
 
       <div className="relative z-10 mx-auto max-w-7xl">
         <div className="mb-10 text-center">

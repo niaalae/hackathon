@@ -141,22 +141,22 @@ export default function CollaborationSection() {
       topIcon: <Users className="h-4 w-4 text-orange-500" />,
       benefits: [
         {
-          icon: <Calendar className="h-[18px] w-[18px] text-orange-500" />,
+          icon: <Calendar className="h-4.5 w-4.5 text-orange-500" />,
           text: 'Shared dates',
           desc: 'Coordinate schedules and trip availability with everyone in one place.',
         },
         {
-          icon: <DollarSign className="h-[18px] w-[18px] text-orange-500" />,
+          icon: <DollarSign className="h-4.5 w-4.5 text-orange-500" />,
           text: 'Budget tracking',
           desc: 'Keep spending visible and aligned across the whole group trip.',
         },
         {
-          icon: <Camera className="h-[18px] w-[18px] text-orange-500" />,
+          icon: <Camera className="h-4.5 w-4.5 text-orange-500" />,
           text: 'Photo sharing',
           desc: 'Collect memories, trip inspiration, and references in one shared flow.',
         },
         {
-          icon: <CheckCircle2 className="h-[18px] w-[18px] text-orange-500" />,
+          icon: <CheckCircle2 className="h-4.5 w-4.5 text-orange-500" />,
           text: 'Cleaner planning',
           desc: 'Reduce chaos and keep decisions organized without endless chat threads.',
         },
@@ -173,22 +173,22 @@ export default function CollaborationSection() {
       topIcon: <Bot className="h-4 w-4 text-orange-500" />,
       benefits: [
         {
-          icon: <Bot className="h-[18px] w-[18px] text-orange-500" />,
+          icon: <Bot className="h-4.5 w-4.5 text-orange-500" />,
           text: 'Smart intent',
           desc: 'Understand what the traveler wants before showing the right next actions.',
         },
         {
-          icon: <Calendar className="h-[18px] w-[18px] text-orange-500" />,
+          icon: <Calendar className="h-4.5 w-4.5 text-orange-500" />,
           text: 'Trip itinerary',
           desc: 'Turn one idea into a clearer structure for the whole trip.',
         },
         {
-          icon: <DollarSign className="h-[18px] w-[18px] text-orange-500" />,
+          icon: <DollarSign className="h-4.5 w-4.5 text-orange-500" />,
           text: 'Booking picks',
           desc: 'Surface better options faster with a premium booking shortlist.',
         },
         {
-          icon: <CheckCircle2 className="h-[18px] w-[18px] text-orange-500" />,
+          icon: <CheckCircle2 className="h-4.5 w-4.5 text-orange-500" />,
           text: 'Fast flow',
           desc: 'Move from prompt to action with less friction and fewer steps.',
         },
@@ -205,22 +205,22 @@ export default function CollaborationSection() {
       topIcon: <BadgeInfo className="h-4 w-4 text-orange-500" />,
       benefits: [
         {
-          icon: <MapPinned className="h-[18px] w-[18px] text-orange-500" />,
+          icon: <MapPinned className="h-4.5 w-4.5 text-orange-500" />,
           text: 'Place guidance',
           desc: 'Help travelers understand where to go and what matters nearby.',
         },
         {
-          icon: <ShieldCheck className="h-[18px] w-[18px] text-orange-500" />,
+          icon: <ShieldCheck className="h-4.5 w-4.5 text-orange-500" />,
           text: 'Safer choices',
           desc: 'Support better travel decisions with more helpful context.',
         },
         {
-          icon: <CheckCircle2 className="h-[18px] w-[18px] text-orange-500" />,
+          icon: <CheckCircle2 className="h-4.5 w-4.5 text-orange-500" />,
           text: 'Clear answers',
           desc: 'Respond to travel questions with cleaner and more useful guidance.',
         },
         {
-          icon: <Camera className="h-[18px] w-[18px] text-orange-500" />,
+          icon: <Camera className="h-4.5 w-4.5 text-orange-500" />,
           text: 'Better discovery',
           desc: 'Make exploring destinations feel easier and more inspiring.',
         },
@@ -237,22 +237,22 @@ export default function CollaborationSection() {
       topIcon: <UserRoundSearch className="h-4 w-4 text-orange-500" />,
       benefits: [
         {
-          icon: <UserRoundSearch className="h-[18px] w-[18px] text-orange-500" />,
+          icon: <UserRoundSearch className="h-4.5 w-4.5 text-orange-500" />,
           text: 'Guide search',
           desc: 'Discover local experts faster when travelers need real human support.',
         },
         {
-          icon: <MapPinned className="h-[18px] w-[18px] text-orange-500" />,
+          icon: <MapPinned className="h-4.5 w-4.5 text-orange-500" />,
           text: 'Nearby options',
           desc: 'Surface relevant guide choices based on destination and context.',
         },
         {
-          icon: <Users className="h-[18px] w-[18px] text-orange-500" />,
+          icon: <Users className="h-4.5 w-4.5 text-orange-500" />,
           text: 'Human help',
           desc: 'Blend AI planning with trusted local assistance when needed.',
         },
         {
-          icon: <CheckCircle2 className="h-[18px] w-[18px] text-orange-500" />,
+          icon: <CheckCircle2 className="h-4.5 w-4.5 text-orange-500" />,
           text: 'Trusted picks',
           desc: 'Guide users toward more reliable and higher-quality local experiences.',
         },
@@ -268,8 +268,8 @@ export default function CollaborationSection() {
       dir={isRtl ? 'rtl' : 'ltr'}
     >
       <ZellijLineBackground />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.28),_transparent_42%)]" />
-      <div className="absolute left-1/2 top-0 h-[540px] w-[540px] -translate-x-1/2 rounded-full bg-orange-50/30 blur-3xl" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.28),transparent_42%)]" />
+      <div className="absolute left-1/2 top-0 h-135 w-135 -translate-x-1/2 rounded-full bg-orange-50/30 blur-3xl" />
 
       <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6">
         <div className="mx-auto mb-8 max-w-3xl text-center">
@@ -347,7 +347,7 @@ export default function CollaborationSection() {
           </button>
         </div>
 
-        <div className="relative overflow-hidden rounded-[28px] border border-zinc-100/80 bg-white/80 p-5 shadow-[0_16px_42px_rgba(15,23,42,0.05)] backdrop-blur-[2px] sm:p-7 lg:rounded-[32px] lg:p-10">
+        <div className="relative overflow-hidden rounded-[28px] border border-zinc-100/80 bg-white/80 p-5 shadow-[0_16px_42px_rgba(15,23,42,0.05)] backdrop-blur-[2px] sm:p-7 lg:rounded-4xl lg:p-10">
           <div className="pointer-events-none absolute inset-0">
             <div className="absolute right-0 top-0 h-52 w-52 rounded-full bg-orange-100/28 blur-3xl" />
             <div className="absolute bottom-0 left-0 h-52 w-52 rounded-full bg-orange-100/18 blur-3xl" />
@@ -406,12 +406,12 @@ export default function CollaborationSection() {
             <div className="relative order-1 flex justify-center lg:order-2 lg:justify-end">
               <div className="absolute left-3 top-3 h-[84%] w-[84%] rounded-[28px] bg-orange-50/80 sm:left-5 sm:top-5 sm:rounded-[34px]" />
 
-              <div className="relative z-10 w-full max-w-[370px]">
+              <div className="relative z-10 w-full max-w-92.5">
                 <div className="overflow-hidden rounded-[30px] border-[7px] border-zinc-900 bg-white shadow-2xl sm:rounded-[36px]">
                   <img
                     src={current.image}
                     alt={current.title}
-                    className="h-[360px] w-full object-cover sm:h-[430px]"
+                    className="h-90 w-full object-cover sm:h-107.5"
                   />
                 </div>
 
@@ -426,7 +426,7 @@ export default function CollaborationSection() {
               </div>
             </div>
 
-            <div className="absolute -right-20 -top-20 h-[420px] w-[420px] rounded-full bg-gradient-to-br from-orange-100/30 to-transparent blur-2xl" />
+            <div className="absolute -right-20 -top-20 h-105 w-105 rounded-full bg-linear-to-br from-orange-100/30 to-transparent blur-2xl" />
           </div>
         </div>
       </div>

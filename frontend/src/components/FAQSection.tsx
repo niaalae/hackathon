@@ -187,7 +187,7 @@ function ChatBot({ onClose }: { onClose: () => void }) {
   return (
     <div
       dir={isRtl ? 'rtl' : 'ltr'}
-      className="fixed bottom-0 right-0 z-[9999] flex h-[100dvh] w-full flex-col overflow-hidden border-t border-zinc-200 bg-white shadow-[0_16px_48px_rgba(0,0,0,0.12)] sm:bottom-20 sm:right-5 sm:h-[min(460px,calc(100vh-120px))] sm:w-[360px] sm:rounded-2xl sm:border"
+      className="fixed bottom-0 right-0 z-9999 flex h-dvh w-full flex-col overflow-hidden border-t border-zinc-200 bg-white shadow-[0_16px_48px_rgba(0,0,0,0.12)] sm:bottom-20 sm:right-5 sm:h-[min(460px,calc(100vh-120px))] sm:w-90 sm:rounded-2xl sm:border"
     >
       <div className="flex shrink-0 items-center gap-3 border-b border-zinc-100 px-4 py-3">
         <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-orange-500">
@@ -335,7 +335,7 @@ export default function FAQSection() {
 
       <button
         onClick={() => setChatOpen(o => !o)}
-        className="fixed bottom-5 right-5 z-[9999] flex h-12 w-12 items-center justify-center rounded-full bg-orange-500 text-white shadow-[0_8px_24px_rgba(249,115,22,0.35)] transition hover:bg-orange-600 active:scale-95"
+        className="fixed bottom-5 right-5 z-9999 flex h-12 w-12 items-center justify-center rounded-full bg-orange-500 text-white shadow-[0_8px_24px_rgba(249,115,22,0.35)] transition hover:bg-orange-600 active:scale-95"
         aria-label="Open chat"
       >
         {chatOpen ? <X className="h-5 w-5" /> : <MessageSquare className="h-5 w-5" />}
