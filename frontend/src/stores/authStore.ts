@@ -72,7 +72,7 @@ export const useAuthStore = create<AuthStoreInterface>()(
           // 401 is expected when no refresh cookie exists; keep it quiet
           const status = e?.response?.status
           if (status === 401) {
-            set({ token: null, user: null, hasRefresh: false })
+            set({ hasRefresh: false })
             return
           }
           if (status) console.log(e)

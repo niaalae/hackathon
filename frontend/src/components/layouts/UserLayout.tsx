@@ -1,9 +1,26 @@
-import { useState } from 'react'
+import { Component, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useWindowSize } from '@/hooks/useWindowSize'
 import { TopBar, Sidebar, BottomNav, MobileDrawer } from './user'
 import AgentBubble from './user/AgentBubble'
+
+class AgentBubbleBoundary extends Component<{ children: React.ReactNode }, { hasError: boolean }> {
+  state = { hasError: false }
+
+  static getDerivedStateFromError() {
+    return { hasError: true }
+  }
+
+  componentDidCatch(error: unknown, info: unknown) {
+    console.error('AgentBubble crashed', error, info)
+  }
+
+  render() {
+    if (this.state.hasError) return null
+    return this.props.children
+  }
+}
 
 export default function UserLayout() {
   const { i18n } = useTranslation()
@@ -54,7 +71,9 @@ export default function UserLayout() {
     </div>
 
     {/* Desktop/Tablet AI Agent Bubble */}
-    {!isMobile && <AgentBubble />}
+    <AgentBubbleBoundary>
+      {!isMobile && <AgentBubble />}
+    </AgentBubbleBoundary>
 
       <style>{`
         .animate-fade-in {
