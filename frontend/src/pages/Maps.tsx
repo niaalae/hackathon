@@ -88,7 +88,7 @@ async function geoapifyPlaces(category: CategoryKey, lat: number, lng: number, s
 
 function useSearch(centerRef: React.RefObject<{ lat: number; lng: number }>) {
   const [query, setQuery] = useState(''); const [results, setResults] = useState<SearchResult[]>([]); const [busy, setBusy] = useState(false); const [open, setOpen] = useState(false)
-  const timer = useRef<ReturnType<typeof setTimeout>>(); const abort = useRef<AbortController>()
+  const timer = useRef<ReturnType<typeof setTimeout>>(null!); const abort = useRef<AbortController>(null!)
   useEffect(() => {
     clearTimeout(timer.current)
     if (query.trim().length < 2) { setResults([]); setOpen(false); return }
@@ -259,7 +259,7 @@ export default function Maps() {
   const flyRef = useRef<((lat: number, lng: number, zoom?: number) => void) | null>(null)
   const centerRef = useRef<{ lat: number; lng: number }>({ lat: (DEFAULT_CENTER as number[])[0], lng: (DEFAULT_CENTER as number[])[1] })
   const clickCbRef = useRef<((lat: number, lng: number) => void) | null>(null)
-  const searchWrap = useRef<HTMLDivElement>(null); const browseAbort = useRef<AbortController>()
+  const searchWrap = useRef<HTMLDivElement>(null); const browseAbort = useRef<AbortController>(null!)
   const { route, loading: routeLoading } = useRoute(pins)
   const { query, setQuery, results, busy, open, setOpen, clear } = useSearch(centerRef)
   const showToast = useCallback((msg: string) => { setToast(msg); setTimeout(() => setToast(null), 2500) }, [])
