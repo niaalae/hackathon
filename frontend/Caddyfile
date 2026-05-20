@@ -1,0 +1,6 @@
+:{$PORT} {
+    root * /app/frontend/dist
+    try_files {path} /index.html
+    encode gzip
+    file_server
+}
