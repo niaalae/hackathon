@@ -5,7 +5,6 @@ import { AdminAnalytics, AdminDashboard, AdminSettings, AdminTrips, AdminUsers }
 import Home from '@/pages/Home'
 import Pricing from '@/pages/Pricing'
 import FAQs from '@/pages/FAQs'
-import Maps from '@/pages/Maps'
 import { useGSAP } from '@gsap/react'
 import { Flip } from 'gsap/all'
 import gsap from 'gsap'
