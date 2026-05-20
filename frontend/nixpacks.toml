@@ -1,5 +1,5 @@
 [phases.setup]
-nixPkgs = ["nodejs_22", "caddy"]
+nixPkgs = ["nodejs_22"]
 
 [phases.install]
 cmds = ["npm ci"]
@@ -8,4 +8,4 @@ cmds = ["npm ci"]
 cmds = ["cd frontend && npm run build"]
 
 [start]
-cmd = "caddy run --config ./Caddyfile"
+cmd = "npx serve -s frontend/dist -l ${PORT:-3000}"
