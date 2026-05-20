@@ -4,5 +4,8 @@
   },
   "deploy": {
     "startCommand": "caddy run --config ./Caddyfile"
+  },
+  "env": {
+    "NIXPACKS_NODE_VERSION": "22"
   }
 }
